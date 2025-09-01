@@ -2,6 +2,11 @@ from flask import Flask , jsonify , json
 from helper.firebase import getUsers
 app = Flask(__name__)
 
+
+@app.route('/')
+def index():
+    return jsonify({"status": "ok", "message": "Flask app is running"}), 200
+
 @app.route('/users' , methods = ['GET'])
 def users() -> json:
 	user_list = getUsers()
