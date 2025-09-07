@@ -1,16 +1,16 @@
 import firebase_admin
-from firebase_admin import credentials , firestore
+from firebase_admin import credentials , firestore , auth
 import os
 
 dir = os.path.dirname(os.path.abspath(__file__))
-key_path = os.path.join(dir,'..','dev-private-keys.json')
+key_path = os.path.join(dir,'..','p-ai-private-key.json')
 cred = credentials.Certificate(key_path)
 
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-def getUsers() -> list:
+def getUsers() -> list: #dummy method
 	users_collection = db.collection('users').where('active', '==', True)
 	docs = users_collection.stream()
 	users_list = []

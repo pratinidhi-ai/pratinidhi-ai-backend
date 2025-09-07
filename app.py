@@ -1,9 +1,11 @@
 from flask import Flask , jsonify , json
 from helper.firebase import getUsers
+from helper.middleware import authenticate_request
 app = Flask(__name__)
 
 
 @app.route('/')
+# @authenticate_request
 def index():
     return jsonify({"status": "ok", "message": "Flask app is running"}), 200
 
