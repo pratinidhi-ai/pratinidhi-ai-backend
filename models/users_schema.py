@@ -4,6 +4,8 @@ import time
 from dataclasses import dataclass, field
 
 from enum import Enum
+def _get_utc_now():
+    return datetime.now(timezone.utc)
 
 class Grade(Enum):
     GRADE_6 = "6"
@@ -69,8 +71,8 @@ class User:
     personalized_content: bool = True
     
     # Metadata
-    created_at: datetime = field(default_factory=datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=_get_utc_now())
+    updated_at: datetime = field(default_factory=_get_utc_now())
     onboarding_completed: bool = False
     last_login: Optional[datetime] = None
     

@@ -37,3 +37,46 @@ def getUserbyId(user_id : str) :
 	except Exception as e:
 		logger.error(f"Error getting user from Firestore: {str(e)}")
 		raise
+
+def createUser(user_data: dict) -> bool:
+
+    try:
+        user_id = user_data['id']
+        
+        # Check if user already exists before creating
+        if checkUserExists(user_id):
+            logger.warning(f"User {user_id} already exists, skipping creation")
+            return False
+        
+        # Add timestamp fields if not present
+        from datetime import datetime, timezone
+        current_time = datetime.now(timezone.utc).isoformat()
+        
+        if 'created_at' not in user_data:
+            user_data['created_at'] = current_time
+        if 'updated_at' not in user_data:
+            user_data['updated_at'] = current_time
+        
+        db.collection('users').document(user_id).set(user_data)
+        
+        logger.info(f"Successfully created user: {user_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating user in Firestore: {str(e)}")
+        return False
+        
+    except Exception as e:
+        logger.error(f"Error creating user in Firestore: {str(e)}")
+        return False
+
+
+def checkUserExists(user_id: str) -> bool:
+
+    try:
+        doc_ref = db.collection('users').document(user_id)
+        doc = doc_ref.get()
+        return doc.exists
+    except Exception as e:
+        logger.error(f"Error checking if user exists: {str(e)}")
+        return False
