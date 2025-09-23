@@ -40,43 +40,120 @@ def getUserbyId(user_id : str) :
 
 def createUser(user_data: dict) -> bool:
 
-    try:
-        user_id = user_data['id']
-        
-        # Check if user already exists before creating
-        if checkUserExists(user_id):
-            logger.warning(f"User {user_id} already exists, skipping creation")
-            return False
-        
-        # Add timestamp fields if not present
-        from datetime import datetime, timezone
-        current_time = datetime.now(timezone.utc).isoformat()
-        
-        if 'created_at' not in user_data:
-            user_data['created_at'] = current_time
-        if 'updated_at' not in user_data:
-            user_data['updated_at'] = current_time
-        
-        db.collection('users').document(user_id).set(user_data)
-        
-        logger.info(f"Successfully created user: {user_id}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error creating user in Firestore: {str(e)}")
-        return False
-        
-    except Exception as e:
-        logger.error(f"Error creating user in Firestore: {str(e)}")
-        return False
+	try:
+		user_id = user_data['id']
+		
+		# Check if user already exists before creating
+		if checkUserExists(user_id):
+			logger.warning(f"User {user_id} already exists, skipping creation")
+			return False
+		
+		# Add timestamp fields if not present
+		from datetime import datetime, timezone
+		current_time = datetime.now(timezone.utc).isoformat()
+		
+		if 'created_at' not in user_data:
+			user_data['created_at'] = current_time
+		if 'updated_at' not in user_data:
+			user_data['updated_at'] = current_time
+		
+		db.collection('users').document(user_id).set(user_data)
+		
+		logger.info(f"Successfully created user: {user_id}")
+		return True
+		
+	except Exception as e:
+		logger.error(f"Error creating user in Firestore: {str(e)}")
+		return False
+		
+	except Exception as e:
+		logger.error(f"Error creating user in Firestore: {str(e)}")
+		return False
 
 
 def checkUserExists(user_id: str) -> bool:
 
-    try:
-        doc_ref = db.collection('users').document(user_id)
-        doc = doc_ref.get()
-        return doc.exists
-    except Exception as e:
-        logger.error(f"Error checking if user exists: {str(e)}")
-        return False
+	try:
+		doc_ref = db.collection('users').document(user_id)
+		doc = doc_ref.get()
+		return doc.exists
+	except Exception as e:
+		logger.error(f"Error checking if user exists: {str(e)}")
+		return False
+	
+def _getMetaData() :
+	try:
+		doc = db.collection('question_bank').document('_metadata').get()
+		metaData = doc.to_dict()
+		return metaData
+	except Exception as e:
+		logger.error(e)
+		return None
+
+def _getQuestions(attributes: dict):
+	nques = attributes.get('nques')
+	if nques is None:
+		nques = 5
+	try:
+		if attributes.get('tags') is None:
+			if attributes.get('exam') is None:
+				sub_path = attributes['subject'] + '|' + attributes['subcategory'] + '|' + attributes['standard']
+				collection_ref = db.collection('question_bank')\
+							.document(sub_path)\
+							.collection('difficulty')\
+							.document(attributes['difficulty'])\
+							.collection('all')\
+							.document('members')\
+							.collection('items')
+			else:
+				sub_path = attributes['subject'] + '|' + attributes['subcategory'] + '|' + attributes['standard']
+				collection_ref = db.collection('question_bank')\
+							.document(sub_path)\
+							.collection('difficulty')\
+							.document(attributes['difficulty'])\
+							.collection('by_exam')\
+							.document(attributes['exam'])\
+							.collection('members')
+		else:
+			if attributes.get('exam') is None:
+				sub_path = attributes['subject'] + '|' + attributes['subcategory'] + '|' + attributes['standard']
+				collection_ref = db.collection('question_bank')\
+							.document(sub_path)\
+							.collection('difficulty')\
+							.document(attributes['difficulty'])\
+							.collection('tags')\
+							.document(attributes['tags'])\
+							.collection('members')
+			else:
+				sub_path = attributes['subject'] + '|' + attributes['subcategory'] + '|' + attributes['standard']
+				collection_ref = db.collection('question_bank')\
+							.document(sub_path)\
+							.collection('difficulty')\
+							.document(attributes['difficulty'])\
+							.collection('tags')\
+							.document(attributes['tags'])\
+							.collection('by_exam')\
+							.document(attributes['exam'])\
+							.collection('members')
+		query_newest = collection_ref.order_by(
+		"created_at",  
+		direction=firestore.Query.DESCENDING
+		).limit(nques)
+		docs_newest = query_newest.stream()
+		result = []
+		for doc in docs_newest:
+			result.append(getQuestionFromId(doc.to_dict()['question_id']))
+		return result
+	
+	except Exception as e:
+		logger.error(e)
+		return []
+	
+def getQuestionFromId(id: str):
+	try:
+		doc_ref = db.collection('questions').document(id)
+		doc = doc_ref.get()
+		return doc.to_dict()
+	except Exception as e:
+		logger.error(e)
+		return {}

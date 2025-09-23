@@ -1,9 +1,10 @@
-from flask import Flask , jsonify , json
-from helper.firebase import getUsers 
+from flask import Flask , jsonify , json , request
+from flask_cors import CORS
+from helper.firebase import getUsers , _getMetaData , _getQuestions
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp
 app = Flask(__name__)
-
+CORS(app)
 app.register_blueprint(user_bp)
 
 @app.errorhandler(404)
@@ -16,11 +17,33 @@ def internal_error(error):
 
 # Health check endpoint
 @app.route('/', methods=['GET'])
+@authenticate_request
 def health_check():
 	return {'status': 'healthy', 'service': 'user-api'}, 200
    
 
+@app.route('/get-questions' , methods = ['GET'])
+@authenticate_request
+def getQuestions():
+    attributes = request.args 
+
+    required_params = ['subject', 'subcategory', 'standard', 'difficulty']
+    if not all(param in attributes for param in required_params):
+        return {'_error' : 'Missing one or more required query parameters' }, 422
+    
+    questions_list = _getQuestions(attributes)
+    return jsonify(questions_list)
+
+@app.route('/get-metadata' , methods = ['GET'])
+@authenticate_request
+def getMetaData():
+	if _getMetaData() is not None:
+		return jsonify(_getMetaData())
+	return {'_error:' "No MetaData was found"} , 404
+
+
 @app.route('/users' , methods = ['GET'])
+@authenticate_request
 def users() -> json:
 	user_list = getUsers()
 	return jsonify(user_list)

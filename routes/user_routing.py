@@ -3,6 +3,7 @@ from models.users_schema import User
 from typing import Dict, Any
 from helper.firebase import getUserbyId , createUser , checkUserExists
 import time
+from helper.middleware import authenticate_request
 from datetime import datetime, timezone
 import logging
 
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @user_bp.route('/<user_id>',methods=['GET'] )
+@authenticate_request
 def get_user(user_id: str) :
 	try:
 		item = getUserbyId(user_id=user_id)
@@ -33,6 +35,7 @@ def get_user(user_id: str) :
 		}) , 500
 
 @user_bp.route('/' , methods = ['POST'])
+@authenticate_request
 def create_user():
 	try:
 		data = request.get_json()
