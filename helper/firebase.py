@@ -74,10 +74,8 @@ def createUser(user_data: dict) -> bool:
 def checkUserExists(user_id: str) -> bool:
 
 	try:
-		print(user_id)
 		doc_ref = db.collection('users').document(user_id)
 		doc = doc_ref.get()
-		print(doc)
 		return doc.exists
 	except Exception as e:
 		logger.error(f"Error checking if user exists: {str(e)}")

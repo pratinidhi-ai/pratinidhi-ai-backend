@@ -1,10 +1,10 @@
 from flask import Flask , jsonify , json , request
-from flask_cors import CORS
+
 from helper.firebase import getUsers , _getMetaData , _getQuestions , checkUserExists
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp
 app = Flask(__name__)
-CORS(app)
+
 app.register_blueprint(user_bp)
 
 @app.errorhandler(404)
@@ -17,7 +17,6 @@ def internal_error(error):
 
 # Health check endpoint
 @app.route('/', methods=['GET'])
-@authenticate_request
 def health_check():
 	return {'status': 'healthy', 'service': 'user-api'}, 200
    
