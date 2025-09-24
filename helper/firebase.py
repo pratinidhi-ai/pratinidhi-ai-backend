@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials , firestore , auth
 import os
 import logging
-
+import random
 
 dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(dir,'..','p-ai-private-key.json')
@@ -94,6 +94,12 @@ def _getQuestions(attributes: dict):
 	nques = attributes.get('nques')
 	if nques is None:
 		nques = 5
+	else:
+		try:
+			nques = int(nques)
+		except ValueError as e:
+			nques = 5
+			logger.error(e)
 	try:
 		if attributes.get('tags') is None:
 			if attributes.get('exam') is None:
@@ -135,14 +141,22 @@ def _getQuestions(attributes: dict):
 							.collection('by_exam')\
 							.document(attributes['exam'])\
 							.collection('members')
-		query_newest = collection_ref.order_by(
-		"created_at",  
-		direction=firestore.Query.DESCENDING
-		).limit(nques)
-		docs_newest = query_newest.stream()
+		# query_newest = collection_ref.order_by(
+		# "created_at",  
+		# direction=firestore.Query.DESCENDING
+		# ).limit(nques)
+		rand_value = random.random()
+		query_random = collection_ref.where("rand",">=",rand_value).order_by("rand").limit(nques)
+		docs_newest = query_random.stream()
 		result = []
 		for doc in docs_newest:
 			result.append(getQuestionFromId(doc.to_dict()['question_id']))
+		
+		if len(result) < nques:
+			query_fallback = collection_ref.where("rand", "<", rand_value).order_by("rand").limit(nques - len(result))
+			docs_fallback = list(query_fallback.stream())
+			for doc in docs_fallback:
+				result.append(getQuestionFromId(doc.to_dict()['question_id']))
 		return result
 	
 	except Exception as e:

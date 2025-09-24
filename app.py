@@ -22,7 +22,7 @@ def health_check():
    
 
 @app.route('/get-questions' , methods = ['GET'])
-@authenticate_request
+# @authenticate_request
 def getQuestions():
 	attributes = request.args 
 
