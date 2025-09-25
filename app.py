@@ -3,9 +3,8 @@ from flask import Flask , jsonify , json , request
 from helper.firebase import getUsers , _getMetaData , _getQuestions , checkUserExists
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp
+from routes.tutor_routing import tutor_bp
 app = Flask(__name__)
-
-app.register_blueprint(user_bp)
 
 @app.errorhandler(404)
 def not_found(error):
@@ -15,6 +14,9 @@ def not_found(error):
 def internal_error(error):
 	return {'error': 'Internal server error', 'message': 'Something went wrong'}, 500
 
+app.register_blueprint(user_bp)
+app.register_blueprint(tutor_bp)
+
 # Health check endpoint
 @app.route('/', methods=['GET'])
 def health_check():
@@ -22,7 +24,7 @@ def health_check():
    
 
 @app.route('/get-questions' , methods = ['GET'])
-# @authenticate_request
+@authenticate_request
 def getQuestions():
 	attributes = request.args 
 
