@@ -1,10 +1,11 @@
 import time
 
 class TutorSession:
-    def __init__(self, user_id, personality, language):
+    def __init__(self, user_id, personality, language , session_id):
         self.user_id = user_id
         self.personality = personality
         self.language = language
+        self.session_id = session_id
         self.messages = []
         self.length = 0
         self.is_active = True
@@ -17,6 +18,7 @@ class TutorSession:
             "user_id": self.user_id,
             "personality": self.personality,
             "language": self.language,
+            "session_id" : self.session_id,
             "messages": self.messages,
             "length": self.length,
             "is_active": self.is_active,

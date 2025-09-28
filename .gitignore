@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 dev-private-keys.json
 p-ai-private-key.json
+.env

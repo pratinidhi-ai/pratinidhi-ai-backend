@@ -3,6 +3,7 @@ from firebase_admin import credentials , firestore , auth
 import os
 import logging
 import random
+from models.tutor_session_schema import TutorSession
 
 dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(dir,'..','p-ai-private-key.json')
@@ -171,3 +172,36 @@ def getQuestionFromId(id: str):
 	except Exception as e:
 		logger.error(e)
 		return {}
+	
+def saveSessionSummary(session : TutorSession):
+	try:
+		user_ref = db.collection('session_summary').document(session.user_id)
+		session_ref = user_ref.collection('sessions').document(session.session_id)
+		summary_data = session.to_dict()
+		if 'messages' in summary_data:
+			del summary_data['messages']
+		session_ref.set(summary_data)
+		logger.info(f"Successfully saved session summary for user {session.user_id}, session {session.session_id}")
+		return True
+	except Exception as e:
+		logger.error(e)
+		return False
+
+def _getUserSessions(user_id: str):
+	try:
+		# Get reference to user's sessions collection
+		sessions_ref = db.collection('session_summary').document(user_id).collection('sessions')
+
+		sessions = sessions_ref.stream()
+
+		sessions_list = []
+		for session in sessions:
+			session_data = session.to_dict()
+			sessions_list.append(session_data)
+			
+		logger.info(f"Successfully fetched {len(sessions_list)} sessions for user {user_id}")
+		return sessions_list
+		
+	except Exception as e:
+		logger.error(f"Error fetching sessions for user {user_id}: {str(e)}")
+		return []
