@@ -1,0 +1,4 @@
+venv/
+deploy-aws.ps1
+.gitignore
+.git
