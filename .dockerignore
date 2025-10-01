@@ -2,3 +2,4 @@ venv/
 deploy-aws.ps1
 .gitignore
 .git
+sat_book.pdf
