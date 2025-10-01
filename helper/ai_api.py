@@ -1,12 +1,7 @@
 from openai import OpenAI
 from helper.prompt_builder import SystemPromptBuilder
 from models.tutor_session_schema import TutorSession
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from ai_utils.gen_ai_functions import generate_gpt_response_from_message
 
 def call_openai_api(session : TutorSession):
     # Compose system prompt from session info
@@ -21,18 +16,22 @@ def call_openai_api(session : TutorSession):
     )
     system_prompt = builder.build()
     messages = [{"role": "system", "content": system_prompt}] + session.messages
-    response = client.chat.completions.create(
+    response = generate_gpt_response_from_message(
+        messages=messages,
+        llm="openai",
         model="gpt-4o-mini",
-        messages=messages
+        max_tokens=1000,
+        temperature=0.7
     )
-    return response.choices[0].message.content
+    return response
 
 def generate_summary(messages):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = generate_gpt_response_from_message(
         messages=[
             {"role": "system", "content": "Summarize this tutoring session for the student in simple words."},
             {"role": "user", "content": str(messages)}
-        ]
+        ],
+        llm="openai",
+        model="gpt-4o-mini"
     )
-    return response.choices[0].message.content
+    return response
