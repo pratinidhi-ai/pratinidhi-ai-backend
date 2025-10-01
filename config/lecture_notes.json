@@ -1,0 +1,58 @@
+{
+  "SAT": {
+    "description": "SAT Test Preparation Materials",
+    "subject": "SAT Preparation",
+    "chapters": {
+      "Chapter 1": {
+        "title": "Introduction to SAT and Test Structure",
+        "notes": "Placeholder for detailed notes about SAT introduction and test structure. This section will cover the format, timing, scoring, and overall strategy for approaching the SAT exam.",
+        "summary": "Placeholder for chapter summary highlighting the key points about SAT structure and basic test-taking strategies.",
+        "key_insights": [
+          "Placeholder insight 1 about SAT structure",
+          "Placeholder insight 2 about test timing",
+          "Placeholder insight 3 about scoring methodology"
+        ]
+      },
+      "Chapter 2": {
+        "title": "Reading Comprehension Strategies",
+        "notes": "Placeholder for detailed notes about reading comprehension techniques, passage analysis, and question types commonly found in the SAT reading section.",
+        "summary": "Placeholder for chapter summary covering essential reading comprehension strategies and techniques for analyzing different passage types.",
+        "key_insights": [
+          "Placeholder insight 1 about passage analysis",
+          "Placeholder insight 2 about question types", 
+          "Placeholder insight 3 about time management in reading section"
+        ]
+      },
+      "Chapter 3": {
+        "title": "Writing and Language Skills",
+        "notes": "Placeholder for detailed notes about grammar rules, sentence structure, punctuation, and rhetorical skills tested in the SAT Writing and Language section.",
+        "summary": "Placeholder for chapter summary highlighting key grammar concepts and writing strategies essential for the Writing and Language section.",
+        "key_insights": [
+          "Placeholder insight 1 about grammar fundamentals",
+          "Placeholder insight 2 about rhetorical analysis",
+          "Placeholder insight 3 about editing strategies"
+        ]
+      },
+      "Chapter 4": {
+        "title": "Mathematical Problem Solving",
+        "notes": "Placeholder for detailed notes about mathematical concepts, problem-solving strategies, and calculator/non-calculator sections of the SAT Math portion.",
+        "summary": "Placeholder for chapter summary covering essential mathematical concepts and problem-solving approaches for SAT Math sections.",
+        "key_insights": [
+          "Placeholder insight 1 about algebra fundamentals",
+          "Placeholder insight 2 about geometry concepts",
+          "Placeholder insight 3 about advanced math topics"
+        ]
+      },
+      "Chapter 5": {
+        "title": "Test Day Preparation and Final Strategies",
+        "notes": "Placeholder for detailed notes about test day logistics, final review strategies, stress management, and last-minute preparation tips for optimal SAT performance.",
+        "summary": "Placeholder for chapter summary covering comprehensive test day preparation and final strategic approaches to maximize SAT scores.",
+        "key_insights": [
+          "Placeholder insight 1 about test day logistics",
+          "Placeholder insight 2 about stress management techniques",
+          "Placeholder insight 3 about final review strategies"
+        ]
+      }
+    }
+  }
+}

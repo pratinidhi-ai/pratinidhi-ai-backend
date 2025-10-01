@@ -6,6 +6,7 @@ from models.tutor_session_schema import TutorSession
 from helper.ai_api import *
 from helper.middleware import authenticate_request
 from helper.firebase import saveSessionSummary , _getUserSessions
+from helper.prompt_builder import PromptBuilder
 sessions = {}
 logger = logging.getLogger(__name__)
 tutor_bp = Blueprint('tutor' , __name__ , url_prefix='/tutor')
@@ -15,45 +16,109 @@ tutor_bp = Blueprint('tutor' , __name__ , url_prefix='/tutor')
 def start_session():
 	try:
 		data = request.json
+		if not data:
+			return jsonify({"error": "No JSON data provided"}), 400
+			
 		session_id = str(uuid.uuid4())
+		
+		# Extract session parameters
+		user_id = data.get("user_id")
+		if not user_id:
+			return jsonify({"error": "user_id is required"}), 400
+			
+		personality = data.get("personality", "albert_einstein")  # Default personality
+		language = data.get("language", "english")
+		subject = data.get("subject")
+		level = data.get("level")
+		exam = data.get("exam")
+		interests = data.get("interests", [])
+		goals = data.get("goals", [])
+		lecture_notes = data.get("lecture_notes")
+		lecture_subject = data.get("lecture_subject")  # e.g., "SAT"
+		lecture_chapter = data.get("lecture_chapter")  # e.g., "Chapter 1"
+		
+		# Build system prompt
+		prompt_builder = PromptBuilder()
+		system_prompt = prompt_builder.build_system_prompt(
+			personality=personality,
+			subject=subject,
+			level=level,
+			exam=exam,
+			interests=interests,
+			goals=goals,
+			lecture_notes=lecture_notes,
+			lecture_subject=lecture_subject,
+			lecture_chapter=lecture_chapter
+		)
+		
+		# Create session with all parameters
 		session = TutorSession(
-			user_id=data["user_id"],
-			personality=data["personality"],
-			language=data["language"],
-			session_id = session_id
+			user_id=user_id,
+			personality=personality,
+			language=language,
+			session_id=session_id,
+			subject=subject,
+			level=level,
+			exam=exam,
+			interests=interests,
+			goals=goals,
+			lecture_notes=lecture_notes,
+			lecture_subject=lecture_subject,
+			lecture_chapter=lecture_chapter,
+			session_system_prompt=system_prompt
 		)
 		sessions[session_id] = session
-		return jsonify({"session_id": session_id}), 200
+		return jsonify({
+			"session_id": session_id,
+			"system_prompt": system_prompt[:200] + "..." if len(system_prompt) > 200 else system_prompt
+		}), 200
 	except Exception as e:
-		logger.error(e)
-		return jsonify({"_error" : "Can't Create Session"}) , 500
+		logger.error(f"Error creating session: {str(e)}")
+		return jsonify({"error": "Can't Create Session", "details": str(e)}), 500
 	
 @tutor_bp.route('/<session_id>/message', methods=['POST'])
 @authenticate_request
 def session_message(session_id):
-    data = request.json
-    session = sessions.get(session_id)
-    if not session or not session.is_active:
-        return jsonify({"error": "Session not found or ended"}), 404
-    
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+            
+        session = sessions.get(session_id)
+        if not session or not session.is_active:
+            return jsonify({"error": "Session not found or ended"}), 404
+        
+        user_message = data.get("message")
+        if not user_message:
+            return jsonify({"error": "Message content is required"}), 400
 
-    session.messages.append({"role": "user", "content": data["message"]})
-    session.messages = session.messages[-20:]  # Keep last 20 messages
-    
-    # Get AI response
-    ai_response = call_openai_api(session)
-    
-    session.messages.append({"role": "assistant", "content": ai_response})
-    session.length += 2
-    
-    if session.length >= 100:
-        session.is_active = False
-        session.ended_at = time.time()
-        session.summary = generate_summary(session.messages)
-        saveSessionSummary(session=session)
-        del sessions[session_id]
-    
-    return jsonify({"ai_response": ai_response, "session_active": session.is_active})
+        # Add user message to session
+        session.messages.append({"role": "user", "content": user_message})
+        session.messages = session.messages[-20:]  # Keep last 20 messages
+        
+        # Get AI response using the session's system prompt
+        ai_response = call_openai_api(session)
+        
+        session.messages.append({"role": "assistant", "content": ai_response})
+        session.length += 2
+        
+        # Check if session should end
+        if session.length >= 100:
+            session.is_active = False
+            session.ended_at = time.time()
+            session.summary = generate_summary(session.messages)
+            saveSessionSummary(session=session)
+            del sessions[session_id]
+        
+        return jsonify({
+            "ai_response": ai_response, 
+            "session_active": session.is_active,
+            "message_count": session.length
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in session message {session_id}: {str(e)}")
+        return jsonify({"error": "Failed to process message", "details": str(e)}), 500
 
 
 
