@@ -1,4 +1,6 @@
 venv/
+__pycache__/
+testing/
 deploy-aws.ps1
 .gitignore
 .git

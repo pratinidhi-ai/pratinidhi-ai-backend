@@ -6,10 +6,10 @@ $ImageTag = "latest"
 $ImageName = "${RepositoryName}:${ImageTag}"
 $EcrUri = "${AccountId}.dkr.ecr.${Region}.amazonaws.com/${RepositoryName}"
 
-Write-Host "🚀 Starting ECR Push Process..." -ForegroundColor Cyan
+Write-Host "Starting ECR Push Process..." -ForegroundColor Cyan
 
 # ======= STEP 1: AWS Login =======
-Write-Host "🔐 Logging into AWS..."
+Write-Host "Logging into AWS..."
 aws sts get-caller-identity | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "⚠️  AWS CLI not logged in. Please run 'aws configure' to set your credentials." -ForegroundColor Yellow
@@ -17,7 +17,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ======= STEP 2: Authenticate Docker to ECR =======
-Write-Host "🔐 Authenticating Docker to ECR..."
+Write-Host "Authenticating Docker to ECR..."
 aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin "${AccountId}.dkr.ecr.${Region}.amazonaws.com"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Docker login failed. Check your AWS credentials or permissions." -ForegroundColor Red
@@ -25,7 +25,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ======= STEP 3: Create ECR Repo (if not exists) =======
-Write-Host "📦 Ensuring ECR Repository '$RepositoryName' exists..."
+Write-Host "Ensuring ECR Repository '$RepositoryName' exists..."
 aws ecr describe-repositories --repository-names $RepositoryName --region $Region | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "📁 Repository not found. Creating new ECR repository..."
@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ======= STEP 4: Build Docker Image =======
-Write-Host "🐳 Building Docker image '$ImageName'..."
+Write-Host "Building Docker image '$ImageName'..."
 docker build -t $ImageName .
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Docker build failed." -ForegroundColor Red
@@ -45,11 +45,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ======= STEP 5: Tag Docker Image =======
-Write-Host "🏷️  Tagging image as '${EcrUri}:${ImageTag}'..."
+Write-Host "Tagging image as '${EcrUri}:${ImageTag}'..."
 docker tag $ImageName "${EcrUri}:${ImageTag}"
 
 # ======= STEP 6: Push Docker Image =======
-Write-Host "⬆️  Pushing image to ECR..."
+Write-Host "Pushing image to ECR..."
 docker push "${EcrUri}:${ImageTag}"
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Successfully pushed ${EcrUri}:${ImageTag}" -ForegroundColor Green
@@ -58,4 +58,4 @@ if ($LASTEXITCODE -eq 0) {
     exit 1
 }
 
-Write-Host "🎉 All Done!"
+Write-Host "All Done!"

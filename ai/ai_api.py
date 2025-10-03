@@ -1,4 +1,4 @@
-from helper.prompt_builder import SystemPromptBuilder
+from helper.prompt_builder import PromptBuilder
 from models.tutor_session_schema import TutorSession
 from dotenv import load_dotenv
 from ai.rag_setup import load_vectorstore
@@ -7,7 +7,7 @@ import os
 
 load_dotenv()
 
-
+prompt_builder = PromptBuilder()
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
@@ -16,14 +16,20 @@ def call_openai_api(session : TutorSession , callRag: bool = False):
 	
 	user_interests = ["Math", "Science", "Coding", "Space Exploration"] 
 	
-	builder = SystemPromptBuilder(
-		personality=session.personality,
-		purpose="Help the user learn in a fun, engaging, and effective way by acting as a personal guide.",
-		intro="Greet the student warmly, ask them what they're curious about today, and make them feel comfortable.",
-		interests=user_interests,
-		language=session.language
-	)
-	system_prompt = builder.build()
+
+	system_prompt = session.session_system_prompt
+	if not system_prompt:	
+		system_prompt = prompt_builder.build_system_prompt(
+            personality=session.personality,
+            subject=session.subject,
+            level=session.level,
+            exam=session.exam,
+            interests=session.interests or user_interests,
+            goals=session.goals,
+            lecture_notes=session.lecture_notes,
+            lecture_subject=session.lecture_subject,
+            lecture_chapter=session.lecture_chapter
+        )
 	
 	if callRag:
 		latest_message = session.messages[-1]["content"] if session.messages else ""
