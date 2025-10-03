@@ -156,7 +156,7 @@ def end_session(session_id):
 		return jsonify({"error": "Failed to end session"}), 500
 
 @tutor_bp.route('/<user_id>' , methods = ['GET'])
-# @authenticate_request
+@authenticate_request
 def getUserSessions(user_id):
 	try:
 		sessions_list = _getUserSessions(user_id)
