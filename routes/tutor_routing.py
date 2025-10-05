@@ -7,6 +7,9 @@ from ai.ai_api import *
 from helper.middleware import authenticate_request
 from helper.firebase import saveSessionSummary , _getUserSessions
 from helper.prompt_builder import PromptBuilder
+from helper.redis_sessions import redis_session_manager
+
+
 sessions = {}
 logger = logging.getLogger(__name__)
 tutor_bp = Blueprint('tutor' , __name__ , url_prefix='/tutor')
@@ -67,7 +70,8 @@ def start_session():
 			lecture_chapter=lecture_chapter,
 			session_system_prompt=system_prompt
 		)
-		sessions[session_id] = session
+		redis_session_manager.save_session(session_id, session)
+		# sessions[session_id] = session
 		return jsonify({
 			"session_id": session_id,
 			"system_prompt": system_prompt[:200] + "..." if len(system_prompt) > 200 else system_prompt
@@ -84,7 +88,8 @@ def session_message(session_id):
 		if not data:
 			return jsonify({"error": "No JSON data provided"}), 400
 			
-		session = sessions.get(session_id)
+		# session = sessions.get(session_id)
+		session = redis_session_manager.get_session(session_id)
 		if not session or not session.is_active:
 			return jsonify({"error": "Session not found or ended"}), 404
 		
@@ -112,8 +117,12 @@ def session_message(session_id):
 			session.ended_at = time.time()
 			session.summary = generate_summary(session.messages)
 			saveSessionSummary(session=session)
-			del sessions[session_id]
+			# del sessions[session_id]
+			redis_session_manager.delete_session(session_id)
 		
+		else:
+			redis_session_manager.save_session(session_id, session)
+
 		return jsonify({
 			"ai_response": ai_response, 
 			"session_active": session.is_active,
@@ -125,12 +134,12 @@ def session_message(session_id):
 		return jsonify({"error": "Failed to process message", "details": str(e)}), 500
 
 
-
 @tutor_bp.route('/<session_id>/end', methods=['POST'])
 @authenticate_request
 def end_session(session_id):
 	try:
-		session = sessions.get(session_id)
+		session = redis_session_manager.get_session(session_id)
+		# session = sessions.get(session_id)
 		if not session:
 			return jsonify({"error": "Session not found"}), 404
 		
@@ -148,7 +157,8 @@ def end_session(session_id):
 		}
 		if not saveSessionSummary(session=session):
 			logger.warning("Error in storing user session summary.")
-		del sessions[session_id]
+		# del sessions[session_id]
+		redis_session_manager.delete_session(session_id)
 		return jsonify(response_data), 200
 		
 	except Exception as e:

@@ -82,6 +82,7 @@ pyparsing==3.2.5
 pypdf==6.1.1
 python-dotenv==1.1.1
 PyYAML==6.0.3
+redis==6.4.0
 regex==2025.9.18
 requests==2.32.5
 requests-toolbelt==1.0.0
