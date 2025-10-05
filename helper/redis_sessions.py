@@ -1,17 +1,26 @@
 import redis
 import pickle
 import logging
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.getenv('REDIS_PORT',6379))
+REDIS_DB = int(os.getenv('REDIS_DB',0))
+USE_SSL = REDIS_HOST!= 'localhost'
+
 class RedisSessionManager:
-	def __init__(self, host='localhost', port = 6379, db=0, session_expiry_seconds=86400):
+	def __init__(self, session_expiry_seconds=86400):
 		try:
 			self.redis_client = redis.Redis(
-				host=host,
-				db=db,
-				port=port,
-				decode_responses=False
+				host=REDIS_HOST,
+				db=REDIS_DB,
+				port=REDIS_PORT,
+				decode_responses=False,
+				ssl= USE_SSL
 			)
 			self.redis_client.ping()
 			logger.info("Successfully connected to Redis.")
