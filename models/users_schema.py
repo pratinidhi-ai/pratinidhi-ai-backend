@@ -5,163 +5,211 @@ from dataclasses import dataclass, field
 
 from enum import Enum
 def _get_utc_now():
-    return datetime.now(timezone.utc)
+	return datetime.now(timezone.utc)
+
+class SubscriptionType(Enum):
+	REGULAR = "regular"
+	PRO = "pro"
+	
+@dataclass
+class SubscriptionInfo:
+	type: SubscriptionType = SubscriptionType.REGULAR
+	sessions_used: int = 0
+	sessions_limit: int = 25  # Default limit for regular users
+	last_reset_date: Optional[datetime] = None
+	pro_expiry_date: Optional[datetime] = None
+
 
 class Grade(Enum):
-    GRADE_6 = "6"
-    GRADE_7 = "7"
-    GRADE_8 = "8"
-    GRADE_9 = "9"
-    GRADE_10 = "10"
-    GRADE_11 = "11"
-    GRADE_12 = "12"
+	GRADE_6 = "6"
+	GRADE_7 = "7"
+	GRADE_8 = "8"
+	GRADE_9 = "9"
+	GRADE_10 = "10"
+	GRADE_11 = "11"
+	GRADE_12 = "12"
 
 class Board(Enum):
-    CBSE = "CBSE"
-    ICSE = "ICSE"
-    IB = "IB"
-    OTHER = "Other"
+	CBSE = "CBSE"
+	ICSE = "ICSE"
+	IB = "IB"
+	OTHER = "Other"
 
 class Language(Enum):
-    ENGLISH = "English"
-    HINGLISH = "Hinglish"
-    TAMIL = "Tamil"
-    KANNADA = "Kannada"
+	ENGLISH = "English"
+	HINGLISH = "Hinglish"
+	TAMIL = "Tamil"
+	KANNADA = "Kannada"
 
 class FontSize(Enum):
-    NORMAL = "Normal"
-    LARGE = "Large"
+	NORMAL = "Normal"
+	LARGE = "Large"
 
 @dataclass
 class AccessibilitySettings:
-    font_size: FontSize = FontSize.NORMAL
-    read_aloud: bool = False
+	font_size: FontSize = FontSize.NORMAL
+	read_aloud: bool = False
 
 @dataclass
 class UserPreferences:
-    language: Language = Language.ENGLISH
-    accessibility: AccessibilitySettings = field(default_factory=AccessibilitySettings)
-    notif_opt_in: bool = False
-    quiet_hours_start: Optional[str] = None  # "22:00"
-    quiet_hours_end: Optional[str] = None    # "08:00"
+	language: Language = Language.ENGLISH
+	accessibility: AccessibilitySettings = field(default_factory=AccessibilitySettings)
+	notif_opt_in: bool = False
+	quiet_hours_start: Optional[str] = None  # "22:00"
+	quiet_hours_end: Optional[str] = None    # "08:00"
 
 @dataclass
 class User:
-    # Required fields
-    id: str
-    email: str
-    name: str
-    
+	# Required fields
+	id: str
+	email: str
+	name: str
+	
 	#additionals
-    grade: Optional[Grade] = None
-    board: Optional[Board] = None
-    city: Optional[str] = None
-    timezone: Optional[str] = None
-    school: Optional[str] = None
-    
-    # Preferences
-    preferences: UserPreferences = field(default_factory=UserPreferences)
-    
-    # Interests
-    interests: List[str] = field(default_factory=list)
-    custom_interests: List[str] = field(default_factory=list)
-    
-    # Consent and tracking
-    terms_and_conditions: bool = False
-    personalized_content: bool = True
+	grade: Optional[Grade] = None
+	board: Optional[Board] = None
+	city: Optional[str] = None
+	timezone: Optional[str] = None
+	school: Optional[str] = None
+	
+	# Preferences
+	preferences: UserPreferences = field(default_factory=UserPreferences)
+	
+	# Interests
+	interests: List[str] = field(default_factory=list)
+	custom_interests: List[str] = field(default_factory=list)
+	
+	# Consent and tracking
+	terms_and_conditions: bool = False
+	personalized_content: bool = True
+	
+	subscription: SubscriptionInfo = field(default_factory=SubscriptionInfo)
+
     
     # SAT Preparation Tracking
     completed_chapters: List[str] = field(default_factory=list)  # Track completed chapter IDs
     current_week_start: Optional[datetime] = None  # Track current week for task assignment
-    
-    # Metadata
-    created_at: datetime = field(default_factory=_get_utc_now)
-    updated_at: datetime = field(default_factory=_get_utc_now)
-    onboarding_completed: bool = False
-    last_login: Optional[datetime] = None
-    
-    def to_dict(self) -> dict:
-        """Convert User object to dictionary for JSON """
-        return {
-            'id': self.id,
-            'email': self.email,
-            'name': self.name,
-            'grade': self.grade.value if self.grade else None,
-            'board': self.board.value if self.board else None,
-            'city': self.city,
-            'timezone': self.timezone,
-            'school': self.school,
-            'preferences': {
-                'language': self.preferences.language.value,
-                'accessibility': {
-                    'font_size': self.preferences.accessibility.font_size.value,
-                    'read_aloud': self.preferences.accessibility.read_aloud
-                },
-                'notif_opt_in': self.preferences.notif_opt_in,
-                'quiet_hours_start': self.preferences.quiet_hours_start,
-                'quiet_hours_end': self.preferences.quiet_hours_end
-            },
-            'interests': self.interests,
-            'custom_interests': self.custom_interests,
-            'terms_and_conditions': self.terms_and_conditions,
-            'personalized_content': self.personalized_content,
+
+	# Metadata
+	created_at: datetime = field(default_factory=_get_utc_now)
+	updated_at: datetime = field(default_factory=_get_utc_now)
+	onboarding_completed: bool = False
+	last_login: Optional[datetime] = None
+	
+	def to_dict(self) -> dict:
+		"""Convert User object to dictionary for JSON """
+		return {
+			'id': self.id,
+			'email': self.email,
+			'name': self.name,
+			'grade': self.grade.value if self.grade else None,
+			'board': self.board.value if self.board else None,
+			'city': self.city,
+			'timezone': self.timezone,
+			'school': self.school,
+			'preferences': {
+				'language': self.preferences.language.value,
+				'accessibility': {
+					'font_size': self.preferences.accessibility.font_size.value,
+					'read_aloud': self.preferences.accessibility.read_aloud
+				},
+				'notif_opt_in': self.preferences.notif_opt_in,
+				'quiet_hours_start': self.preferences.quiet_hours_start,
+				'quiet_hours_end': self.preferences.quiet_hours_end
+			},
+			'interests': self.interests,
+			'custom_interests': self.custom_interests,
+			'terms_and_conditions': self.terms_and_conditions,
+			'personalized_content': self.personalized_content,
+			'subscription': {
+				'type': self.subscription.type.value,
+				'sessions_used': self.subscription.sessions_used,
+				'sessions_limit': self.subscription.sessions_limit,
+				'last_reset_date': self.subscription.last_reset_date.isoformat() if self.subscription.last_reset_date else None,
+				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None
+			},
             'completed_chapters': self.completed_chapters,
             'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-            'onboarding_completed': self.onboarding_completed,
-            'last_login': self.last_login.isoformat() if self.last_login else None
-        }
-    
-    @classmethod
-    def from_dict(cls, data: dict) -> 'User':
-        """Create User object from dictionary"""
-        # Handle preferences
-        prefs_data = data.get('preferences', {})
-        accessibility_data = prefs_data.get('accessibility', {})
-        
-        preferences = UserPreferences(
-            language=Language(prefs_data.get('language', 'English')),
-            accessibility=AccessibilitySettings(
-                font_size=FontSize(accessibility_data.get('font_size', 'Normal')),
-                read_aloud=accessibility_data.get('read_aloud', False)
-            ),
-            notif_opt_in=prefs_data.get('notif_opt_in', False),
-            quiet_hours_start=prefs_data.get('quiet_hours_start'),
-            quiet_hours_end=prefs_data.get('quiet_hours_end')
-        )
-        
-        return cls(
-            id=data['id'],
-            email=data['email'],
-            name=data['name'],
-            grade=Grade(data['grade']) if data.get('grade') else None,
-            board=Board(data['board']) if data.get('board') else None,
-            city=data.get('city'),
-            timezone=data.get('timezone'),
-            school=data.get('school'),
-            preferences=preferences,
-            interests=data.get('interests', []),
-            custom_interests=data.get('custom_interests', []),
-            terms_and_conditions=data.get('terms_and_conditions', False),
-            personalized_content=data.get('personalized_content', True),
+			'created_at': self.created_at.isoformat() if self.created_at else None,
+			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+			'onboarding_completed': self.onboarding_completed,
+			'last_login': self.last_login.isoformat() if self.last_login else None
+		}
+	
+	@classmethod
+	def from_dict(cls, data: dict) -> 'User':
+		"""Create User object from dictionary"""
+		# Handle preferences
+		prefs_data = data.get('preferences', {})
+		accessibility_data = prefs_data.get('accessibility', {})
+		
+		# Handle missing or empty subscription data with defaults
+		sub_data = data.get('subscription', {})
+		if not sub_data:  # If subscription field doesn't exist or is empty
+			subscription = SubscriptionInfo()  # Will use default values
+		else:
+			subscription = SubscriptionInfo(
+				type=SubscriptionType(sub_data.get('type', 'regular')),
+				sessions_used=sub_data.get('sessions_used', 0),
+				sessions_limit=sub_data.get('sessions_limit', 25),
+				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
+				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None
+			)
+
+		preferences = UserPreferences(
+			language=Language(prefs_data.get('language', 'English')),
+			accessibility=AccessibilitySettings(
+				font_size=FontSize(accessibility_data.get('font_size', 'Normal')),
+				read_aloud=accessibility_data.get('read_aloud', False)
+			),
+			notif_opt_in=prefs_data.get('notif_opt_in', False),
+			quiet_hours_start=prefs_data.get('quiet_hours_start'),
+			quiet_hours_end=prefs_data.get('quiet_hours_end')
+		)
+		
+		return cls(
+			id=data['id'],
+			email=data['email'],
+			name=data['name'],
+			grade=Grade(data['grade']) if data.get('grade') else None,
+			board=Board(data['board']) if data.get('board') else None,
+			city=data.get('city'),
+			timezone=data.get('timezone'),
+			school=data.get('school'),
+			preferences=preferences,
+			interests=data.get('interests', []),
+			custom_interests=data.get('custom_interests', []),
+			terms_and_conditions=data.get('terms_and_conditions', False),
+			personalized_content=data.get('personalized_content', True),
+			subscription = subscription,
             completed_chapters=data.get('completed_chapters', []),
             current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
-            created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
-            updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
-            onboarding_completed=data.get('onboarding_completed', False),
-            last_login=datetime.fromisoformat(data['last_login']) if data.get('last_login') else None
-        )
-    
-    def complete_onboarding(self):
-        """Mark onboarding as completed"""
-        self.onboarding_completed = True
-        self.updated_at = datetime.now(timezone.utc)
-    
-    def update_last_login(self):
-        """Update last login timestamp"""
-        self.last_login = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+			created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
+			updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
+			onboarding_completed=data.get('onboarding_completed', False),
+			last_login=datetime.fromisoformat(data['last_login']) if data.get('last_login') else None
+		)
+	
+	def complete_onboarding(self):
+		"""Mark onboarding as completed"""
+		self.onboarding_completed = True
+		self.updated_at = datetime.now(timezone.utc)
+	
+	def update_last_login(self):
+		"""Update last login timestamp"""
+		self.last_login = datetime.now(timezone.utc)
+		self.updated_at = datetime.now(timezone.utc)
+	def can_start_session(self) -> bool:
+		"""Check if user can start a new tutoring session"""
+		if self.subscription.type == SubscriptionType.PRO:
+			return True
+		return self.subscription.sessions_used < self.subscription.sessions_limit
+
+	def increment_session_count(self):
+		"""Increment the sessions used count"""
+		if self.subscription.type == SubscriptionType.REGULAR:
+			self.subscription.sessions_used += 1
+			self.updated_at = datetime.now(timezone.utc)
     
     def mark_chapter_completed(self, chapter_id: str):
         """Mark a chapter as completed"""
