@@ -4,53 +4,85 @@
     "subject": "SAT Preparation",
     "chapters": {
       "Chapter 1": {
-        "title": "Introduction to SAT and Test Structure",
-        "notes": "Placeholder for detailed notes about SAT introduction and test structure. This section will cover the format, timing, scoring, and overall strategy for approaching the SAT exam.",
-        "summary": "Placeholder for chapter summary highlighting the key points about SAT structure and basic test-taking strategies.",
+        "title": "GENERAL INFORMATION ABOUT SAT",
+        "notes": "What the SAT really tests: It's a test-taking game: it measures how well you take this test, not your worth or school knowledge. Questions are written by professional test-writers; you can learn their patterns.\n\nStructure & timing: Total time: 2h14m + 10-min break. Reading & Writing (RW): 2 modules → 27 Q / 32 min each (all multiple-choice; 4 experimental Q total across the test). Math: 2 modules → 22 Q / 35 min each (mostly multiple-choice + some fill-in).\n\nRW content order (every module): Craft & Structure (~28%), Information & Ideas (~26%), Standard English Conventions (~26%), Expression of Ideas (~20%). Each short passage (or pair) has just one question; some come with a small graphic.\n\nMath content mix (scattered within each module): Algebra (~35%), Advanced Math (~35%), PSDA/Data (~15%), Geo/Trig (~15%). Calculator: Built-in Desmos on all math questions; approved handhelds also allowed.\n\nAdaptive design & scoring: Your Module 1 performance sets Module 2 (Easier vs Harder). Some questions are weighted more; total score 400–1600 (RW 200–800 + Math 200–800). No penalty for wrong answers; don't leave blanks. Each module contains unmarked experimental questions—answer everything.\n\nLogistics: Delivered in the Bluebook app at schools/test centers (saves progress; works even if Wi-Fi drops). Scores arrive in days, and only section/total scores are reported (no subscores).\n\nGetting started smartly: Take a diagnostic, read the category report, focus on high-impact skills first, and practice with the same calculator you'll use on test day.",
+        "summary": "The Digital SAT is a 2-hour-14-minute adaptive test with two sections (Reading & Writing, Math), each split into two timed modules. RW uses short passages with one question each and follows a fixed order of skills; Math mixes four content areas and allows Desmos on every question. Your first module performance determines whether the second is easier or harder, and some questions carry extra weight. There's no guessing penalty and a few unscored experimental items. Treat the SAT like a learnable system: practice the formats, use your calculator wisely, and train to maximize points on the most valuable questions.",
         "key_insights": [
-          "Placeholder insight 1 about SAT structure",
-          "Placeholder insight 2 about test timing",
-          "Placeholder insight 3 about scoring methodology"
+          "Game mindset beats generic studying. Learn patterns and traps; don't study everything equally.",
+          "Adaptive = targeted. Doing well early unlocks a higher ceiling; accuracy in Module 1 matters.",
+          "Weighted questions exist. Prioritize getting through and nailing the 'payoff' items.",
+          "Desmos literacy is a skill. It's a time-saver on some problems and a trap on others—practice judgment.",
+          "Zero penalty for guessing. Always fill every question; use elimination aggressively.",
+          "Section strategy differs. RW is fixed by skill blocks; Math difficulty ramps within each module."
         ]
       },
       "Chapter 2": {
-        "title": "Reading Comprehension Strategies",
-        "notes": "Placeholder for detailed notes about reading comprehension techniques, passage analysis, and question types commonly found in the SAT reading section.",
-        "summary": "Placeholder for chapter summary covering essential reading comprehension strategies and techniques for analyzing different passage types.",
+        "title": "Cracking the Digital SAT: Basic Principles",
+        "notes": "Mindset: The SAT repeats patterns; learn how test-writers think. It's a different skill from school tests.\n\nTwo-Pass Method ('Take the easy test first'): Skip early, skip often. First pass = cherry-pick quick/accurate points; second pass = come back to marked items. Don't get stuck; if time's low, guess so nothing is blank.\n\nPOOD (Personal Order Of Difficulty): RW has rough order by content area; Math by overall difficulty—but your order is personal. Work in the order that suits your strengths.\n\nMark & Move On + Review Page caution: Use Mark for Review and the Overview/Review tool to jump around and see unanswered items. On the Review Page, clicking Next ends the module—no confirm!\n\nGuessing policy: No wrong-answer penalty; eliminate what you can and guess. Any letter is fine (roughly even distribution).\n\nPace for score gains: You're scored on correct answers, not attempts. It's often better to slow slightly, nail your POOD items, and leave/guess the rest.\n\nPOE (Process of Elimination): Look for wrong answers first; Answer Eliminator helps track crossed-off choices; Annotate is RW-only (not answer choices/figures; not in Math).\n\nScratch-paper system: Next to each Q#, use ✓ (seems right), ~ (maybe), ? (don't understand), and X (wrong). Keep it neat and consistent.\n\nCareless-error firewall: Build habits—re-read the question, check transcription & calculations before locking an answer.",
+        "summary": "This session gives the core playbook: treat the Digital SAT like a strategy game. Do an easy-first two-pass, guided by your POOD; mark & move to protect time; use POE (+ Answer Eliminator & Annotate) to narrow choices; guess instead of leaving blanks; and slow down to score more by avoiding careless errors.",
         "key_insights": [
-          "Placeholder insight 1 about passage analysis",
-          "Placeholder insight 2 about question types", 
-          "Placeholder insight 3 about time management in reading section"
+          "Points > pride: Skip fast, bank easy points, return later.",
+          "Your order wins: POOD beats official order; play to strengths.",
+          "No blanks: Eliminate → guess; distribution is roughly even.",
+          "Slow = higher score (often): Accuracy outruns rushing.",
+          "Tools matter: Review/Mark, Answer Eliminator, Annotate (RW-only), neat scratch paper.",
+          "Avoid careless errors: Build a 10-second double-check habit."
         ]
       },
       "Chapter 3": {
-        "title": "Writing and Language Skills",
-        "notes": "Placeholder for detailed notes about grammar rules, sentence structure, punctuation, and rhetorical skills tested in the SAT Writing and Language section.",
-        "summary": "Placeholder for chapter summary highlighting key grammar concepts and writing strategies essential for the Writing and Language section.",
+        "title": "Reading & Writing Mastery: The Three-Bucket System",
+        "notes": "Structure & timing: RW has 2 modules, 27 Q / 32 min each (total 54). About 25-33 Reading and 19-31 Writing across both modules.\n\nReading vs Writing (what they test): Reading = meaning/purpose/inference; Writing = punctuation, grammar, style, transitions/rhetorical fit.\n\nThree buckets to recognize (helps POOD): Think of each module as Reading → Rules → Rhetoric (in that order & rough proportion). Start where you're strongest.\n\nReading bucket—how to spot: Poems/fiction, dual texts, graphs, or fill-in-the-blank word questions live here; many ask for meaning/purpose.\n\nRules bucket—how to spot: They all use the same stem: \"Which choice completes the text so that it conforms to the conventions of Standard English?\" Often among the fastest items.\n\nRhetoric bucket—how to spot: Two formats: transitions and bullet-point items (no Rules stem).\n\nHow to start each question: Read the question first → identify bucket → run that playbook. This also tells you what to hunt for when you read the text.\n\nPOOD reminder: If you're stronger at Writing, it can make sense to start mid-module where those appear; if Reading is easier, start at the top.",
+        "summary": "RW = two 32-minute modules (27 Q each). Treat each module as Reading → Rules → Rhetoric. Spot the type quickly: poems/dual texts/graphs/fill-in-word = Reading; fixed Standard English stem = Rules; transitions/bullet-points = Rhetoric. Start with the question, pick the bucket, and apply the right steps—following your POOD to begin where you'll score fastest.",
         "key_insights": [
-          "Placeholder insight 1 about grammar fundamentals",
-          "Placeholder insight 2 about rhetorical analysis",
-          "Placeholder insight 3 about editing strategies"
+          "Bucket first, passage second. Identifying Reading / Rules / Rhetoric up front saves time and errors.",
+          "Rules stem = green flag. The fixed wording lets you scan-jump directly to quick grammar/punctuation wins.",
+          "Rhetoric is predictable. If it's a transition or bullet list, switch to the rhetoric playbook.",
+          "Play your POOD. Start where you're strongest (often mid-module for Writing-strong testers)."
         ]
       },
       "Chapter 4": {
-        "title": "Mathematical Problem Solving",
-        "notes": "Placeholder for detailed notes about mathematical concepts, problem-solving strategies, and calculator/non-calculator sections of the SAT Math portion.",
-        "summary": "Placeholder for chapter summary covering essential mathematical concepts and problem-solving approaches for SAT Math sections.",
+        "title": "Reading Detective: The Evidence Hunt Strategy",
+        "notes": "What you face: Reading is just over half of RW and always comes before Writing; each passage is 25–150 words with one question—so efficiency matters.\n\nOpen-book mindset: RW Reading is about finding support in the text; there's one right answer based on the passage(s).\n\nMission: Identify the task quickly and locate support efficiently.\n\nPOOD for Reading: If a passage/type looks slow, mark & move, then come back; consider type, literature, and topic to decide order; always guess on skipped items.\n\nEight Reading types (fixed order): Vocabulary → Purpose → Dual Texts → Retrieval → Main Idea → Claims → Charts → Conclusions. Not all appear in every module.\n\nBasic approach (5 steps): Question → Type → Passage → Highlight/Annotate → POE. Start from the question so you know what to hunt in the passage.\n\nActive reading: Don't read the passage first; know your goal before you read.\n\nAnnotate when it helps (e.g., Purpose): Jot main idea + attitude; use it to drive eliminations.\n\nClassic traps to spot with POE: Recycled Language (re-uses words, twists idea), Beyond the Text / Half-Right (partly supported, partly not).",
+        "summary": "Chapter 4 reframes Reading as an evidence hunt: start with the question, identify the type, then read the passage only to find what solves that task. Use highlighting/annotation to anchor evidence and POE to delete trap answers (e.g., recycled language, half-right). Apply POOD—skip, mark, and return—to spend time where you score fastest.",
         "key_insights": [
-          "Placeholder insight 1 about algebra fundamentals",
-          "Placeholder insight 2 about geometry concepts",
-          "Placeholder insight 3 about advanced math topics"
+          "Question-first saves time: It tells you exactly what to look for when you read.",
+          "POOD is power: Order questions by your ease; mark & return instead of getting stuck.",
+          "Evidence beats vibe: Use highlight + brief annotation to anchor answers; don't over-summarize.",
+          "POE wins close calls: Delete answers inconsistent with your highlight/annotation; be wary of recycled wording.",
+          "Know the menu: The eight types arrive in a stable order—use that predictability."
         ]
       },
       "Chapter 5": {
-        "title": "Test Day Preparation and Final Strategies",
-        "notes": "Placeholder for detailed notes about test day logistics, final review strategies, stress management, and last-minute preparation tips for optimal SAT performance.",
-        "summary": "Placeholder for chapter summary covering comprehensive test day preparation and final strategic approaches to maximize SAT scores.",
+        "title": "Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
+        "notes": "Scope of this chapter: You'll tackle three RW types about how passages are built: Vocabulary, Purpose/Function/Structure, and Dual Texts (Text 1 + Text 2).\n\nVocabulary (two formats + playbook): Formats to spot: \"most logical and precise word/phrase\" (fill-in) and \"As used in the text, … most nearly means\" (in-context). Steps: treat the target as a blank → read sentence + nearby lines → highlight the context clue → write your own word → use POE. Common traps: Beyond the Text, Extreme Language, Opposite. Smart study: use the book's Greatest Hits, build your own list, and read one challenging article/story daily; don't over-memorize rare, archaic lit words.\n\nPurpose / Function / Structure (playbook): What they ask: why the author wrote it (purpose), what a sentence is doing (function), how the passage is organized (structure). Evidence-based, not speculation. Steps: read the question → if you see purpose/function/structure, it's this type → read the sentence and the line before/after → highlight the connection → annotate the role → POE.\n\nDual Texts (playbook): What they ask: how Text 2 responds to a claim/idea in Text 1 (agree / disagree / extend). Steps: read stem → highlight the claim in Text 1 → highlight Text 2's stance on that same claim → annotate the relationship (agree/disagree/extend) → POE. Traps = Opposites & Extreme. Use POOD if time-heavy. Worked example: Text 2 presents handwashing as a possible alternative (not a total replacement) → keep moderate wording, reject Extreme/Recycled answers.",
+        "summary": "Chapter 5 teaches three RW skills: pick precise Vocabulary using context and POE; find Purpose/Function/Structure by reading adjacent sentences, highlighting links, and annotating the role; and handle Dual Texts by locating the claim in Text 1 and Text 2's stance on it, then eliminating Opposite/Extreme traps. Use POOD if an item looks time-heavy.",
         "key_insights": [
-          "Placeholder insight 1 about test day logistics",
-          "Placeholder insight 2 about stress management techniques",
-          "Placeholder insight 3 about final review strategies"
+          "Write your own word before looking at vocab choices—this locks your compass and speeds POE.",
+          "Function lives in context: read the sentence and the one before/after to see the link.",
+          "Dual Texts = claim + response: highlight both sides, then label the relationship in 3 words.",
+          "Watch for Extreme and Recycled-language traps across all three types."
+        ]
+      },
+      "Chapter 6": {
+        "title": "Information & Ideas Arsenal: The Evidence Sniper Approach",
+        "notes": "The 5 types (goal): Retrieval, Main Idea, Claims, Charts, Conclusions — all are evidence hunts; apply the Basic Approach with small tweaks per type.\n\nRetrieval — \"According to the text…\": Task: pull exactly what the passage says; find the line that answers and match it. Watch for Recycled/Extreme/Beyond-text traps. Mini-playbook: Question → scan for who/what → highlight the phrase that answers → POE.\n\nMain Idea — central idea: Task: what every sentence builds on (often first/last line, but not always). Eliminate detail-only answers (Right-Answer/Wrong-Question). Mini-playbook: track topic across sentences → highlight the best summary line → POE.\n\nClaims — illustrate / support / weaken: Task: underline the named claim; choose what (if true) does the job (support/weaken/illustrate). Traps: Half-Right, Opposite, Extreme/Beyond-text. Mini-playbook: find the claim (often right before the blank) → keep only choices that fully address it.\n\nCharts — use table/graph + passage: Task: answer must fit both the chart and the claim; biggest trap = true-about-chart but not about the claim (Right-Answer/Wrong-Question). Mini-playbook: read title/axes/units → find claim in passage → keep only answers consistent with chart + claim; ignore distractor metrics.\n\nConclusions — \"Which choice most logically completes the text?\": Task: pick a logical ending/summary consistent with all info. Traps: Recycled-language, detail-only (Right-Answer/Wrong-Question), Beyond-text; prefer cautious wording when evidence is suggestive (\"may\").",
+        "summary": "Chapter 6 turns you into an \"evidence sniper.\" For Retrieval and Main Idea, highlight exactly what answers the stem and delete detail-traps. For Claims, pick the option that (if true) does the required job. For Charts, first read the title/units, then keep only answers consistent with both chart and passage claim. For Conclusions, choose the ending that fits all info—avoid recycled-word bait and prefer measured language.",
+        "key_insights": [
+          "Line-lock: For Retrieval/Main Idea, highlight the sentence(s) your answer must match; don't \"feel\" it.",
+          "Claims = job-based: Ask \"Does this choice actually do what the stem asks (if true)?\" not \"Is it in the passage?\"",
+          "Charts = two checks: Many answers fit the chart; only one also fits the claim.",
+          "Conclusion tone: Prefer cautious wording when evidence is suggestive.",
+          "Trap radar: Recycled-language ≠ correct idea; Right-Answer/Wrong-Question shows up a lot on Main Idea/Charts/Conclusions."
+        ]
+      },
+      "Chapter 7": {
+        "title": "RW Power-Ups: Vocab Wins + Trap-Busting",
+        "notes": "Why vocab matters: It shows up a lot and gets tougher if you land in a harder Module 2. Train a \"Greatest Hits\" list 5–10 min daily (book list + your own misses).\n\nEndgame POE (\"down to two\"): When two choices remain, stop justifying—ask: \"Which one is the trap?\" Then eliminate by type.\n\nThe 6 traps to memorize: Opposite, Extreme Language, Recycled Language, Right-Answer/Wrong-Question, Beyond the Text, Half-Right.\n\nHow they look in practice: Extreme = goes further than text supports (e.g., \"will happen\"). Beyond the Text = sounds logical but isn't stated/supported. Half-Right = one correct idea + one wrong/unsupported idea.",
+        "summary": "Build daily vocab with a Greatest Hits list, and in close calls use trap IDs to eliminate the wrong answer instead of \"talking yourself into\" a choice.",
+        "key_insights": [
+          "Tiny daily vocab reps compound into higher RW accuracy.",
+          "When stuck, hunt the trap, don't justify the survivor.",
+          "Extreme/Beyond-text phrasing is a frequent giveaway."
         ]
       }
     }
