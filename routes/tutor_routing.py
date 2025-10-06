@@ -5,7 +5,7 @@ import logging
 from models.tutor_session_schema import TutorSession
 from ai.ai_api import *
 from helper.middleware import authenticate_request
-from helper.firebase import saveSessionSummary , _getUserSessions
+from helper.firebase import saveSessionSummary, _getUserSessions, userStartSession
 from helper.prompt_builder import PromptBuilder
 from helper.redis_sessions import redis_session_manager ,REDIS_HOST, REDIS_PORT
 
@@ -28,7 +28,10 @@ def start_session():
 		user_id = data.get("user_id")
 		if not user_id:
 			return jsonify({"error": "user_id is required"}), 400
-			
+
+		if not userStartSession(user_id=user_id):
+			return jsonify({"error": "You Have Used up the quota of allotted sessions"}) ,403
+
 		personality = data.get("personality", "albert_einstein")  # Default personality
 		language = data.get("language", "english")
 		subject = data.get("subject")

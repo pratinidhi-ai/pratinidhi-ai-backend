@@ -3,7 +3,9 @@ from firebase_admin import credentials , firestore , auth
 import os
 import logging
 import random
+from threading import Thread
 from models.tutor_session_schema import TutorSession
+from models.users_schema import User
 
 dir = os.path.dirname(os.path.abspath(__file__))
 key_path = os.path.join(dir,'..','p-ai-private-key.json')
@@ -90,6 +92,14 @@ def _getMetaData() :
 	except Exception as e:
 		logger.error(e)
 		return None
+
+def _update_user_async(user: User):
+	try:
+		user_dict = user.to_dict()
+		db.collection('users').document(user.id).set(user_dict, merge=True)
+		logger.info(f"Successfully updated session count for user {user.id}")
+	except Exception as e:
+		logger.error(f"Failed to update user data in background: {e}")
 
 def _getQuestions(attributes: dict):
 	nques = attributes.get('nques')
@@ -205,3 +215,23 @@ def _getUserSessions(user_id: str):
 	except Exception as e:
 		logger.error(f"Error fetching sessions for user {user_id}: {str(e)}")
 		return []
+
+def userStartSession(user_id : str):
+	try:
+		user_dict = getUserbyId(user_id=user_id)
+		if not user_dict:
+			return False
+		
+		user_obj = User.from_dict(user_dict)
+		can_start = user_obj.can_start_session()
+		if can_start:
+			user_obj.increment_session_count()
+			Thread(
+				target=_update_user_async,
+				args=(user_obj,),
+				daemon=True
+			).start()
+		return can_start
+	except Exception as e:
+		logger.error(f"Error in userStartSession: {e}")
+		return False
