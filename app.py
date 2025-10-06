@@ -1,9 +1,11 @@
 from flask import Flask , jsonify , json , request
 
-from helper.firebase import getUsers , _getMetaData , _getQuestions , checkUserExists
+from database.user_db import getUsers, checkUserExists
+from database.question_db import _getMetaData, _getQuestions
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp
 from routes.tutor_routing import tutor_bp
+from routes.task_routing import task_bp
 app = Flask(__name__)
 
 @app.errorhandler(404)
@@ -16,6 +18,7 @@ def internal_error(error):
 
 app.register_blueprint(user_bp)
 app.register_blueprint(tutor_bp)
+app.register_blueprint(task_bp, url_prefix='/api/tasks')
 
 # Health check endpoint
 @app.route('/', methods=['GET'])
@@ -40,20 +43,22 @@ def getQuestions():
 def getMetaData():
 	if _getMetaData() is not None:
 		return jsonify(_getMetaData())
-	return {'_error:' "No MetaData was found"} , 404
+	return jsonify({'_error': "No MetaData was found"}), 404
 
 @app.route('/check-user-exists' , methods = ['GET'])
 @authenticate_request
 def check_user_exists():
 	arguments = request.args
 	_uid = arguments.get('uid')
+	if _uid is None:
+		return jsonify({'error': 'uid parameter is required'}), 400
 	exists = checkUserExists(user_id=_uid)
 	return jsonify({'exists': exists}), 200
 
 
 @app.route('/users' , methods = ['GET'])
 @authenticate_request
-def users() -> json:
+def users():
 	user_list = getUsers()
 	return jsonify(user_list)
 

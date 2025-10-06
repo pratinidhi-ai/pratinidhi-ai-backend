@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models.users_schema import User
 from typing import Dict, Any
-from helper.firebase import getUserbyId , createUser , checkUserExists
+from database.user_db import getUserbyId, createUser, checkUserExists
 import time
 from helper.middleware import authenticate_request
 from datetime import datetime, timezone
@@ -77,12 +77,33 @@ def create_user():
 				'message': 'Failed to create user in database'
 			}), 500
 		
-		logger.info(f"Successfully created user: {data['id']}")
-		return jsonify({
-			'success': True,
-			'message': 'User created successfully',
-			'data': user_dict
-		}), 201
+		# Initialize tasks for the new user
+		try:
+			from helper.task_service import initialize_user_tasks
+			from database.firebase_client import get_firestore_client
+			
+			firestore_client = get_firestore_client()
+			initial_tasks = await initialize_user_tasks(user_obj, firestore_client)
+			
+			logger.info(f"Successfully created user {data['id']} with {len(initial_tasks)} initial tasks")
+			
+			return jsonify({
+				'success': True,
+				'message': 'User created successfully with initial tasks assigned',
+				'data': user_dict,
+				'initial_tasks_count': len(initial_tasks)
+			}), 201
+			
+		except Exception as task_error:
+			# User was created but task initialization failed - log and continue
+			logger.error(f"Failed to initialize tasks for user {data['id']}: {str(task_error)}")
+			
+			return jsonify({
+				'success': True,
+				'message': 'User created successfully (tasks will be assigned on first login)',
+				'data': user_dict,
+				'warning': 'Initial task assignment failed'
+			}), 201
 		
 	except ValueError as e:
 		logger.error(f"Validation error creating user: {str(e)}")

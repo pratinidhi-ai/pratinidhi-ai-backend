@@ -5,7 +5,7 @@ import logging
 from models.tutor_session_schema import TutorSession
 from ai.ai_api import *
 from helper.middleware import authenticate_request
-from helper.firebase import saveSessionSummary , _getUserSessions
+from database.session_db import saveSessionSummary, _getUserSessions
 from helper.prompt_builder import PromptBuilder
 from helper.redis_sessions import redis_session_manager ,REDIS_HOST, REDIS_PORT
 

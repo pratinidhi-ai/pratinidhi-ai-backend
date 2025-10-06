@@ -1,0 +1,523 @@
+{
+  "test_timestamp": "2025-10-06T22:24:14.597894+00:00",
+  "users_tested": 8,
+  "tasks_created": 18,
+  "users": [
+    {
+      "id": "new_user_001",
+      "name": "Test User 001",
+      "completed_chapters": [
+        "Chapter 1"
+      ],
+      "chapter_progress": "1/7"
+    },
+    {
+      "id": "progress_user_002",
+      "name": "Test User 002",
+      "completed_chapters": [
+        "Chapter 1",
+        "Chapter 2"
+      ],
+      "chapter_progress": "2/7"
+    },
+    {
+      "id": "advanced_user_003",
+      "name": "Test User 003",
+      "completed_chapters": [
+        "Chapter 1",
+        "Chapter 2",
+        "Chapter 3",
+        "Chapter 4"
+      ],
+      "chapter_progress": "4/7"
+    },
+    {
+      "id": "user_monday",
+      "name": "Test User day",
+      "completed_chapters": [],
+      "chapter_progress": "0/7"
+    },
+    {
+      "id": "user_wednesday",
+      "name": "Test User day",
+      "completed_chapters": [],
+      "chapter_progress": "0/7"
+    },
+    {
+      "id": "user_thursday",
+      "name": "Test User day",
+      "completed_chapters": [],
+      "chapter_progress": "0/7"
+    },
+    {
+      "id": "user_saturday",
+      "name": "Test User day",
+      "completed_chapters": [],
+      "chapter_progress": "0/7"
+    },
+    {
+      "id": "user_sunday",
+      "name": "Test User day",
+      "completed_chapters": [],
+      "chapter_progress": "0/7"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "4ead8da0-dfaf-42ad-915f-3a907bd3f8d4",
+      "title": "Algebra Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-06T23:59:59.569373+00:00",
+      "completed": true,
+      "task_number": 1,
+      "priority_score": 1001,
+      "user_id": "new_user_001",
+      "quiz_info": {
+        "facet": "math|algebra|11",
+        "tags": [
+          "quadratic_equations",
+          "composition",
+          "functions",
+          "inverse_functions",
+          "graphing",
+          "linear_equations",
+          "logarithms",
+          "polynomials",
+          "systems",
+          "domain_range"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "e7fe2c2c-f757-4753-9f9d-fddffaf42c03",
+      "title": "Data Analysis Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-07T23:59:59.569373+00:00",
+      "completed": false,
+      "task_number": 2,
+      "priority_score": 12,
+      "user_id": "new_user_001",
+      "quiz_info": {
+        "facet": "math|data analysis|11",
+        "tags": [
+          "confidence_intervals",
+          "mean_median_mode",
+          "standard_deviation",
+          "scatter_plots",
+          "distributions",
+          "sampling",
+          "surveys",
+          "margin_error",
+          "correlation",
+          "hypothesis_testing"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "dc5cf989-e4ec-49f7-b3b7-ee0f50f215da",
+      "title": "Grammar Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-08T23:59:59.569373+00:00",
+      "completed": false,
+      "task_number": 3,
+      "priority_score": 23,
+      "user_id": "new_user_001",
+      "quiz_info": {
+        "facet": "reading & writing|grammar|11",
+        "tags": [
+          "parallel_structure",
+          "active_passive",
+          "verb_tenses",
+          "phrases",
+          "run_on_sentences",
+          "comma_usage",
+          "subject_verb_agreement",
+          "pronouns",
+          "punctuation",
+          "clauses"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "e0e2e621-09ab-4696-b6f4-bf87a8cb658d",
+      "title": "Vocabulary Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-09T23:59:59.569373+00:00",
+      "completed": false,
+      "task_number": 4,
+      "priority_score": 34,
+      "user_id": "new_user_001",
+      "quiz_info": {
+        "facet": "reading & writing|vocabulary|11",
+        "tags": [
+          "root_words",
+          "synonyms",
+          "figurative_language",
+          "academic_vocabulary",
+          "connotation",
+          "literary_terms",
+          "tone",
+          "context_clues",
+          "word_meanings",
+          "prefixes"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "324cbf3e-4024-4e4f-8306-53c9e852c723",
+      "title": "AI Tutorial: GENERAL INFORMATION ABOUT SAT",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-10T23:59:59.569373+00:00",
+      "completed": true,
+      "task_number": 5,
+      "priority_score": 1045,
+      "user_id": "new_user_001",
+      "tutorial_info": {
+        "chapter_id": "Chapter 1",
+        "chapter_title": "GENERAL INFORMATION ABOUT SAT",
+        "estimated_duration_minutes": 30
+      }
+    },
+    {
+      "id": "b2b1a304-8890-4cac-823b-85481fcca59f",
+      "title": "AI Tutorial: GENERAL INFORMATION ABOUT SAT",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-11T23:59:59.569373+00:00",
+      "completed": false,
+      "task_number": 6,
+      "priority_score": 56,
+      "user_id": "new_user_001",
+      "tutorial_info": {
+        "chapter_id": "Chapter 1",
+        "chapter_title": "GENERAL INFORMATION ABOUT SAT",
+        "estimated_duration_minutes": 30
+      }
+    },
+    {
+      "id": "5ca1cf6f-33cf-42b1-9704-7e5099cbae9e",
+      "title": "Algebra Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-06T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 1,
+      "priority_score": 1,
+      "user_id": "progress_user_002",
+      "quiz_info": {
+        "facet": "math|algebra|11",
+        "tags": [
+          "quadratic_equations",
+          "domain_range",
+          "exponentials",
+          "intercepts",
+          "factoring",
+          "polynomials",
+          "graphing",
+          "linear_equations",
+          "composition",
+          "functions"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "15dd5661-a4d8-4b7e-9643-4f96c81c3a16",
+      "title": "Data Analysis Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-07T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 2,
+      "priority_score": 12,
+      "user_id": "progress_user_002",
+      "quiz_info": {
+        "facet": "math|data analysis|11",
+        "tags": [
+          "confidence_intervals",
+          "percentiles",
+          "correlation",
+          "histograms",
+          "sampling",
+          "margin_error",
+          "standard_deviation",
+          "mean_median_mode",
+          "box_plots",
+          "surveys"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "d286907b-6b65-47f5-8cf4-140582b5752c",
+      "title": "Grammar Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-08T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 3,
+      "priority_score": 23,
+      "user_id": "progress_user_002",
+      "quiz_info": {
+        "facet": "reading & writing|grammar|11",
+        "tags": [
+          "parallel_structure",
+          "conjunctions",
+          "apostrophes",
+          "comma_usage",
+          "punctuation",
+          "run_on_sentences",
+          "pronouns",
+          "sentence_fragments",
+          "modifiers",
+          "clauses"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "43182851-e20a-4678-bb5b-d08ea3ec6543",
+      "title": "Vocabulary Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-09T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 4,
+      "priority_score": 34,
+      "user_id": "progress_user_002",
+      "quiz_info": {
+        "facet": "reading & writing|vocabulary|11",
+        "tags": [
+          "academic_vocabulary",
+          "antonyms",
+          "word_relationships",
+          "suffixes",
+          "word_meanings",
+          "figurative_language",
+          "synonyms",
+          "tone",
+          "root_words",
+          "denotation"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "b57ef63c-dd70-4e3e-ad22-e2af3d1aa992",
+      "title": "AI Tutorial: Reading & Writing Mastery: The Three-Bucket System",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-10T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 5,
+      "priority_score": 45,
+      "user_id": "progress_user_002",
+      "tutorial_info": {
+        "chapter_id": "Chapter 3",
+        "chapter_title": "Reading & Writing Mastery: The Three-Bucket System",
+        "estimated_duration_minutes": 30
+      }
+    },
+    {
+      "id": "f1a9794c-9ce6-4b97-a308-11ad8fe1db26",
+      "title": "AI Tutorial: Reading & Writing Mastery: The Three-Bucket System",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-11T23:59:59.574383+00:00",
+      "completed": false,
+      "task_number": 6,
+      "priority_score": 56,
+      "user_id": "progress_user_002",
+      "tutorial_info": {
+        "chapter_id": "Chapter 3",
+        "chapter_title": "Reading & Writing Mastery: The Three-Bucket System",
+        "estimated_duration_minutes": 30
+      }
+    },
+    {
+      "id": "6822675b-893d-427d-9470-62f63e19649c",
+      "title": "Algebra Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-06T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 1,
+      "priority_score": 1,
+      "user_id": "advanced_user_003",
+      "quiz_info": {
+        "facet": "math|algebra|11",
+        "tags": [
+          "logarithms",
+          "polynomials",
+          "domain_range",
+          "slopes",
+          "functions",
+          "factoring",
+          "linear_equations",
+          "inequalities",
+          "inverse_functions",
+          "graphing"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "d1b50aa8-94d9-45d0-b016-4e8b2df3adfe",
+      "title": "Data Analysis Quiz",
+      "type": "quiz",
+      "subject": "Math",
+      "due_date": "2025-10-07T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 2,
+      "priority_score": 12,
+      "user_id": "advanced_user_003",
+      "quiz_info": {
+        "facet": "math|data analysis|11",
+        "tags": [
+          "surveys",
+          "probability",
+          "margin_error",
+          "sampling",
+          "scatter_plots",
+          "histograms",
+          "confidence_intervals",
+          "correlation",
+          "standard_deviation",
+          "box_plots"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "7dd0d281-6511-467d-8c4d-0ff04d4667e4",
+      "title": "Grammar Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-08T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 3,
+      "priority_score": 23,
+      "user_id": "advanced_user_003",
+      "quiz_info": {
+        "facet": "reading & writing|grammar|11",
+        "tags": [
+          "modifiers",
+          "pronouns",
+          "subject_verb_agreement",
+          "punctuation",
+          "semicolons",
+          "conjunctions",
+          "comma_usage",
+          "run_on_sentences",
+          "apostrophes",
+          "clauses"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "cf9657d7-6d0d-4da1-afe9-1aafd229bc4a",
+      "title": "Vocabulary Quiz",
+      "type": "quiz",
+      "subject": "Reading & Writing",
+      "due_date": "2025-10-09T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 4,
+      "priority_score": 34,
+      "user_id": "advanced_user_003",
+      "quiz_info": {
+        "facet": "reading & writing|vocabulary|11",
+        "tags": [
+          "suffixes",
+          "literary_terms",
+          "connotation",
+          "synonyms",
+          "academic_vocabulary",
+          "denotation",
+          "word_meanings",
+          "antonyms",
+          "context_clues",
+          "word_relationships"
+        ],
+        "num_questions": 10,
+        "difficulty_level": 3,
+        "duration_minutes": 10,
+        "passing_score": 70.0
+      }
+    },
+    {
+      "id": "d4a5f2d0-7a07-44fa-b89a-cfebbc457e46",
+      "title": "AI Tutorial: Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-10T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 5,
+      "priority_score": 45,
+      "user_id": "advanced_user_003",
+      "tutorial_info": {
+        "chapter_id": "Chapter 5",
+        "chapter_title": "Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
+        "estimated_duration_minutes": 30
+      }
+    },
+    {
+      "id": "dca8b2c5-ab30-47be-9c76-b1ee19841748",
+      "title": "AI Tutorial: Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
+      "type": "AI Tutorial",
+      "subject": "Reading",
+      "due_date": "2025-10-11T23:59:59.580380+00:00",
+      "completed": false,
+      "task_number": 6,
+      "priority_score": 56,
+      "user_id": "advanced_user_003",
+      "tutorial_info": {
+        "chapter_id": "Chapter 5",
+        "chapter_title": "Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
+        "estimated_duration_minutes": 30
+      }
+    }
+  ]
+}

@@ -70,9 +70,13 @@ class User:
     terms_and_conditions: bool = False
     personalized_content: bool = True
     
+    # SAT Preparation Tracking
+    completed_chapters: List[str] = field(default_factory=list)  # Track completed chapter IDs
+    current_week_start: Optional[datetime] = None  # Track current week for task assignment
+    
     # Metadata
-    created_at: datetime = field(default_factory=_get_utc_now())
-    updated_at: datetime = field(default_factory=_get_utc_now())
+    created_at: datetime = field(default_factory=_get_utc_now)
+    updated_at: datetime = field(default_factory=_get_utc_now)
     onboarding_completed: bool = False
     last_login: Optional[datetime] = None
     
@@ -101,6 +105,8 @@ class User:
             'custom_interests': self.custom_interests,
             'terms_and_conditions': self.terms_and_conditions,
             'personalized_content': self.personalized_content,
+            'completed_chapters': self.completed_chapters,
+            'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'onboarding_completed': self.onboarding_completed,
@@ -139,6 +145,8 @@ class User:
             custom_interests=data.get('custom_interests', []),
             terms_and_conditions=data.get('terms_and_conditions', False),
             personalized_content=data.get('personalized_content', True),
+            completed_chapters=data.get('completed_chapters', []),
+            current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
             created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
             updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
             onboarding_completed=data.get('onboarding_completed', False),
@@ -154,3 +162,18 @@ class User:
         """Update last login timestamp"""
         self.last_login = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
+    
+    def mark_chapter_completed(self, chapter_id: str):
+        """Mark a chapter as completed"""
+        if chapter_id not in self.completed_chapters:
+            self.completed_chapters.append(chapter_id)
+            self.updated_at = datetime.now(timezone.utc)
+    
+    def get_next_chapter(self) -> Optional[str]:
+        """Get the next chapter ID that hasn't been completed"""
+        # This will be used to assign the next AI tutorial task
+        all_chapters = ["Chapter 1", "Chapter 2", "Chapter 3", "Chapter 4", "Chapter 5", "Chapter 6", "Chapter 7"]
+        for chapter_id in all_chapters:
+            if chapter_id not in self.completed_chapters:
+                return chapter_id
+        return None  # All chapters completed

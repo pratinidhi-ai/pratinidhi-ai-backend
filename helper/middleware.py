@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request , jsonify , current_app
-from firebase_admin import auth
+from database.firebase_client import get_auth
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,11 +14,14 @@ def authenticate_request(f) :
 		id_token = auth_header.split(" ")[1]
 		print(id_token)
 		try:
+			# Get Firebase Auth instance
+			auth = get_auth()
 			# The decoded token contains user info like UID, email, etc.
 			decoded_token = auth.verify_id_token(id_token)
 			
 			# 4. Attach user data to the request object for use in the route
-			request.user = decoded_token
+			from flask import g
+			g.user = decoded_token
 
 		except auth.InvalidIdTokenError as e:
 			# Token is invalid, malformed, or has an incorrect signature.

@@ -1,0 +1,57 @@
+For every user, I want to assign them tasks.
+These tasks will form their journey for preparing for SAT exam.
+I want to store the tasks of every user, inside the user collection, user document, tasks subcollection.
+
+Every task will have the following fields, and we need to create a Task class in models:
+
+- id (String)
+- title (String)
+- description (String)
+- dueDate (Date)
+- completed (Boolean)
+- type_of_task (String) - can be a 'quiz' or 'AI Tutorial'
+- createdAt (Date)
+- frequency (String) - can be 'weekly' or 'monthly'
+- taskNumber (int) - to indicate the order of the task in the journey
+- start_date_of_week (Date) - to indicate the start date of the week for weekly tasks
+- start_date_of_month (Date) - to indicate the start date of the month for monthly tasks
+- quiz_related_attributes (Map) - to store any additional attributes related to quiz tasks
+- ai_tutorial_related_attributes (Map) - to store any additional attributes related to AI tutorial tasks
+- user_id (String) - to link the task to a specific user
+- subject (String) - to indicate the subject of the task, e.g., 'Math', 'Reading', 'Writing', etc.
+- attempts_info (Map) - to store information about the number of attempts made on the task, if applicable
+
+
+The Task class should also include methods for:
+- converting to and from a Map (for Firestore storage)
+- marking the task as completed
+- updating task details
+
+When a user is created, the fetch current task function should be called to fetch the currently assigned task for the user.
+If no task is assigned, the function should assign the tasks for the ongoing week. (We will add month support later)
+
+This is how the tasks will be assigned:
+In a week, there will be 6 tasks assigned to the user.
+- 4 tasks will be quizzes (question_bank facets: math|algebra|11, math|data analysis|11, reading & writing|grammar|11, reading & writing|vocabulary|11)
+  From the database: question_bank collection, we will fetch the facets, get the list of available_tags for each facet, and randomly assign 10 tags from each facet to the user as a quiz task.
+  Number of questions in each quiz task will be 10.
+  Difficulty_level will be 3 for all quiz tasks.
+  Duration for each quiz will be 10 mins.
+  Passing_score will be 70% for all quiz tasks.
+  The quiz tasks will be assigned in the following order:
+    1. math|algebra|11
+    2. math|data analysis|11
+    3. reading & writing|grammar|11
+    4. reading & writing|vocabulary|11
+- 2 tasks will be AI tutorials:
+    From our lecture_notes.json file, we will assign the next chapter that the user has not completed yet. (We will track completed chapters in the user document)
+
+
+
+When we are assigning tasks, we will check the user's completed chapters and assign the next chapter as an AI tutorial task.
+
+When we are assigning tasks, we will also check how many days are left in the week, and distribute the tasks accordingly.
+For example, if today is Thursday or more, we will assign 2 quiz tasks and 1 AI tutorial task for the remaining days of the week.
+Upto Wednesday, we will assign all tasks for the week.
+
+For us, the week starts on Monday and ends on Sunday.
