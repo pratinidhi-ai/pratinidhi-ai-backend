@@ -7,7 +7,7 @@ from ai.ai_api import *
 from helper.middleware import authenticate_request
 from helper.firebase import saveSessionSummary , _getUserSessions
 from helper.prompt_builder import PromptBuilder
-from helper.redis_sessions import redis_session_manager
+from helper.redis_sessions import redis_session_manager ,REDIS_HOST, REDIS_PORT
 
 
 sessions = {}
@@ -80,6 +80,7 @@ def start_session():
 		logger.error(f"Error creating session: {str(e)}")
 		return jsonify({"error": "Can't Create Session", "details": str(e)}), 500
 	
+
 @tutor_bp.route('/<session_id>/message', methods=['POST'])
 @authenticate_request
 def session_message(session_id):
@@ -87,9 +88,10 @@ def session_message(session_id):
 		data = request.json
 		if not data:
 			return jsonify({"error": "No JSON data provided"}), 400
-			
-		# session = sessions.get(session_id)
+		
+		logger.info(f"Step 1: Getting session {session_id}")
 		session = redis_session_manager.get_session(session_id)
+		
 		if not session or not session.is_active:
 			return jsonify({"error": "Session not found or ended"}), 404
 		
@@ -97,29 +99,32 @@ def session_message(session_id):
 		if not user_message:
 			return jsonify({"error": "Message content is required"}), 400
 
-		use_rag = False
-		if data.get("use_rag"):
-			use_rag = True
+		use_rag = data.get("use_rag", False)
 		
-		# Add user message to session
 		session.messages.append({"role": "user", "content": user_message})
-		session.messages = session.messages[-20:]  # Keep last 20 messages
+		session.messages = session.messages[-20:]
 		
-		# Get AI response using the session's system prompt
-		ai_response = call_openai_api(session, use_rag)
+		logger.info("Step 2: Calling OpenAI API")
+		try:
+			ai_response = call_openai_api(session, use_rag)
+			logger.info(f"OpenAI API call successful, response length: {len(ai_response)}")
+		except Exception as openai_error:
+			logger.exception(f"OpenAI API call failed: {str(openai_error)}")
+			return jsonify({
+				"error": "OpenAI API call failed",
+				"details": str(openai_error),
+				"error_type": type(openai_error).__name__
+			}), 500
 		
 		session.messages.append({"role": "assistant", "content": ai_response})
 		session.length += 2
 		
-		# Check if session should end
 		if session.length >= 100:
 			session.is_active = False
 			session.ended_at = time.time()
 			session.summary = generate_summary(session.messages)
 			saveSessionSummary(session=session)
-			# del sessions[session_id]
 			redis_session_manager.delete_session(session_id)
-		
 		else:
 			redis_session_manager.save_session(session_id, session)
 
@@ -130,7 +135,7 @@ def session_message(session_id):
 		})
 		
 	except Exception as e:
-		logger.error(f"Error in session message {session_id}: {str(e)}")
+		logger.exception(f"Error in session message {session_id}")
 		return jsonify({"error": "Failed to process message", "details": str(e)}), 500
 
 
@@ -187,3 +192,28 @@ def getUserSessions(user_id):
 		return jsonify({
 			"error": "Failed to fetch user sessions"
 		}), 500
+
+import time
+
+@tutor_bp.route('/redis-health', methods=['GET'])
+def redis_health():
+    try:
+        start_time = time.time()
+        result = redis_session_manager.redis_client.ping()
+        latency = (time.time() - start_time) * 1000
+        
+        return jsonify({
+            "status": "healthy",
+            "redis_host": REDIS_HOST,
+            "redis_port": REDIS_PORT,
+            "latency_ms": round(latency, 2),
+            "ping_result": result
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "redis_host": REDIS_HOST,
+            "redis_port": REDIS_PORT
+        }), 500
