@@ -137,14 +137,18 @@ class User:
 		prefs_data = data.get('preferences', {})
 		accessibility_data = prefs_data.get('accessibility', {})
 		
+		# Handle missing or empty subscription data with defaults
 		sub_data = data.get('subscription', {})
-		subscription = SubscriptionInfo(
-			type=SubscriptionType(sub_data.get('type', 'regular')),
-			sessions_used=sub_data.get('sessions_used', 0),
-			sessions_limit=sub_data.get('sessions_limit', 5),
-			last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
-			pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None
-		)
+		if not sub_data:  # If subscription field doesn't exist or is empty
+			subscription = SubscriptionInfo()  # Will use default values
+		else:
+			subscription = SubscriptionInfo(
+				type=SubscriptionType(sub_data.get('type', 'regular')),
+				sessions_used=sub_data.get('sessions_used', 0),
+				sessions_limit=sub_data.get('sessions_limit', 25),
+				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
+				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None
+			)
 
 		preferences = UserPreferences(
 			language=Language(prefs_data.get('language', 'English')),
