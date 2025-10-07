@@ -36,7 +36,7 @@ def get_user(user_id: str) :
 
 @user_bp.route('/' , methods = ['POST'])
 @authenticate_request
-def create_user():
+async def create_user():
 	try:
 		data = request.get_json()
 		if not data:

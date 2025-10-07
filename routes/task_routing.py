@@ -10,6 +10,7 @@ import traceback
 
 from models.task_schema import Task, TaskType
 from models.users_schema import User
+from helper.middleware import authenticate_request
 from helper.task_service import (
     TaskService,
     fetch_current_task_for_user,
@@ -21,6 +22,7 @@ from database.firebase_client import get_firestore_client
 task_bp = Blueprint('task', __name__)
 
 @task_bp.route('/user/<user_id>/tasks', methods=['GET'])
+@authenticate_request
 async def get_user_tasks(user_id: str):
     """Get all current tasks for a user"""
     try:
@@ -49,6 +51,7 @@ async def get_user_tasks(user_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/current', methods=['GET'])
+@authenticate_request
 async def get_current_task(user_id: str):
     """Get the current (next) task for a user"""
     try:
@@ -82,6 +85,7 @@ async def get_current_task(user_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/complete', methods=['POST'])
+@authenticate_request
 async def mark_task_completed(user_id: str, task_id: str):
     """Mark a task as completed"""
     try:
@@ -89,7 +93,21 @@ async def mark_task_completed(user_id: str, task_id: str):
         task_service = TaskService(firestore_client)
         
         # Get additional data from request
-        data = request.get_json() or {}
+        data = request.get_json()
+        
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid request', 'message': 'Request body must be a JSON object.'}), 400
+
+        score = data.get('score')
+        attempt_data = data.get('attempt_data', {})
+
+        # New: Validate data types if fields are present
+        if score is not None and not isinstance(score, (int, float)):
+            return jsonify({'error': 'Invalid data type', 'message': 'Field "score" must be a number.'}), 400
+        
+        if 'attempt_data' in data and not isinstance(attempt_data, dict):
+            return jsonify({'error': 'Invalid data type', 'message': 'Field "attempt_data" must be an object.'}), 400
+
         score = data.get('score')
         attempt_data = data.get('attempt_data', {})
         
@@ -134,18 +152,27 @@ async def mark_task_completed(user_id: str, task_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/attempt', methods=['POST'])
+@authenticate_request
 async def update_task_attempt(user_id: str, task_id: str):
     """Update task attempt information"""
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Invalid request', 'message': 'Request body must be a JSON object.'}), 400
+
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
         
         score = data.get('score')
         attempt_data = {k: v for k, v in data.items() if k != 'score'}
+
+        # New: Validate score data type
+        if score is not None and not isinstance(score, (int, float)):
+            return jsonify({'error': 'Invalid data type', 'message': 'Field "score" must be a number.'}), 400
+        
+        
+        firestore_client = get_firestore_client()
+        task_service = TaskService(firestore_client)
         
         success = await task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
         
@@ -163,6 +190,7 @@ async def update_task_attempt(user_id: str, task_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/dashboard', methods=['GET'])
+@authenticate_request
 async def get_user_dashboard(user_id: str):
     """Get comprehensive dashboard data for a user"""
     try:
@@ -189,6 +217,7 @@ async def get_user_dashboard(user_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/initialize', methods=['POST'])
+@authenticate_request
 async def initialize_tasks(user_id: str):
     """Initialize tasks for a user (useful for new users or manual initialization)"""
     try:
@@ -216,6 +245,7 @@ async def initialize_tasks(user_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/chapters/<chapter_id>/complete', methods=['POST'])
+@authenticate_request
 async def mark_chapter_completed(user_id: str, chapter_id: str):
     """Mark a chapter as completed for a user"""
     try:
@@ -246,6 +276,7 @@ async def mark_chapter_completed(user_id: str, chapter_id: str):
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/progress', methods=['GET'])
+@authenticate_request
 async def get_user_progress(user_id: str):
     """Get user's overall progress including completed chapters and task analytics"""
     try:
