@@ -23,7 +23,7 @@ task_bp = Blueprint('task', __name__)
 
 @task_bp.route('/user/<user_id>/tasks', methods=['GET'])
 @authenticate_request
-async def get_user_tasks(user_id: str):
+def get_user_tasks(user_id: str):
     """Get all current tasks for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -37,7 +37,7 @@ async def get_user_tasks(user_id: str):
         
         # Get task service and fetch tasks
         task_service = TaskService(firestore_client)
-        tasks = await task_service.fetch_current_tasks(user)
+        tasks =  task_service.fetch_current_tasks(user)
         
         return jsonify({
             'success': True,
@@ -52,7 +52,7 @@ async def get_user_tasks(user_id: str):
 
 @task_bp.route('/user/<user_id>/tasks/current', methods=['GET'])
 @authenticate_request
-async def get_current_task(user_id: str):
+def get_current_task(user_id: str):
     """Get the current (next) task for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -65,7 +65,7 @@ async def get_current_task(user_id: str):
         user = User.from_dict(user_doc.to_dict())
         
         # Fetch current task
-        current_task = await fetch_current_task_for_user(user, firestore_client)
+        current_task =  fetch_current_task_for_user(user, firestore_client)
         
         if not current_task:
             return jsonify({
@@ -86,7 +86,7 @@ async def get_current_task(user_id: str):
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/complete', methods=['POST'])
 @authenticate_request
-async def mark_task_completed(user_id: str, task_id: str):
+def mark_task_completed(user_id: str, task_id: str):
     """Mark a task as completed"""
     try:
         firestore_client = get_firestore_client()
@@ -113,10 +113,10 @@ async def mark_task_completed(user_id: str, task_id: str):
         
         # Update task attempt info if provided
         if score is not None or attempt_data:
-            await task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
+             task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
         
         # Mark task as completed
-        success = await task_service.mark_task_completed(user_id, task_id)
+        success =  task_service.mark_task_completed(user_id, task_id)
         
         if success:
             # Check if this was an AI tutorial task and mark chapter as completed
@@ -137,7 +137,7 @@ async def mark_task_completed(user_id: str, task_id: str):
                         user_doc = firestore_client.collection('users').document(user_id).get()
                         if user_doc.exists:
                             user = User.from_dict(user_doc.to_dict())
-                            await task_service.mark_chapter_completed(user, chapter_id)
+                            task_service.mark_chapter_completed(user, chapter_id)
             
             return jsonify({
                 'success': True,
@@ -153,7 +153,7 @@ async def mark_task_completed(user_id: str, task_id: str):
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/attempt', methods=['POST'])
 @authenticate_request
-async def update_task_attempt(user_id: str, task_id: str):
+def update_task_attempt(user_id: str, task_id: str):
     """Update task attempt information"""
     try:
         data = request.get_json()
@@ -174,7 +174,7 @@ async def update_task_attempt(user_id: str, task_id: str):
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
         
-        success = await task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
+        success =  task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
         
         if success:
             return jsonify({
@@ -191,7 +191,7 @@ async def update_task_attempt(user_id: str, task_id: str):
 
 @task_bp.route('/user/<user_id>/dashboard', methods=['GET'])
 @authenticate_request
-async def get_user_dashboard(user_id: str):
+def get_user_dashboard(user_id: str):
     """Get comprehensive dashboard data for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -204,7 +204,7 @@ async def get_user_dashboard(user_id: str):
         user = User.from_dict(user_doc.to_dict())
         
         # Get dashboard data
-        dashboard_data = await get_user_dashboard_data(user, firestore_client)
+        dashboard_data =  get_user_dashboard_data(user, firestore_client)
         
         return jsonify({
             'success': True,
@@ -218,7 +218,7 @@ async def get_user_dashboard(user_id: str):
 
 @task_bp.route('/user/<user_id>/tasks/initialize', methods=['POST'])
 @authenticate_request
-async def initialize_tasks(user_id: str):
+def initialize_tasks(user_id: str):
     """Initialize tasks for a user (useful for new users or manual initialization)"""
     try:
         firestore_client = get_firestore_client()
@@ -231,7 +231,7 @@ async def initialize_tasks(user_id: str):
         user = User.from_dict(user_doc.to_dict())
         
         # Initialize tasks
-        tasks = await initialize_user_tasks(user, firestore_client)
+        tasks =  initialize_user_tasks(user, firestore_client)
         
         return jsonify({
             'success': True,
@@ -246,7 +246,7 @@ async def initialize_tasks(user_id: str):
 
 @task_bp.route('/user/<user_id>/chapters/<chapter_id>/complete', methods=['POST'])
 @authenticate_request
-async def mark_chapter_completed(user_id: str, chapter_id: str):
+def mark_chapter_completed(user_id: str, chapter_id: str):
     """Mark a chapter as completed for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -260,7 +260,7 @@ async def mark_chapter_completed(user_id: str, chapter_id: str):
         user = User.from_dict(user_doc.to_dict())
         
         # Mark chapter as completed
-        success = await task_service.mark_chapter_completed(user, chapter_id)
+        success =  task_service.mark_chapter_completed(user, chapter_id)
         
         if success:
             return jsonify({
@@ -277,7 +277,7 @@ async def mark_chapter_completed(user_id: str, chapter_id: str):
 
 @task_bp.route('/user/<user_id>/progress', methods=['GET'])
 @authenticate_request
-async def get_user_progress(user_id: str):
+def get_user_progress(user_id: str):
     """Get user's overall progress including completed chapters and task analytics"""
     try:
         firestore_client = get_firestore_client()
@@ -290,7 +290,7 @@ async def get_user_progress(user_id: str):
         user = User.from_dict(user_doc.to_dict())
         
         # Get dashboard data which includes analytics
-        dashboard_data = await get_user_dashboard_data(user, firestore_client)
+        dashboard_data =  get_user_dashboard_data(user, firestore_client)
         
         # Add chapter progress
         total_chapters = 7  # Based on lecture_notes.json
@@ -319,7 +319,7 @@ async def get_user_progress(user_id: str):
 
 # Helper endpoint for testing/admin purposes
 @task_bp.route('/admin/tasks/test-assignment', methods=['POST'])
-async def test_task_assignment():
+def test_task_assignment():
     """Test endpoint to see what tasks would be assigned (admin/testing only)"""
     try:
         data = request.get_json()

@@ -263,7 +263,7 @@ def calculate_task_priority(task: Task, current_date: Optional[datetime] = None)
 
 # Example usage functions that would be called from the main application
 
-async def get_or_assign_user_tasks(user: User, firestore_client=None) -> List[Task]:
+def get_or_assign_user_tasks(user: User, firestore_client=None) -> List[Task]:
     """
     Main function to get current tasks for a user or assign new ones if needed.
     This function should be called when fetching tasks for a user.

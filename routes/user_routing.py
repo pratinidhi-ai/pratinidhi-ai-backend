@@ -36,7 +36,7 @@ def get_user(user_id: str) :
 
 @user_bp.route('/' , methods = ['POST'])
 @authenticate_request
-async def create_user():
+def create_user():
 	try:
 		data = request.get_json()
 		if not data:
@@ -83,7 +83,7 @@ async def create_user():
 			from database.firebase_client import get_firestore_client
 			
 			firestore_client = get_firestore_client()
-			initial_tasks = await initialize_user_tasks(user_obj, firestore_client)
+			initial_tasks =  initialize_user_tasks(user_obj, firestore_client)
 			
 			logger.info(f"Successfully created user {data['id']} with {len(initial_tasks)} initial tasks")
 			

@@ -22,7 +22,7 @@ class TaskService:
         self.task_db = get_task_db()
         self.user_db = get_user_db()
     
-    async def fetch_current_tasks(self, user: User) -> List[Task]:
+    def fetch_current_tasks(self, user: User) -> List[Task]:
         """
         Fetch currently assigned tasks for a user.
         If no tasks are assigned for the current week, assign new tasks.
@@ -36,14 +36,14 @@ class TaskService:
         try:
             # Check if we should assign new tasks
             if should_assign_new_tasks(user):
-                return await self._assign_new_weekly_tasks(user)
+                return self._assign_new_weekly_tasks(user)
             
             # Fetch existing tasks for current week
-            existing_tasks = await self._get_existing_weekly_tasks(user)
+            existing_tasks = self._get_existing_weekly_tasks(user)
             
             if not existing_tasks:
                 # No tasks found, assign new ones
-                return await self._assign_new_weekly_tasks(user)
+                return self._assign_new_weekly_tasks(user)
             
             # Sort tasks by priority
             existing_tasks.sort(key=lambda t: calculate_task_priority(t))
@@ -53,16 +53,16 @@ class TaskService:
             print(f"Error fetching current tasks for user {user.id}: {e}")
             return []
     
-    async def _assign_new_weekly_tasks(self, user: User) -> List[Task]:
+    def _assign_new_weekly_tasks(self, user: User) -> List[Task]:
         """Assign new tasks for the current week"""
         try:
             new_tasks = assign_weekly_tasks(user)
             
             # Save tasks to Firestore
             if self.firestore_client and new_tasks:
-                await self._save_tasks_to_firestore(new_tasks)
+                self._save_tasks_to_firestore(new_tasks)
                 # Update user's current_week_start in Firestore
-                await self._update_user_week_start(user)
+                self._update_user_week_start(user)
             
             return sorted(new_tasks, key=lambda t: calculate_task_priority(t))
             
@@ -70,7 +70,7 @@ class TaskService:
             print(f"Error assigning new weekly tasks for user {user.id}: {e}")
             return []
     
-    async def _get_existing_weekly_tasks(self, user: User) -> List[Task]:
+    def _get_existing_weekly_tasks(self, user: User) -> List[Task]:
         """Fetch existing tasks for the current week"""
         try:
             # Use task database to get tasks by week
@@ -82,7 +82,7 @@ class TaskService:
             print(f"Error fetching existing weekly tasks for user {user.id}: {e}")
             return []
     
-    async def _save_tasks_to_firestore(self, tasks: List[Task]) -> bool:
+    def _save_tasks_to_firestore(self, tasks: List[Task]) -> bool:
         """Save tasks using task database"""
         try:
             return self.task_db.create_tasks_batch(tasks)
@@ -91,7 +91,7 @@ class TaskService:
             print(f"Error saving tasks: {e}")
             return False
     
-    async def _update_user_week_start(self, user: User) -> bool:
+    def _update_user_week_start(self, user: User) -> bool:
         """Update user's current_week_start using user database"""
         try:
             return self.user_db.update_user(user.id, {
@@ -102,7 +102,7 @@ class TaskService:
             print(f"Error updating user week start: {e}")
             return False
     
-    async def mark_task_completed(self, user_id: str, task_id: str) -> bool:
+    def mark_task_completed(self, user_id: str, task_id: str) -> bool:
         """Mark a specific task as completed"""
         try:
             return self.task_db.mark_task_completed(user_id, task_id)
@@ -111,7 +111,7 @@ class TaskService:
             print(f"Error marking task {task_id} as completed: {e}")
             return False
     
-    async def update_task_attempt(self, user_id: str, task_id: str, score: Optional[float] = None, **attempt_data) -> bool:
+    def update_task_attempt(self, user_id: str, task_id: str, score: Optional[float] = None, **attempt_data) -> bool:
         """Update task with attempt information"""
         try:
             return self.task_db.update_task_attempt(user_id, task_id, score=score, **attempt_data)
@@ -120,7 +120,7 @@ class TaskService:
             print(f"Error updating task attempt for {task_id}: {e}")
             return False
     
-    async def mark_chapter_completed(self, user: User, chapter_id: str) -> bool:
+    def mark_chapter_completed(self, user: User, chapter_id: str) -> bool:
         """Mark a chapter as completed for the user"""
         try:
             # Update user object
@@ -133,10 +133,10 @@ class TaskService:
             print(f"Error marking chapter {chapter_id} as completed: {e}")
             return False
     
-    async def get_user_task_summary(self, user: User) -> Dict[str, Any]:
+    def get_user_task_summary(self, user: User) -> Dict[str, Any]:
         """Get comprehensive task summary for a user"""
         try:
-            tasks = await self.fetch_current_tasks(user)
+            tasks = self.fetch_current_tasks(user)
             analytics = get_user_task_analytics(tasks)
             
             # Get next task
@@ -180,13 +180,13 @@ class TaskService:
 
 # Convenience functions for easy integration
 
-async def fetch_current_task_for_user(user: User, firestore_client=None) -> Optional[Task]:
+def fetch_current_task_for_user(user: User, firestore_client=None) -> Optional[Task]:
     """
     Convenience function to fetch the current (next) task for a user.
     This is the main function to call when a user is created or logs in.
     """
     task_service = TaskService(firestore_client)
-    tasks = await task_service.fetch_current_tasks(user)
+    tasks = task_service.fetch_current_tasks(user)
     
     if not tasks:
         return None
@@ -198,17 +198,17 @@ async def fetch_current_task_for_user(user: User, firestore_client=None) -> Opti
     
     return tasks[0] if tasks else None
 
-async def initialize_user_tasks(user: User, firestore_client=None) -> List[Task]:
+def initialize_user_tasks(user: User, firestore_client=None) -> List[Task]:
     """
     Initialize tasks for a new user.
     This should be called when a user is first created.
     """
     task_service = TaskService(firestore_client)
-    return await task_service.fetch_current_tasks(user)
+    return task_service.fetch_current_tasks(user)
 
-async def get_user_dashboard_data(user: User, firestore_client=None) -> Dict[str, Any]:
+def get_user_dashboard_data(user: User, firestore_client=None) -> Dict[str, Any]:
     """
     Get complete dashboard data for a user including tasks and analytics.
     """
     task_service = TaskService(firestore_client)
-    return await task_service.get_user_task_summary(user)
+    return task_service.get_user_task_summary(user)
