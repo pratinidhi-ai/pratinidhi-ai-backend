@@ -114,7 +114,7 @@ class PromptBuilder:
         traits = personality_data.get('traits', [])
         catchphrases = personality_data.get('catchphrases', [])
         
-        personality_section = f"You embody the personality of {name} - {description}."
+        personality_section = f"Tutor Personality: You embody the personality of {name} - {description}."
         
         if traits:
             traits_str = "\n".join([f"- {trait}" for trait in traits])
@@ -157,16 +157,23 @@ class PromptBuilder:
         chapter_content = self.get_chapter_content(subject, chapter)
         if not chapter_content:
             return ""
-        
-        formatted_content = f"""CHAPTER: {chapter_content.get('title', chapter)}
+        title = chapter_content.get('title', chapter)
 
-DETAILED NOTES:
-{chapter_content.get('notes', 'No detailed notes available.')}
+        lecture_welcome_msg = f"""Start the session with a welcome message: "Welcome to today's session on {title}!"""
 
-CHAPTER SUMMARY:
-{chapter_content.get('summary', 'No summary available.')}
+        formatted_content = f"""WELCOME MESSAGE: {lecture_welcome_msg}
+        After the welcome message, ask the user if they are ready to begin the lesson.
+        After they confirm, proceed with the lesson.
+        Even this welcome message must follow the personality and tone guidelines provided later in this prompt.
+        CHAPTER: {title}
 
-KEY INSIGHTS:"""
+        DETAILED NOTES:
+        {chapter_content.get('notes', 'No detailed notes available.')}
+
+        CHAPTER SUMMARY:
+        {chapter_content.get('summary', 'No summary available.')}
+
+        KEY INSIGHTS:"""
         
         key_insights = chapter_content.get('key_insights', [])
         if key_insights:
@@ -189,18 +196,22 @@ KEY INSIGHTS:"""
         if not lecture_notes:
             return ""
         
-        return f"""IMPORTANT: You have been provided with specific lecture notes for this session. You must follow these guidelines strictly:
+        return f"""You are a teacher of {subject} and you have been provided with the lecture notes for this session."
 
-1. Use ONLY the content from these lecture notes to explain concepts to the student
-2. Do not go beyond the topics covered in the provided notes
-3. If the student asks about topics not covered in the notes, politely decline and say: "That's an excellent question, but it's not covered in today's material. We can discuss that in a future session, or you can create an additional session specifically for that topic."
-4. Use the notes to create quizzes and practice questions for the student
-5. Ensure all explanations are based on the provided material
+        IMPORTANT: You must follow these guidelines strictly:
 
-LECTURE NOTES:
-{lecture_notes}
+        1. Use ONLY the content from these lecture notes to explain concepts to the student
+        2. Do not go beyond the topics covered in the provided notes
+        3. If the student asks about topics not covered in the notes, politely decline and say: "That's an excellent question, but it's not covered in today's material. We can discuss that in a future session, or you can create an additional session specifically for that topic."
+        4. Use the notes to create quizzes and practice questions for the student
+        5. Ensure all explanations are based on the provided material
+        6. After each message, ask the student as per the tutor's personality if they have any questions about the material covered so far, or if they would like to continue to the next section. 
+        7. Each message should follow the personality and tone guidelines provided later in this prompt.
 
-Remember to stick strictly to this content."""
+        LECTURE Notes:
+        {lecture_notes}
+
+        Remember to stick strictly to this content."""
     
     def _get_lecture_plan_section(self, lecture_notes: Optional[str]) -> str:
         """Build the lecture plan section when lecture notes are provided."""
@@ -209,19 +220,19 @@ Remember to stick strictly to this content."""
         
         return """LECTURE PLAN: When teaching from the provided lecture notes, follow this structured approach:
 
-1. **Point-by-Point Teaching**: Go through each main point/concept in the chapter systematically
-2. **Check Understanding**: After explaining each point, ask if the student has any questions about that specific concept
-3. **Quick Assessment**: Ask 1-2 targeted questions to test the student's understanding of each point before moving on
-4. **Overall Q&A**: After covering all points, ask if the student has any general questions about the chapter
-5. **Comprehensive Quiz**: Create a 5-question quiz covering the entire chapter to test overall understanding
-6. **Detailed Explanations**: Provide thorough explanations for each quiz question, including why wrong answers are incorrect
-7. **Session Summary**: At the end, provide:
-   - A summary of the chapter covered
-   - A list of important points to remember
-   - Feedback on the student's quiz performance
-   - Suggestions for improvement
+        1. **Point-by-Point Teaching**: Go through each main point/concept in the chapter systematically
+        2. **Check Understanding**: After explaining each point, ask if the student has any questions about that specific concept
+        3. **Quick Assessment**: Ask 1-2 targeted questions to test the student's understanding of each point before moving on
+        4. **Overall Q&A**: After covering all points, ask if the student has any general questions about the chapter
+        5. **Comprehensive Quiz**: Create a 5-question quiz covering the entire chapter to test overall understanding
+        6. **Detailed Explanations**: Provide thorough explanations for each quiz question, including why wrong answers are incorrect
+        7. **Session Summary**: At the end, provide:
+        - A summary of the chapter covered
+        - A list of important points to remember
+        - Feedback on the student's quiz performance
+        - Suggestions for improvement
 
-Follow this structure to ensure comprehensive learning and assessment."""
+        Follow this structure to ensure comprehensive learning and assessment."""
     
     def build_system_prompt(self, personality: str, subject: Optional[str] = None, 
                           level: Optional[str] = None, exam: Optional[str] = None,
@@ -244,10 +255,35 @@ Follow this structure to ensure comprehensive learning and assessment."""
         
         sections = []
         
+        # if lecture notes are provided, then welcome using the chapter title, and start with that first
+        # Lecture notes (structured or raw)
+        lecture_notes_section = self._get_lecture_notes_section(
+            lecture_notes=lecture_notes, 
+            subject=lecture_subject, 
+            chapter=lecture_chapter
+        )
+        if lecture_notes_section:
+            sections.append(lecture_notes_section)
+
+        # Lecture plan (if any lecture notes are provided)
+        has_lecture_content = (lecture_notes or (lecture_subject and lecture_chapter))
+        lecture_plan_section = self._get_lecture_plan_section(lecture_notes if lecture_notes else has_lecture_content)
+        if lecture_plan_section:
+            sections.append(lecture_plan_section)
+
+        # Personality section
+        personality_section = self._get_personality_section(personality)
+        if personality_section:
+            sections.append(personality_section)
+        
         # Fixed parts
         sections.append(self._get_fixed_prompt_parts())
         
         # Dynamic parts
+        interests_section = self._get_interests_section(interests)
+        if interests_section:
+            sections.append(interests_section)
+
         subject_section = self._get_subject_section(subject)
         if subject_section:
             sections.append(subject_section)
@@ -258,35 +294,14 @@ Follow this structure to ensure comprehensive learning and assessment."""
         
         exam_section = self._get_exam_section(exam)
         if exam_section:
-            sections.append(exam_section)
-        
-        interests_section = self._get_interests_section(interests)
-        if interests_section:
-            sections.append(interests_section)
+            sections.append(exam_section)      
         
         goals_section = self._get_goals_section(goals)
         if goals_section:
             sections.append(goals_section)
         
-        # Personality section
-        personality_section = self._get_personality_section(personality)
-        if personality_section:
-            sections.append(personality_section)
         
-        # Lecture notes (structured or raw)
-        lecture_notes_section = self._get_lecture_notes_section(
-            lecture_notes=lecture_notes, 
-            subject=lecture_subject, 
-            chapter=lecture_chapter
-        )
-        if lecture_notes_section:
-            sections.append(lecture_notes_section)
         
-        # Lecture plan (if any lecture notes are provided)
-        has_lecture_content = (lecture_notes or (lecture_subject and lecture_chapter))
-        lecture_plan_section = self._get_lecture_plan_section(lecture_notes if lecture_notes else has_lecture_content)
-        if lecture_plan_section:
-            sections.append(lecture_plan_section)
         
         # Join all sections
         complete_prompt = "\n\n".join(sections)

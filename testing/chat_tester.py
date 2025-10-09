@@ -181,6 +181,8 @@ class TutorChatTester:
             print(f"Interests: {', '.join(interests)}")
         if goals:
             print(f"Goals: {', '.join(goals)}")
+
+        print("System prompt: \n", system_prompt)
         
         print("\n💬 You can now start chatting with your tutor!")
         print("Type your first message or use /prompt to see the system prompt.")
