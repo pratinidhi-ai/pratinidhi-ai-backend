@@ -217,11 +217,11 @@ class User:
 			self.completed_chapters.append(chapter_id)
 			self.updated_at = datetime.now(timezone.utc)
 	
-	def get_next_chapter(self) -> Optional[str]:
+	def get_next_chapter(self, already_selected_chapters=None) -> Optional[str]:
 		"""Get the next chapter ID that hasn't been completed"""
 		# This will be used to assign the next AI tutorial task
 		all_chapters = ["Chapter 1", "Chapter 2", "Chapter 3", "Chapter 4", "Chapter 5", "Chapter 6", "Chapter 7"]
 		for chapter_id in all_chapters:
-			if chapter_id not in self.completed_chapters:
+			if chapter_id not in self.completed_chapters and (already_selected_chapters is None or chapter_id not in already_selected_chapters):
 				return chapter_id
 		return None  # All chapters completed

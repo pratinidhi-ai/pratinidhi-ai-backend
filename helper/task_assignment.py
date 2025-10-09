@@ -179,8 +179,10 @@ def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> 
         task_number += 1
     
     # Create AI tutorial tasks
+    current_selected_chapters = []
     for i in range(num_ai_tutorial_tasks):
-        next_chapter = user.get_next_chapter()
+        next_chapter = user.get_next_chapter(already_selected_chapters=current_selected_chapters)
+        current_selected_chapters.append(next_chapter)
         
         if next_chapter:
             ai_tutorial_task = create_ai_tutorial_task(
