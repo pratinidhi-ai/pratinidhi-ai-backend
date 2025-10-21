@@ -4,3 +4,5 @@ __pycache__/
 dev-private-keys.json
 p-ai-private-key.json
 .env
+awscliv2.zip
+aws/

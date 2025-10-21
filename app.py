@@ -1,6 +1,6 @@
 from flask import Flask , jsonify , json , request
 
-from database.user_db import getUsers, checkUserExists
+from database.user_db import getUsers, checkUserExists , getUserbyId
 from database.question_db import _getMetaData, _getQuestions
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp

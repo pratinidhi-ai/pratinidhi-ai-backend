@@ -226,9 +226,24 @@ class UserDatabase:
 		except Exception as e:
 			logger.error(f"Error getting user progress for {user_id}: {str(e)}")
 			return {}
+	
+	def update_user_tags_quiz(self, user_id:str , tags: list[str]) -> bool:
+		user_data = self.get_user_by_id(user_id)
+		if not user_data:
+			logger.error(f"User {user_id} not found")
+			return False
+		user = User.from_dict(user_data)
+		for tag in tags:
+			user.mark_quiz_tag(tag)
+		self.update_user(user_id, user.to_dict())
+		return True
 
 # Convenience functions for backward compatibility and easy access
 _user_db_instance = None
+
+
+
+
 
 def get_user_db() -> UserDatabase:
 	"""Get singleton instance of UserDatabase"""
@@ -282,3 +297,6 @@ def userStartSession(user_id : str):
 	except Exception as e:
 		logger.error(f"Error in userStartSession: {e}")
 		return False
+	
+def _update_user_tags_quiz(user_id:str , tags: list[str]) -> bool:
+	return get_user_db().update_user_tags_quiz(user_id, tags)

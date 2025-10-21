@@ -2,6 +2,7 @@ from datetime import datetime , timezone
 from typing import List, Optional
 import time
 from dataclasses import dataclass, field
+from collections import defaultdict
 
 from enum import Enum
 def _get_utc_now():
@@ -89,6 +90,8 @@ class User:
 	# SAT Preparation Tracking
 	completed_chapters: List[str] = field(default_factory=list)  # Track completed chapter IDs
 	current_week_start: Optional[datetime] = None  # Track current week for task assignment
+	completed_quiz_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
+	completed_tutorial_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
 
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
@@ -129,6 +132,8 @@ class User:
 				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None
 			},
 			'completed_chapters': self.completed_chapters,
+			'completed_quiz_tags':dict(self.completed_quiz_tags),
+			'completed_tutorial_tags': dict(self.completed_tutorial_tags), 
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
@@ -184,6 +189,8 @@ class User:
 			subscription = subscription,
 			completed_chapters=data.get('completed_chapters', []),
 			current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
+			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
+			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
 			updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
 			onboarding_completed=data.get('onboarding_completed', False),
@@ -225,3 +232,17 @@ class User:
 			if chapter_id not in self.completed_chapters and (already_selected_chapters is None or chapter_id not in already_selected_chapters):
 				return chapter_id
 		return None  # All chapters completed
+	def mark_quiz_tag(self, tag: str):
+		"""Mark a tag as completed"""
+		self.completed_quiz_tags[tag] += 1
+		self.updated_at = datetime.now(timezone.utc)
+
+	def mark_tutorial_tag(self, tag: str):
+		"""Mark a tag as completed"""
+		self.completed_tutorial_tags[tag] +=1
+		self.updated_at = datetime.now(timezone.utc)
+
+	def mark_quiz_from_set(self, tags: set):
+		"""Mark a set of tags as completed"""
+		for tag in tags:
+			self.mark_quiz_tag(tag)

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models.users_schema import User
 from typing import Dict, Any
-from database.user_db import getUserbyId, createUser, checkUserExists
+from database.user_db import getUserbyId, createUser, checkUserExists , _update_user_tags_quiz
 import time
 from helper.middleware import authenticate_request
 from datetime import datetime, timezone
@@ -117,3 +117,29 @@ def create_user():
 			'error': 'Internal server error',
 			'message': 'Failed to create user'
 		}), 500
+
+@user_bp.route('/update-tags' , methods = ['POST'])
+@authenticate_request
+def update_tags():
+	try:
+		data = request.get_json()
+		if _update_user_tags_quiz(data.get('user_id'), data.get('tags')):
+			logger.info("Updated User Tags")
+			return jsonify({
+				'success': True,
+				'message': 'Tags updated successfully'
+			}), 200
+			
+		else:
+			logger.warning("Failed to update User Tags")
+			return jsonify({
+				'error': 'Internal server error',
+				'message': 'Failed to update tags'
+			}), 500
+		
+	except Exception as e:
+		logger.error(f"Error parsing JSON data: {str(e)}")
+		return jsonify({
+			'error': 'Bad request',
+			'message': 'Invalid JSON data'
+		}), 400
