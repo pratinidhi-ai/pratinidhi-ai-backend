@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta ,time
 from typing import List, Optional, Dict, Any
 import random
 import json
@@ -8,16 +8,30 @@ from models.users_schema import User
 from database.question_db import get_question_db
 import math
 
-def get_week_start(date: Optional[datetime] = None) -> datetime:
-    """Get the start of the week (Monday) for a given date"""
-    if date is None:
-        date = datetime.now(timezone.utc)
-    
-    # Get Monday of the current week
-    days_since_monday = date.weekday()  # Monday is 0, Sunday is 6
-    week_start = date - timedelta(days=days_since_monday)
-    # Set to beginning of the day
-    return week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+def get_week_start(date_input: Optional[datetime] = None) -> datetime:
+    """
+    Get the start of the week (Monday at 00:00:00 UTC) for a given datetime.
+    Ensures the return value is always a datetime object.
+    """
+    if date_input is None:
+        current_dt = datetime.now(timezone.utc)
+    else:
+        # Ensure we're working with a datetime object
+        if isinstance(date_input, datetime):
+            current_dt = date_input
+        elif isinstance(date_input, date): # Handle if a date object was passed somehow
+             # Convert date to datetime at midnight UTC
+             current_dt = datetime.combine(date_input, time.min, tzinfo=timezone.utc)
+        else:
+            # Fallback or raise error if input type is unexpected
+            current_dt = datetime.now(timezone.utc)
+
+    days_since_monday = current_dt.weekday()
+
+    monday_date = current_dt.date() - timedelta(days=days_since_monday)
+    week_start_dt = datetime.combine(monday_date, time.min, tzinfo=timezone.utc)
+
+    return week_start_dt
 
 def get_days_left_in_week(date: Optional[datetime] = None) -> int:
     """Get number of days left in the current week (including today)"""
