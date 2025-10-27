@@ -1,5 +1,5 @@
-from datetime import datetime, timezone, timedelta ,time
-from typing import List, Optional, Dict, Any
+from datetime import datetime, date, timezone, timedelta ,time
+from typing import Optional, List, Dict, Any
 import random
 import json
 import os
@@ -21,7 +21,7 @@ def get_week_start(date_input: Optional[datetime] = None) -> datetime:
             current_dt = date_input
         elif isinstance(date_input, date): # Handle if a date object was passed somehow
              # Convert date to datetime at midnight UTC
-             current_dt = datetime.combine(date_input, time.min, tzinfo=timezone.utc)
+             current_dt = datetime.combine(date_input, time.min).replace(tzinfo=timezone.utc)
         else:
             # Fallback or raise error if input type is unexpected
             current_dt = datetime.now(timezone.utc)
@@ -29,7 +29,7 @@ def get_week_start(date_input: Optional[datetime] = None) -> datetime:
     days_since_monday = current_dt.weekday()
 
     monday_date = current_dt.date() - timedelta(days=days_since_monday)
-    week_start_dt = datetime.combine(monday_date, time.min, tzinfo=timezone.utc)
+    week_start_dt = datetime.combine(monday_date, time.min).replace(tzinfo=timezone.utc)
 
     return week_start_dt
 
@@ -139,14 +139,44 @@ def create_ai_tutorial_task(
     except Exception as e:
         return None
 
+def _ensure_datetime(dt: Optional[object]) -> datetime:
+    """
+    Return a timezone-aware datetime (UTC) for dt.
+    Accepts: None, datetime, date, or ISO datetime string.
+    """
+    if dt is None:
+        return datetime.now(timezone.utc)
+    if isinstance(dt, str):
+        try:
+            parsed = datetime.fromisoformat(dt)
+        except Exception:
+            # fallback: try common formats
+            try:
+                parsed = datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+            except Exception:
+                parsed = datetime.now(timezone.utc)
+        dt = parsed
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        return datetime(dt.year, dt.month, dt.day, tzinfo=timezone.utc)
+    if isinstance(dt, datetime):
+        if dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt
+    # fallback
+    return datetime.now(timezone.utc)
+
 def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> List[Task]:
     """
-    Assign tasks for the current week based on remaining days.
-    Returns a list of tasks to be created.
+    Assign tasks for a user for the current week.
     """
-    if current_date is None:
-        current_date = datetime.now(timezone.utc)
+    # Normalize inputs to avoid date vs datetime issues
+    current_date = _ensure_datetime(current_date)
+    if getattr(user, 'current_week_start', None) is not None:
+        user.current_week_start = _ensure_datetime(user.current_week_start)
 
+    # safe use of replace(...) on a guaranteed datetime
+    current_due_date = current_date.replace(hour=23, minute=59, second=59, microsecond=0)
+    # compute end-of-day (23:59:59.000000) once and reuse
     week_start = get_week_start(current_date)
     days_left = get_days_left_in_week(current_date)
 
@@ -216,7 +246,7 @@ def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> 
         # Calculate due date based on index i and days_per_task
         task_due_date = current_due_date + timedelta(days=(i * days_per_task))
         # Ensure due date doesn't go past Sunday of the current week_start
-        week_end = week_start + timedelta(days=6, hours=23, minute=59, second=59)
+        week_end = week_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
         task_due_date = min(task_due_date, week_end)
 
         quiz_task = create_quiz_task(
@@ -246,7 +276,7 @@ def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> 
              # Calculate due date based on index (num_quiz_tasks + i) and days_per_task
             task_due_date = current_due_date + timedelta(days=((num_quiz_tasks + i) * days_per_task))
             # Ensure due date doesn't go past Sunday
-            week_end = week_start + timedelta(days=6, hours=23, minute=59, second=59)
+            week_end = week_start + timedelta(days=6, hours=23, minutes=59, seconds=59)
             task_due_date = min(task_due_date, week_end)
 
             ai_tutorial_task = create_ai_tutorial_task(
