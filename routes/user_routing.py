@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models.users_schema import User
 from typing import Dict, Any
-from database.user_db import getUserbyId, createUser, checkUserExists , _update_user_tags_quiz
+from database.user_db import getUserbyId, createUser, checkUserExists , _update_user_tags_quiz , get_user_db
 import time
 from helper.middleware import authenticate_request
 from datetime import datetime, timezone
@@ -143,3 +143,30 @@ def update_tags():
 			'error': 'Bad request',
 			'message': 'Invalid JSON data'
 		}), 400
+	
+@user_bp.route('/update-task-num' , methods = ['POST'])
+@authenticate_request
+def update_task_num():
+	try:
+		data = request.get_json()
+		user_id = data.get('user_id')
+		num_tasks = data.get('num_tasks',16)
+		if not isinstance(num_tasks, int) or num_tasks < 0:
+			return jsonify({
+				'success': False,
+				'message': 'Invalid number of tasks provided'
+			}), 400
+		user_db = get_user_db()
+		success = user_db.update_num_tasks_per_week(user_id, num_tasks)
+		if success:
+			return jsonify({
+				'success': True,
+				'message': 'Number of tasks updated successfully'
+			}), 200
+		else:
+			return jsonify({
+				'success': False,
+				'message': 'Failed to update number of tasks'
+			}) , 400
+	except Exception as e:
+		logger.error(f"Error updating number of tasks: {str(e)}")

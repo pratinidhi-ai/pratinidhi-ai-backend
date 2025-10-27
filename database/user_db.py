@@ -237,6 +237,26 @@ class UserDatabase:
 			user.mark_quiz_tag(tag)
 		self.update_user(user_id, user.to_dict())
 		return True
+	def update_num_tasks_per_week(self, user_id: str, num_tasks: int) -> bool:
+		"""Update the number of tasks assigned per week for a user."""
+		try:
+			if not isinstance(num_tasks, int) or num_tasks < 0:
+				logger.error(f"Invalid num_tasks value provided for user {user_id}: {num_tasks}. Must be a non-negative integer.")
+				return False
+
+			# Prepare the update dictionary
+			update_data = {
+				'num_tasks': num_tasks
+				# 'updated_at' will be added by the update_user method
+			}
+
+			# Call the general update_user method
+			return self.update_user(user_id, update_data)
+
+		except Exception as e:
+			# Catch any unexpected errors
+			logger.error(f"Unexpected error updating num_tasks for user {user_id}: {str(e)}")
+			return False
 
 # Convenience functions for backward compatibility and easy access
 _user_db_instance = None

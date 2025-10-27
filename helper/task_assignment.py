@@ -5,6 +5,7 @@ import json
 import os
 from models.task_schema import Task, TaskType, Subject
 from models.users_schema import User
+import math
 
 def get_week_start(date: Optional[datetime] = None) -> datetime:
     """Get the start of the week (Monday) for a given date"""
@@ -51,7 +52,6 @@ def get_random_tags_for_facet(facet: str, num_tags: int = 10) -> List[str]:
         
         question_db = get_question_db()
         tags = question_db.get_random_tags_by_facets(facet, num_tags)
-        print(f"Selected tags for facet '{facet}': {tags}")
         return tags
     except ImportError:
         # Fallback: return dummy tags if question_db is not available
@@ -123,7 +123,6 @@ def create_ai_tutorial_task(
             estimated_duration_minutes=30
         )
     except Exception as e:
-        print(f"Error creating AI tutorial task: {e}")
         return None
 
 def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> List[Task]:
@@ -133,70 +132,128 @@ def assign_weekly_tasks(user: User, current_date: Optional[datetime] = None) -> 
     """
     if current_date is None:
         current_date = datetime.now(timezone.utc)
-    
+
     week_start = get_week_start(current_date)
     days_left = get_days_left_in_week(current_date)
-    
-    # Update user's current week
+
+    # Update user's current week start time (important for should_assign_new_tasks logic)
     user.current_week_start = week_start
-    
+
     tasks = []
     task_number = 1
-    
-    # Get quiz facets
-    quiz_facets = get_quiz_facets()
-    
-    # Determine task distribution based on days left
-    if days_left >= 4:  # Monday to Wednesday - assign all tasks
-        num_quiz_tasks = 4
-        num_ai_tutorial_tasks = 2
-    elif days_left >= 2:  # Thursday to Saturday - reduced tasks
-        num_quiz_tasks = 2
-        num_ai_tutorial_tasks = 1
-    else:  # Sunday - minimal tasks
+
+    # --- Determine task count based on user preference ---
+    # Use user.num_tasks, ensure it's non-negative, default to 6 if not set
+    total_desired_tasks = max(0, getattr(user, 'num_tasks', 6) or 6)
+
+    if total_desired_tasks == 0:
+        return [] # No tasks to assign
+
+    # --- Calculate task split (approx 2:1 quiz:tutorial) ---
+    # Using math.ceil for tutorials ensures at least one if total >= 2
+    num_ai_tutorial_tasks = 0
+    num_quiz_tasks = 0
+
+    if total_desired_tasks == 1: # Edge case: if only 1 task, make it a quiz
         num_quiz_tasks = 1
-        num_ai_tutorial_tasks = 1
-    
-    # Distribute tasks evenly across remaining days
-    total_tasks = num_quiz_tasks + num_ai_tutorial_tasks
-    days_per_task = max(1, days_left // total_tasks)
-    
+        num_ai_tutorial_tasks = 0
+    elif total_desired_tasks >= 2:
+        num_ai_tutorial_tasks = math.ceil(total_desired_tasks / 3)
+        num_quiz_tasks = total_desired_tasks - num_ai_tutorial_tasks
+    # If total_desired_tasks was 0 initially, counts remain 0
+
+    # --- Limit tutorial tasks by available chapters ---
+    # Count how many unique chapters are remaining
+    available_chapters_count = 0
+    temp_selected_chapters = [] # Chapters picked *in this run*
+    while True:
+        next_chap = user.get_next_chapter(already_selected_chapters=temp_selected_chapters)
+        if next_chap is None:
+            break
+        temp_selected_chapters.append(next_chap)
+        available_chapters_count += 1
+
+    num_ai_tutorial_tasks = min(num_ai_tutorial_tasks, available_chapters_count)
+
+    # --- Adjust quiz count based on actual tutorial count ---
+    num_quiz_tasks = total_desired_tasks - num_ai_tutorial_tasks # Re-calculate based on actual tutorials
+
+    # --- Limit quiz count by available unique facets ---
+    all_quiz_facets = get_quiz_facets()
+    num_quiz_tasks = min(num_quiz_tasks, len(all_quiz_facets))
+
+    # --- Final Task Count ---
+    total_tasks_to_assign = num_quiz_tasks + num_ai_tutorial_tasks
+    if total_tasks_to_assign == 0:
+        return []
+
+    # --- Distribute Due Dates ---
+    days_per_task = max(1, days_left // total_tasks_to_assign)
     current_due_date = current_date.replace(hour=23, minute=59, second=59)
-    
-    # Create quiz tasks
-    for i in range(min(num_quiz_tasks, len(quiz_facets))):
-        facet_info = quiz_facets[i]
-        
+
+
+
+    # --- Create Quiz Tasks ---
+    # Shuffle facets to vary the quiz types assigned if assigning fewer than available
+    shuffled_facets = random.sample(all_quiz_facets, len(all_quiz_facets))
+    assigned_quiz_facets = shuffled_facets[:num_quiz_tasks]
+
+    for i, facet_info in enumerate(assigned_quiz_facets):
+        # Calculate due date based on index i and days_per_task
+        task_due_date = current_due_date + timedelta(days=(i * days_per_task))
+        # Ensure due date doesn't go past Sunday of the current week_start
+        week_end = week_start + timedelta(days=6, hours=23, minute=59, second=59)
+        task_due_date = min(task_due_date, week_end)
+
         quiz_task = create_quiz_task(
             user_id=user.id,
             facet_info=facet_info,
             task_number=task_number,
-            due_date=current_due_date + timedelta(days=(i * days_per_task)),
+            due_date=task_due_date,
             week_start=week_start
         )
-        
-        tasks.append(quiz_task)
-        task_number += 1
-    
-    # Create AI tutorial tasks
-    current_selected_chapters = []
+        if quiz_task: # create_quiz_task should always return a task, but check anyway
+            tasks.append(quiz_task)
+            task_number += 1
+        else:
+             pass
+
+
+    # --- Create AI Tutorial Tasks ---
+    chapters_assigned_this_week = [] # Track chapters picked *in this run*
     for i in range(num_ai_tutorial_tasks):
-        next_chapter = user.get_next_chapter(already_selected_chapters=current_selected_chapters)
-        current_selected_chapters.append(next_chapter)
-        
+        # Pass the list of chapters already selected THIS WEEK to avoid duplicates
+        next_chapter = user.get_next_chapter(already_selected_chapters=chapters_assigned_this_week)
+
         if next_chapter:
+             # Add to list for duplicate check within this assignment run
+            chapters_assigned_this_week.append(next_chapter)
+
+             # Calculate due date based on index (num_quiz_tasks + i) and days_per_task
+            task_due_date = current_due_date + timedelta(days=((num_quiz_tasks + i) * days_per_task))
+            # Ensure due date doesn't go past Sunday
+            week_end = week_start + timedelta(days=6, hours=23, minute=59, second=59)
+            task_due_date = min(task_due_date, week_end)
+
             ai_tutorial_task = create_ai_tutorial_task(
                 user_id=user.id,
                 chapter_id=next_chapter,
                 task_number=task_number,
-                due_date=current_due_date + timedelta(days=((num_quiz_tasks + i) * days_per_task)),
+                due_date=task_due_date,
                 week_start=week_start
             )
-            
+
             if ai_tutorial_task:
                 tasks.append(ai_tutorial_task)
                 task_number += 1
-    
+            else:
+                pass
+
+        else:
+             # This should ideally not be reached due to the limiting logic above
+            
+            break # Stop trying to assign tutorials if none are left
+
     return tasks
 
 def should_assign_new_tasks(user: User, current_date: Optional[datetime] = None) -> bool:

@@ -6,7 +6,13 @@ Handles all task-related endpoints for SAT preparation
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timezone
 from typing import Dict, Any
+from database.user_db import get_user_db # Need user_db functions
+from database.task_db import get_task_db
+from helper.task_assignment import assign_weekly_tasks, should_assign_new_tasks
 import traceback
+import logging
+from dotenv import load_dotenv
+import os
 
 from models.task_schema import Task, TaskType
 from models.users_schema import User
@@ -19,7 +25,112 @@ from helper.task_service import (
 )
 from database.firebase_client import get_firestore_client
 
-task_bp = Blueprint('task', __name__)
+load_dotenv()
+logger = logging.getLogger(__name__)
+
+task_bp = Blueprint.info('task', __name__)
+
+
+
+@task_bp.route('/admin/assign-weekly', methods=['POST'])
+async def assign_all_weekly_tasks():
+    """
+    ADMIN Endpoint: Triggers weekly task assignment for all active users
+    Requires a valid X-Admin-API-Key header.
+    """
+    # 1. Authenticate the request using the Admin API Key
+    provided_key = request.headers.get('X-Admin-API-Key')
+    expected_key = os.environ.get('ADMIN_API_KEY')
+
+    if not expected_key:
+        logger.info("ADMIN_API_KEY environment variable is not set!")
+        return jsonify({'error': 'Configuration error'}), 500
+
+    if not provided_key or provided_key != expected_key:
+        return jsonify({'error': 'Unauthorized'}), 403 
+
+    logger.info("Admin: Starting weekly task assignment process...")
+    processed_count = 0
+    skipped_count = 0
+    error_count = 0
+    errors_list = []
+
+    try:
+        user_db = get_user_db()
+        task_db = get_task_db()
+        task_service = TaskService() # No firestore_client needed if using DB classes
+
+        # 2. Get all active users
+        all_users_data = user_db.get_users(active_only=True)
+        logger.info(f"Admin: Found {len(all_users_data)} active users.")
+
+        # 3. Loop through each user
+        for user_data in all_users_data:
+            user_id = user_data.get('id')
+            if not user_id:
+                logger.info("Warning: Found user data without an ID, skipping.")
+                skipped_count += 1
+                continue
+
+            try:
+                user = User.from_dict(user_data)
+
+                # 4. Check if tasks should be assigned for this user
+                if should_assign_new_tasks(user):
+                    logger.info(f"Admin: Assigning tasks for user {user.id}...")
+                    # 5. Assign tasks (This modifies user.current_week_start in memory)
+                    new_tasks = assign_weekly_tasks(user) # Use the core logic
+
+                    if new_tasks:
+                        # 6. Save new tasks to DB
+                        save_success = task_db.create_tasks_batch(new_tasks)
+                        if not save_success:
+                             raise Exception(f"Failed to save tasks batch for user {user.id}")
+
+                        # 7. Update user's week start in DB
+                        update_success = user_db.update_user(user.id, {
+                            'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
+                        })
+                        if not update_success:
+                             raise Exception(f"Failed to update current_week_start for user {user.id}")
+
+                        logger.info(f"Admin: Successfully assigned {len(new_tasks)} tasks to user {user.id}.")
+                        processed_count += 1
+                    else:
+                        logger.info(f"Admin: No new tasks generated for user {user.id} (assign_weekly_tasks returned empty list).")
+                        # Still update week start if it changed, even if no tasks
+                        update_success = user_db.update_user(user.id, {
+                            'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
+                        })
+                        skipped_count += 1 # Count as skipped if no tasks generated
+
+                else:
+                    # logger.info(f"Admin: Skipping user {user.id} (tasks already assigned for this week).")
+                    skipped_count += 1
+
+            except Exception as user_error:
+                logger.info(f"Admin: Error processing user {user_id}: {str(user_error)}")
+                error_count += 1
+                errors_list.append({'user_id': user_id, 'error': str(user_error)})
+                # Continue to the next user
+
+        # 8. Return summary response
+        summary_message = f"Weekly task assignment finished. Processed: {processed_count}, Skipped: {skipped_count}, Errors: {error_count}."
+        logger.info(f"Admin: {summary_message}")
+        return jsonify({
+            'success': True,
+            'message': summary_message,
+            'processed_users': processed_count,
+            'skipped_users': skipped_count,
+            'users_with_errors': error_count,
+            'error_details': errors_list
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Admin: Critical error during weekly task assignment: {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'Internal server error during task assignment'}), 500
+
 
 @task_bp.route('/user/<user_id>/tasks', methods=['GET'])
 @authenticate_request
@@ -46,8 +157,7 @@ def get_user_tasks(user_id: str):
         }), 200
         
     except Exception as e:
-        print(f"Error getting user tasks: {e}")
-        print(traceback.format_exc())
+        logger.error(f"Error getting user tasks: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/current', methods=['GET'])
@@ -80,8 +190,8 @@ def get_current_task(user_id: str):
         }), 200
         
     except Exception as e:
-        print(f"Error getting current task: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error getting current task: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/complete', methods=['POST'])
@@ -147,8 +257,8 @@ def mark_task_completed(user_id: str, task_id: str):
             return jsonify({'error': 'Failed to mark task as completed'}), 500
             
     except Exception as e:
-        print(f"Error marking task completed: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error marking task completed: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/<task_id>/attempt', methods=['POST'])
@@ -185,8 +295,8 @@ def update_task_attempt(user_id: str, task_id: str):
             return jsonify({'error': 'Failed to update task attempt'}), 500
             
     except Exception as e:
-        print(f"Error updating task attempt: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error updating task attempt: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/dashboard', methods=['GET'])
@@ -212,8 +322,8 @@ def get_user_dashboard(user_id: str):
         }), 200
         
     except Exception as e:
-        print(f"Error getting user dashboard: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error getting user dashboard: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/tasks/initialize', methods=['POST'])
@@ -240,8 +350,8 @@ def initialize_tasks(user_id: str):
         }), 200
         
     except Exception as e:
-        print(f"Error initializing tasks: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error initializing tasks: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/chapters/<chapter_id>/complete', methods=['POST'])
@@ -271,8 +381,8 @@ def mark_chapter_completed(user_id: str, chapter_id: str):
             return jsonify({'error': 'Failed to mark chapter as completed'}), 500
             
     except Exception as e:
-        print(f"Error marking chapter completed: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error marking chapter completed: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 @task_bp.route('/user/<user_id>/progress', methods=['GET'])
@@ -313,8 +423,8 @@ def get_user_progress(user_id: str):
         }), 200
         
     except Exception as e:
-        print(f"Error getting user progress: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error getting user progress: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500
 
 # Helper endpoint for testing/admin purposes
@@ -347,6 +457,6 @@ def test_task_assignment():
         }), 200
         
     except Exception as e:
-        print(f"Error in test task assignment: {e}")
-        print(traceback.format_exc())
+        logger.info(f"Error in test task assignment: {e}")
+        logger.info(traceback.format_exc())
         return jsonify({'error': 'Internal server error'}), 500

@@ -92,12 +92,14 @@ class User:
 	current_week_start: Optional[datetime] = None  # Track current week for task assignment
 	completed_quiz_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
 	completed_tutorial_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
+	num_tasks : Optional[int] = 16
 
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
 	updated_at: datetime = field(default_factory=_get_utc_now)
 	onboarding_completed: bool = False
 	last_login: Optional[datetime] = None
+	
 	
 	def to_dict(self) -> dict:
 		"""Convert User object to dictionary for JSON """
@@ -133,7 +135,8 @@ class User:
 			},
 			'completed_chapters': self.completed_chapters,
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
-			'completed_tutorial_tags': dict(self.completed_tutorial_tags), 
+			'completed_tutorial_tags': dict(self.completed_tutorial_tags),
+			'num_tasks': self.num_tasks,
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
@@ -191,6 +194,7 @@ class User:
 			current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
+			num_tasks=data.get('num_tasks', 16),
 			created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
 			updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
 			onboarding_completed=data.get('onboarding_completed', False),
