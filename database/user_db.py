@@ -34,8 +34,8 @@ class UserDatabase:
 				
 			users_collection = self.db.collection('users')
 			
-			if active_only:
-				users_collection = users_collection.where('active', '==', True)
+			# if active_only:
+			# 	users_collection = users_collection.where('active', '==', True)
 			
 			docs = users_collection.stream()
 			users_list = []

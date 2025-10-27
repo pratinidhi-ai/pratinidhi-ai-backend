@@ -28,7 +28,7 @@ from database.firebase_client import get_firestore_client
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-task_bp = Blueprint.info('task', __name__)
+task_bp = Blueprint('task', __name__)
 
 
 

@@ -5,6 +5,7 @@ import json
 import os
 from models.task_schema import Task, TaskType, Subject
 from models.users_schema import User
+from database.question_db import get_question_db
 import math
 
 def get_week_start(date: Optional[datetime] = None) -> datetime:
@@ -48,7 +49,6 @@ def get_random_tags_for_facet(facet: str, num_tags: int = 10) -> List[str]:
     Uses the question database to get actual available tags.
     """
     try:
-        from database.question_db import get_question_db
         
         question_db = get_question_db()
         tags = question_db.get_random_tags_by_facets(facet, num_tags)
