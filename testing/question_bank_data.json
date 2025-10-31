@@ -1,0 +1,135 @@
+{
+  "math|advanced-math": {
+    "created_at": "2025-10-27T04:26:07.352883+00:00",
+    "subject": "math",
+    "total_questions": 2071,
+    "difficulty_distribution": {
+      "3": 461,
+      "4": 354,
+      "1": 443,
+      "5": 369,
+      "2": 444
+    },
+    "sub_category": "advanced-math",
+    "updated_at": "2025-10-30T19:40:56.440540+00:00",
+    "theme_distribution": {
+      "Science Fiction": 243,
+      "Famous Scientists": 434
+    }
+  },
+  "math|algebra": {
+    "created_at": "2025-10-27T04:39:32.753918+00:00",
+    "subject": "math",
+    "total_questions": 1948,
+    "difficulty_distribution": {
+      "3": 402,
+      "4": 328,
+      "1": 436,
+      "5": 381,
+      "2": 401
+    },
+    "sub_category": "algebra",
+    "updated_at": "2025-10-30T03:59:34.952684+00:00",
+    "theme_distribution": {
+      "Ivy League": 331,
+      "Science Fiction": 241,
+      "Harry Potter": 331,
+      "Famous Scientists": 290
+    }
+  },
+  "math|problem-solving-and-data-analysis": {
+    "created_at": "2025-10-27T05:06:49.198404+00:00",
+    "subject": "math",
+    "total_questions": 2378,
+    "difficulty_distribution": {
+      "3": 479,
+      "4": 471,
+      "1": 482,
+      "5": 506,
+      "2": 440
+    },
+    "sub_category": "problem-solving-and-data-analysis",
+    "updated_at": "2025-10-30T06:53:38.950116+00:00",
+    "theme_distribution": {
+      "Harry Potter": 428,
+      "anime": 427,
+      "Famous Scientists": 236
+    }
+  },
+  "reading-and-writing|craft-and-structure": {
+    "created_at": "2025-10-27T05:30:46.455870+00:00",
+    "subject": "reading-and-writing",
+    "total_questions": 1977,
+    "difficulty_distribution": {
+      "3": 402,
+      "4": 375,
+      "1": 399,
+      "5": 394,
+      "2": 407
+    },
+    "sub_category": "craft-and-structure",
+    "updated_at": "2025-10-30T20:06:07.331852+00:00",
+    "theme_distribution": {
+      "Harry Potter": 481,
+      "anime": 345,
+      "Shakespearean Literature": 312,
+      "Famous Scientists": 250
+    }
+  },
+  "reading-and-writing|expression-of-ideas": {
+    "created_at": "2025-10-27T07:58:29.710067+00:00",
+    "subject": "reading-and-writing",
+    "total_questions": 1825,
+    "difficulty_distribution": {
+      "3": 357,
+      "4": 358,
+      "1": 370,
+      "5": 365,
+      "2": 375
+    },
+    "sub_category": "expression-of-ideas",
+    "updated_at": "2025-10-29T06:56:11.273288+00:00",
+    "theme_distribution": {
+      "Ivy League": 249,
+      "Harry Potter": 149
+    }
+  },
+  "reading-and-writing|information-and-ideas": {
+    "created_at": "2025-10-27T06:01:32.788989+00:00",
+    "subject": "reading-and-writing",
+    "total_questions": 2613,
+    "difficulty_distribution": {
+      "3": 525,
+      "4": 505,
+      "1": 529,
+      "5": 522,
+      "2": 532
+    },
+    "sub_category": "information-and-ideas",
+    "updated_at": "2025-10-31T02:44:55.491249+00:00",
+    "theme_distribution": {
+      "Science Fiction": 208,
+      "Shakespearean Literature": 590,
+      "Famous Scientists": 250
+    }
+  },
+  "reading-and-writing|standard-english-conventions": {
+    "created_at": "2025-10-27T06:24:16.677893+00:00",
+    "subject": "reading-and-writing",
+    "total_questions": 2793,
+    "difficulty_distribution": {
+      "3": 549,
+      "4": 566,
+      "1": 571,
+      "5": 560,
+      "2": 547
+    },
+    "sub_category": "standard-english-conventions",
+    "updated_at": "2025-10-31T05:37:32.476120+00:00",
+    "theme_distribution": {
+      "Science Fiction": 1131,
+      "Shakespearean Literature": 673,
+      "Famous Scientists": 457
+    }
+  }
+}

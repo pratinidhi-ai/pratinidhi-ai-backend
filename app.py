@@ -1,11 +1,12 @@
 from flask import Flask , jsonify , json , request
 
 from database.user_db import getUsers, checkUserExists , getUserbyId
-from database.question_db import _getMetaData, _getQuestions
 from helper.middleware import authenticate_request
 from routes.user_routing import user_bp
 from routes.tutor_routing import tutor_bp
 from routes.task_routing import task_bp
+from routes.question_routing import question_bp
+
 app = Flask(__name__)
 
 @app.errorhandler(404)
@@ -19,31 +20,13 @@ def internal_error(error):
 app.register_blueprint(user_bp)
 app.register_blueprint(tutor_bp)
 app.register_blueprint(task_bp, url_prefix='/api/tasks')
+app.register_blueprint(question_bp, url_prefix='/api/questions')
 
 # Health check endpoint
 @app.route('/', methods=['GET'])
 def health_check():
 	return {'status': 'healthy', 'service': 'user-api'}, 200
-   
 
-@app.route('/get-questions' , methods = ['GET'])
-@authenticate_request
-def getQuestions():
-	attributes = request.args 
-
-	required_params = ['subject', 'subcategory', 'standard', 'difficulty']
-	if not all(param in attributes for param in required_params):
-		return {'_error' : 'Missing one or more required query parameters' }, 422
-	
-	questions_list = _getQuestions(attributes)
-	return jsonify(questions_list)
-
-@app.route('/get-metadata' , methods = ['GET'])
-@authenticate_request
-def getMetaData():
-	if _getMetaData() is not None:
-		return jsonify(_getMetaData())
-	return jsonify({'_error': "No MetaData was found"}), 404
 
 @app.route('/check-user-exists' , methods = ['GET'])
 @authenticate_request
