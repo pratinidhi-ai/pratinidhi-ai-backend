@@ -94,7 +94,10 @@ def fetch_quiz():
         "sub_category": "algebra",                 # Required
         "selected_difficulty_level": 3,            # Required (1-5)
         "number_of_questions": 10,                 # Required
-        "theme": "Harry Potter"                    # Optional
+        "theme": "Harry Potter",                   # Optional
+        "tags": ["tag1", "tag2"]                   # Optional - array of tags (max 10)
+        # OR
+        "tag": "single_tag"                        # Optional - single tag
     }
     
     Response:
@@ -130,6 +133,8 @@ def fetch_quiz():
         difficulty_level = data['selected_difficulty_level']
         num_questions = data['number_of_questions']
         theme = data.get('theme')  # Optional
+        tags = data.get('tags')  # Optional - array of tags
+        tag = data.get('tag')  # Optional - single tag
         
         # Validate number_of_questions
         try:
@@ -175,8 +180,30 @@ def fetch_quiz():
         
         # Apply theme filter if provided
         if theme:
-            questions_ref = questions_ref.where('question_theme', '==', theme)
+            questions_ref = questions_ref.where('theme', '==', theme)
         
+        # Apply tag filters if provided
+        # Note: Cannot use both 'tags' array and 'tag' single value simultaneously
+        if tags:
+            # Validate tags is a list and has max 10 items
+            if not isinstance(tags, list):
+                return jsonify({
+                    'error': 'Invalid tags parameter',
+                    'message': 'tags must be an array'
+                }), 400
+            
+            if len(tags) > 10:
+                return jsonify({
+                    'error': 'Invalid tags parameter',
+                    'message': 'Maximum 10 tags allowed'
+                }), 400
+            
+            # Use array-contains-any to match ANY of the provided tags
+            questions_ref = questions_ref.where('tags', 'array_contains_any', tags)
+        elif tag:
+            # Single tag filter using array-contains
+            questions_ref = questions_ref.where('tags', 'array_contains', tag)
+
         # Fetch questions using random_value for randomization
         # Use a two-pass approach to ensure we get enough questions
         rand_value = random.random()
@@ -235,6 +262,11 @@ def fetch_quiz():
         
         if theme:
             filters_applied['theme'] = theme
+        
+        if tags:
+            filters_applied['tags'] = tags
+        elif tag:
+            filters_applied['tag'] = tag
         
         logger.info(f"Fetched {len(questions)} questions for {subject_name}|{sub_category} (difficulty: {difficulty_level})")
         

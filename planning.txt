@@ -1,14 +1,44 @@
-For my Edtech startup Educado AI, I am creating its first Website.
-Right now, website has to be very simple, with just a simple Landing Page, and a button to sign up for Beta access.
+In my Edtech app for SAT preparation, I want to give great analytics to students about their performance. 
 
-We are using a Zoho Landing Page for this, help me create the content for the Landing Page.
+To give analytics, I need to capture various data points about student interactions with the app. Here are some key data points I plan to capture:
+1. **Time Spent on Each Section**: Track how much time a student spends on the app per week, per day and per session. This will help identify engagement levels.
+2. After every quiz or practice test, capture:
+   - **Scores**: Record the scores for each specific level:
+        - Subject level (Math, Reading, Writing)
+        - Sub_category level (4 for each subject), we get sub_categories from resources/sat_tag_taxonomy.json file
+        - Inside sub_category: tag level (we have 15 tags for each sub_category, which are also present in sat_tag_taxonomy.json file)
+        - At each tag level, we have to maintain, number of questions attempted, number of correct answers.
+        - We also have difficulty levels (1 to 5) for each question, so we can calculate score (1 mark for difficulty level 1, 2 marks for difficulty level 2 and so on) at each of the above levels.
+          We also store total_possible_score also, so as to tell percentage score of student for that tag, sub_category, subject.
 
-Title: Revolutionize Learning with Educado AI (something catchy)
 
-Subtitle: Unlock Your Potential with Personalized Learning Experiences
+For this I am planning to create an API, that the app can call after a quiz is completed, to send the above data to the backend. 
+The API will accept a JSON payload with the following structure:
+```json
+{
+  "student_id": "string",
+  "time_spent": integer (in seconds),
+  "number_of_questions": integer,
+  "number_of_correct_answers": integer,
+  "subject": "string",
+  "sub_category": "string",
+  "difficulty_level": integer,
+  "tag_wise_details": [
+    {
+      "tag": "string",
+      "total_questions_of_tag": integer,
+      "correct_answers": integer
+    }
+  ],
+  "correct_question_ids": ["string"],
+  "incorrect_question_ids": ["string"]
+}
+```
+The backend will process this data and store it in a database for further analysis.
 
-Description: At Educado AI, we believe that education should be tailored to each individual's needs. Our innovative platform leverages the power of artificial intelligence to provide personalized learning experiences that adapt to your unique learning style and pace. Whether you're a student looking to enhance your skills or a professional seeking to upskill, Educado AI is here to help you achieve your goals.
-
-Call to Action: Sign up for Beta Access
-
-Find some more variations of this
+Inside the users collection, we have two sub_collections:
+1. analytics: This will store overall analytics data for the student. This will have docs: performance_summary, correct_questions and incorrect_questions.:
+    performance_summary: This document will store aggregated data such as total time spent, average scores per subject, sub_category, and tag levels.
+    correct_questions: This document will store a list of all question IDs that the student has answered per subject|sub_category level.
+    incorrect_questions: This document will store a list of all question IDs that the student has answered incorrectly per subject|sub_category level.
+2. activity_logs: This will store detailed logs of each quiz or practice test taken by the student, along with timestamps.

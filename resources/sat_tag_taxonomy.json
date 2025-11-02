@@ -1,0 +1,502 @@
+{
+  "math": {
+    "algebra": [
+      {
+        "tag": "single-variable-linear-equations",
+        "description": "Solving linear equations in one variable."
+      },
+      {
+        "tag": "linear-inequalities",
+        "description": "Solving linear inequalities in one variable and interpreting their solution sets."
+      },
+      {
+        "tag": "slope-intercept",
+        "description": "Understanding and calculating the slope and y-intercept of linear equations."
+      },
+      {
+        "tag": "graphing-linear-equations",
+        "description": "Graphing linear equations on the coordinate plane and analyzing their graphs."
+      },
+      {
+        "tag": "parallel-perpendicular-lines",
+        "description": "Understanding parallel and perpendicular lines and their relationships (slopes)."
+      },
+      {
+        "tag": "systems-of-equations",
+        "description": "Solving systems of linear equations in two variables."
+      },
+      {
+        "tag": "systems-of-inequalities",
+        "description": "Solving or graphing systems of linear inequalities in two variables."
+      },
+      {
+        "tag": "linear-word-problems",
+        "description": "Using linear equations to solve real-world word problems."
+      },
+      {
+        "tag": "system-word-problems",
+        "description": "Solving word problems by setting up and solving systems of equations."
+      },
+      {
+        "tag": "literal-equations",
+        "description": "Rearranging algebraic formulas to solve for a given variable."
+      },
+      {
+        "tag": "inequality-word-problems",
+        "description": "Modeling and solving real-world scenarios using inequalities."
+      },
+      {
+        "tag": "mixture-problems",
+        "description": "Solving mixture (solution/combination) problems using linear equations."
+      },
+      {
+        "tag": "distance-rate-time",
+        "description": "Solving motion problems using the relationship distance = rate × time."
+      },
+      {
+        "tag": "direct-variation",
+        "description": "Working with direct proportional relationships (y = kx) and their properties."
+      },
+      {
+        "tag": "age-problems",
+        "description": "Solving age-related word problems with linear equations."
+      }
+    ],
+    "advanced-math": [
+      {
+        "tag": "absolute-value-equations",
+        "description": "Solving equations that contain absolute value expressions."
+      },
+      {
+        "tag": "absolute-value-inequalities",
+        "description": "Solving inequalities involving absolute value expressions."
+      },
+      {
+        "tag": "quadratic-equations",
+        "description": "Solving quadratic equations by factoring, quadratic formula, etc."
+      },
+      {
+        "tag": "factoring-polynomials",
+        "description": "Factoring polynomial expressions into simpler factors."
+      },
+      {
+        "tag": "expanding-polynomials",
+        "description": "Expanding products of polynomials into standard form."
+      },
+      {
+        "tag": "rational-expressions",
+        "description": "Simplifying rational expressions by factoring and reducing fractions."
+      },
+      {
+        "tag": "rational-equations",
+        "description": "Solving equations that involve rational expressions (fractions)."
+      },
+      {
+        "tag": "radical-equations",
+        "description": "Solving equations that include radical expressions (e.g., square roots)."
+      },
+      {
+        "tag": "radical-simplification",
+        "description": "Simplifying expressions containing radicals (roots)."
+      },
+      {
+        "tag": "exponent-properties",
+        "description": "Applying laws of exponents to simplify or manipulate expressions."
+      },
+      {
+        "tag": "exponential-equations",
+        "description": "Solving equations where the variable appears in the exponent."
+      },
+      {
+        "tag": "exponential-models",
+        "description": "Solving problems involving exponential growth or decay."
+      },
+      {
+        "tag": "function-notation",
+        "description": "Understanding and using function notation (f(x)) and evaluating functions."
+      },
+      {
+        "tag": "function-composition",
+        "description": "Forming and evaluating compositions of functions (f(g(x)))."
+      },
+      {
+        "tag": "nonlinear-systems",
+        "description": "Solving systems of equations where at least one equation is nonlinear."
+      }
+    ],
+    "problem-solving-and-data-analysis": [
+      {
+        "tag": "ratio-proportion",
+        "description": "Solving problems involving ratios, proportions, and direct variation."
+      },
+      {
+        "tag": "unit-conversion",
+        "description": "Converting between different units or rates."
+      },
+      {
+        "tag": "percentage-calculation",
+        "description": "Calculating percentages, percentage changes, and related problems."
+      },
+      {
+        "tag": "mean-median",
+        "description": "Calculating and understanding mean, median, and other measures of center."
+      },
+      {
+        "tag": "variability",
+        "description": "Understanding measures of spread (range, standard deviation conceptually)."
+      },
+      {
+        "tag": "data-distributions",
+        "description": "Interpreting one-variable data distributions (e.g., from charts or lists of data)."
+      },
+      {
+        "tag": "scatterplots",
+        "description": "Analyzing scatterplots to understand relationships between two variables."
+      },
+      {
+        "tag": "best-fit-line",
+        "description": "Interpreting or using the line of best fit in a scatterplot."
+      },
+      {
+        "tag": "probability",
+        "description": "Calculating basic probabilities of events."
+      },
+      {
+        "tag": "conditional-probability",
+        "description": "Calculating probabilities given a condition or using two-way tables."
+      },
+      {
+        "tag": "two-way-tables",
+        "description": "Analyzing two-way tables for frequencies, probabilities, or relationships."
+      },
+      {
+        "tag": "sampling-methods",
+        "description": "Understanding random sampling and how it affects data and conclusions."
+      },
+      {
+        "tag": "experimental-design",
+        "description": "Understanding experimental vs. observational studies and control vs. treatment groups."
+      },
+      {
+        "tag": "margin-of-error",
+        "description": "Interpreting the margin of error in surveys or polls and what it implies."
+      },
+      {
+        "tag": "statistical-inference",
+        "description": "Drawing conclusions about a population based on sample data."
+      }
+    ],
+    "geometry-and-trigonometry": [
+      {
+        "tag": "area-of-polygons",
+        "description": "Calculating area of basic polygons (triangles, rectangles, etc.)."
+      },
+      {
+        "tag": "perimeter",
+        "description": "Calculating the perimeter of polygons."
+      },
+      {
+        "tag": "angle-relationships",
+        "description": "Finding angles formed by intersecting or parallel lines (e.g., vertical angles, corresponding angles)."
+      },
+      {
+        "tag": "triangle-angles",
+        "description": "Using properties of triangle angles (sum of interior angles is 180°, exterior angles)."
+      },
+      {
+        "tag": "similar-triangles",
+        "description": "Solving problems using similar triangles and proportional side lengths."
+      },
+      {
+        "tag": "right-triangle-trigonometry",
+        "description": "Using sine, cosine, or tangent in right triangles to find unknown sides or angles."
+      },
+      {
+        "tag": "volume-of-solids",
+        "description": "Calculating volumes of 3D shapes (prisms, cylinders, spheres, etc.)."
+      },
+      {
+        "tag": "distance-and-midpoint",
+        "description": "Using the distance formula and midpoint formula in the coordinate plane."
+      },
+      {
+        "tag": "pythagorean-theorem",
+        "description": "Applying a² + b² = c² to find a missing side in a right triangle."
+      },
+      {
+        "tag": "special-right-triangles",
+        "description": "Using properties of 45-45-90 or 30-60-90 triangles to find side lengths."
+      },
+      {
+        "tag": "polygon-angles",
+        "description": "Calculating interior or exterior angle sums for polygons."
+      },
+      {
+        "tag": "circle-measurements",
+        "description": "Calculating circumference and area of circles; understanding radius and diameter."
+      },
+      {
+        "tag": "circle-angles",
+        "description": "Working with arcs, central angles, and inscribed angles in circle problems."
+      },
+      {
+        "tag": "circle-equations",
+        "description": "Using the equation of a circle (center-radius form) and identifying circle parameters."
+      },
+      {
+        "tag": "surface-area",
+        "description": "Calculating surface area of 3D objects (prisms, cylinders, spheres, etc.)."
+      }
+    ]
+  },
+  "reading-and-writing": {
+    "craft-and-structure": [
+      {
+        "tag": "word-in-context",
+        "description": "Determining the meaning of a specific word based on its context in the passage."
+      },
+      {
+        "tag": "phrase-in-context",
+        "description": "Interpreting the meaning of a phrase or idiom as used in context."
+      },
+      {
+        "tag": "figurative-language",
+        "description": "Understanding metaphors, similes, or other figurative expressions in the text."
+      },
+      {
+        "tag": "word-choice-effect",
+        "description": "Analyzing how the author’s word choice influences meaning or tone."
+      },
+      {
+        "tag": "text-structure",
+        "description": "Identifying how the passage is organized (chronological, compare-contrast, etc.)."
+      },
+      {
+        "tag": "main-purpose",
+        "description": "Determining the author’s primary purpose or goal in the passage."
+      },
+      {
+        "tag": "author-tone",
+        "description": "Recognizing the author’s tone or mood (e.g., sarcastic, formal, optimistic)."
+      },
+      {
+        "tag": "author-attitude",
+        "description": "Understanding the author’s attitude or viewpoint toward the subject."
+      },
+      {
+        "tag": "point-of-view",
+        "description": "Identifying the perspective from which the passage is told (first person, third person, etc.)."
+      },
+      {
+        "tag": "sentence-function",
+        "description": "Determining the function of a specific sentence or detail in the passage."
+      },
+      {
+        "tag": "author-technique",
+        "description": "Recognizing rhetorical techniques (examples, anecdotes, rhetorical questions) used by the author."
+      },
+      {
+        "tag": "argument-structure",
+        "description": "Understanding how the author structures their argument or reasoning."
+      },
+      {
+        "tag": "cross-text-comparison",
+        "description": "Comparing and contrasting ideas or viewpoints between two passages."
+      },
+      {
+        "tag": "cross-text-synthesis",
+        "description": "Drawing a conclusion or connection using information from two related passages."
+      },
+      {
+        "tag": "intended-audience",
+        "description": "Inferring the intended audience or readership for the passage."
+      }
+    ],
+    "information-and-ideas": [
+      {
+        "tag": "main-idea",
+        "description": "Identifying the central idea or primary claim of the passage."
+      },
+      {
+        "tag": "supporting-detail",
+        "description": "Finding specific details or facts stated explicitly in the passage."
+      },
+      {
+        "tag": "inference",
+        "description": "Inferring information that is implied but not directly stated in the passage."
+      },
+      {
+        "tag": "evidence-support",
+        "description": "Choosing the piece of text that best supports a given statement or answer."
+      },
+      {
+        "tag": "graph-interpretation",
+        "description": "Interpreting information from a graph or table that accompanies the passage."
+      },
+      {
+        "tag": "cause-and-effect",
+        "description": "Understanding cause-and-effect relationships described in the passage."
+      },
+      {
+        "tag": "compare-and-contrast",
+        "description": "Identifying similarities or differences between ideas or events in the passage."
+      },
+      {
+        "tag": "passage-completion",
+        "description": "Selecting a sentence that logically completes or continues the passage."
+      },
+      {
+        "tag": "draw-conclusion",
+        "description": "Drawing a logical conclusion from the information presented in the passage."
+      },
+      {
+        "tag": "author-stance",
+        "description": "Determining the author’s position or opinion on the topic discussed."
+      },
+      {
+        "tag": "hypothetical-application",
+        "description": "Applying the passage’s ideas or logic to a new hypothetical scenario or question."
+      },
+      {
+        "tag": "identify-claim",
+        "description": "Identifying a specific claim or argument made in the passage."
+      },
+      {
+        "tag": "paragraph-main-idea",
+        "description": "Determining the main idea or purpose of a particular paragraph in the passage."
+      },
+      {
+        "tag": "passage-title",
+        "description": "Choosing a title or summary that best reflects the passage’s main idea."
+      },
+      {
+        "tag": "not-in-passage",
+        "description": "Identifying information or statements that are not supported by the passage."
+      }
+    ],
+    "standard-english-conventions": [
+      {
+        "tag": "subject-verb-agreement",
+        "description": "Ensuring the subject and verb agree in number (singular vs. plural)."
+      },
+      {
+        "tag": "verb-tense",
+        "description": "Using correct and consistent verb tenses in context."
+      },
+      {
+        "tag": "pronoun-antecedent",
+        "description": "Making sure pronouns clearly refer to the correct noun and agree in number."
+      },
+      {
+        "tag": "pronoun-case",
+        "description": "Using the correct pronoun case (e.g., I vs. me, who vs. whom)."
+      },
+      {
+        "tag": "parallel-structure",
+        "description": "Using a consistent grammatical structure for items in a list or comparison."
+      },
+      {
+        "tag": "misplaced-modifier",
+        "description": "Placing modifiers correctly to avoid ambiguity (no dangling or misplaced modifiers)."
+      },
+      {
+        "tag": "faulty-comparison",
+        "description": "Making logical comparisons without leaving words or ideas out (comparing like terms)."
+      },
+      {
+        "tag": "comma-usage",
+        "description": "Using commas correctly (in lists, after clauses) and avoiding comma splices."
+      },
+      {
+        "tag": "semicolon-colon-usage",
+        "description": "Using semicolons and colons correctly to join clauses or introduce lists."
+      },
+      {
+        "tag": "apostrophe-usage",
+        "description": "Using apostrophes correctly for possessives and contractions."
+      },
+      {
+        "tag": "sentence-fragment",
+        "description": "Avoiding sentence fragments by ensuring each sentence is complete."
+      },
+      {
+        "tag": "run-on-sentence",
+        "description": "Avoiding run-on sentences or comma splices by properly separating clauses."
+      },
+      {
+        "tag": "idiomatic-usage",
+        "description": "Using the correct prepositions or expressions in standard idioms."
+      },
+      {
+        "tag": "diction-errors",
+        "description": "Avoiding commonly confused or misused words (e.g., affect vs. effect)."
+      },
+      {
+        "tag": "adjective-vs-adverb",
+        "description": "Using adjectives and adverbs correctly (e.g., good vs. well)."
+      }
+    ],
+    "expression-of-ideas": [
+      {
+        "tag": "conciseness",
+        "description": "Removing redundant words or phrases to be more concise."
+      },
+      {
+        "tag": "clarity",
+        "description": "Revising text to eliminate ambiguity or confusion for clearer meaning."
+      },
+      {
+        "tag": "precise-wording",
+        "description": "Choosing the most precise and appropriate words to convey the idea."
+      },
+      {
+        "tag": "tone-consistency",
+        "description": "Maintaining a consistent tone and style appropriate to the passage."
+      },
+      {
+        "tag": "relevance",
+        "description": "Ensuring all content is on-topic (adding relevant details or deleting off-topic ones)."
+      },
+      {
+        "tag": "supporting-evidence",
+        "description": "Adding examples, facts, or details to better support a claim or idea."
+      },
+      {
+        "tag": "introduction-focus",
+        "description": "Providing a clear topic sentence or introduction to introduce the main idea."
+      },
+      {
+        "tag": "conclusion-summary",
+        "description": "Giving an effective concluding sentence or summary to wrap up a discussion."
+      },
+      {
+        "tag": "logical-flow",
+        "description": "Arranging sentences and ideas in a logical order to improve flow."
+      },
+      {
+        "tag": "transitions",
+        "description": "Using transition words or phrases to smoothly connect ideas."
+      },
+      {
+        "tag": "sentence-combination",
+        "description": "Combining sentences or clauses to improve flow and avoid repetition."
+      },
+      {
+        "tag": "paragraph-organization",
+        "description": "Organizing information within a paragraph in the clearest, most logical way."
+      },
+      {
+        "tag": "integrating-information",
+        "description": "Incorporating additional information (like data or notes) smoothly into the text."
+      },
+      {
+        "tag": "active-voice",
+        "description": "Using active voice for clarity and directness when appropriate."
+      },
+      {
+        "tag": "formal-tone",
+        "description": "Ensuring the language maintains an appropriate level of formality."
+      }
+    ]
+  }
+}

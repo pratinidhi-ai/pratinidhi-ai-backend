@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "Question Bank API",
+    "description": "API endpoints for Question Bank (Metadata and Fetch Quiz)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Metadata",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/questions/metadata",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "metadata"]
+        },
+        "description": "Get all question bank metadata including subjects, subcategories, question counts, and distributions."
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Quiz - No Theme",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject_name\": \"math\",\n  \"sub_category\": \"algebra\",\n  \"selected_difficulty_level\": 3,\n  \"number_of_questions\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/fetch-quiz",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "fetch-quiz"]
+        },
+        "description": "Fetch quiz questions without theme filter"
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Quiz - With Theme",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject_name\": \"math\",\n  \"sub_category\": \"algebra\",\n  \"selected_difficulty_level\": 2,\n  \"number_of_questions\": 3,\n  \"theme\": \"Harry Potter\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/fetch-quiz",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "fetch-quiz"]
+        },
+        "description": "Fetch quiz questions with theme filter"
+      },
+      "response": []
+    },
+    {
+      "name": "Fetch Quiz - Reading & Writing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject_name\": \"reading-and-writing\",\n  \"sub_category\": \"craft-and-structure\",\n  \"selected_difficulty_level\": 4,\n  \"number_of_questions\": 10,\n  \"theme\": \"Shakespearean Literature\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/fetch-quiz",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "fetch-quiz"]
+        },
+        "description": "Fetch reading and writing questions with theme"
+      },
+      "response": []
+    },
+    {
+      "name": "Error Test - Invalid Difficulty",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject_name\": \"math\",\n  \"sub_category\": \"algebra\",\n  \"selected_difficulty_level\": 10,\n  \"number_of_questions\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/fetch-quiz",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "fetch-quiz"]
+        },
+        "description": "Test error handling - difficulty must be 1-5 (expect 400)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error Test - Missing Parameters",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{firebase_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject_name\": \"math\",\n  \"selected_difficulty_level\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/questions/fetch-quiz",
+          "host": ["{{base_url}}"],
+          "path": ["api", "questions", "fetch-quiz"]
+        },
+        "description": "Test error handling - missing required parameters (expect 400)"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://mvh38xybk8.us-east-1.awsapprunner.com",
+      "type": "string"
+    },
+    {
+      "key": "firebase_token",
+      "value": "YOUR_FIREBASE_ID_TOKEN_HERE",
+      "type": "string"
+    }
+  ]
+}
