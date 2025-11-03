@@ -1,7 +1,7 @@
 import time
 
 class TutorSession:
-	def __init__(self, user_id, personality, language, session_id, subject=None, level=None, exam=None, interests=None, goals=None,lecture_notes=None, lecture_subject=None, lecture_chapter=None,session_system_prompt=None):
+	def __init__(self, user_id, personality, language, session_id, subject=None, exam=None, interests=None, goals=None,lecture_notes=None, lecture_subject=None, lecture_chapter=None,session_system_prompt=None):
 		self.user_id = user_id
 		self.personality = personality
 		self.language = language
@@ -13,7 +13,6 @@ class TutorSession:
 		self.summary = None
 		self.ended_at = None
 		self.subject = subject
-		self.level = level
 		self.exam = exam
 		self.interests = interests or []
 		self.goals = goals or []
@@ -29,7 +28,6 @@ class TutorSession:
 			"language": self.language,
 			"session_id" : self.session_id,
 			"subject": self.subject,
-            "level": self.level,
             "exam": self.exam,
             "interests": self.interests,
             "goals": self.goals,

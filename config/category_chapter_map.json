@@ -1,0 +1,138 @@
+{
+  "SAT": {
+    "General SAT Information": [
+      {
+        "key": "Chapter 1",
+        "title": "GENERAL INFORMATION ABOUT SAT"
+      },
+      {
+        "key": "Chapter 2",
+        "title": "Cracking the Digital SAT: Basic Principles"
+      },
+      {
+        "key": "Chapter 32",
+        "title": "Game Day & The Final Week: A Student's Playbook"
+      }
+    ],
+    "Reading and Writing": [
+      {
+        "key": "Chapter 3",
+        "title": "Reading & Writing Mastery: The Three-Bucket System"
+      },
+      {
+        "key": "Chapter 4",
+        "title": "Reading Detective: The Evidence Hunt Strategy"
+      },
+      {
+        "key": "Chapter 5",
+        "title": "Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics"
+      },
+      {
+        "key": "Chapter 6",
+        "title": "Information & Ideas Arsenal: The Evidence Sniper Approach"
+      },
+      {
+        "key": "Chapter 7",
+        "title": "RW Power-Ups: Vocab Wins + Trap-Busting"
+      },
+      {
+        "key": "Chapter 8",
+        "title": "Poetry Without Panic + Sentence Roles That Reveal Answers"
+      },
+      {
+        "key": "Chapter 9",
+        "title": "All-Terrain RW Drill: 8 Types, 11 Questions"
+      },
+      {
+        "key": "Chapter 10",
+        "title": "Rule Radar: Spot What's Changing & Fix It"
+      },
+      {
+        "key": "Chapter 11",
+        "title": "Sentence Sensei: Make It Complete, Keep It Consistent"
+      },
+      {
+        "key": "Chapter 12",
+        "title": "Glue vs. Glitter: Specifying Info vs Extra Info"
+      },
+      {
+        "key": "Chapter 13",
+        "title": "Punctuation Power: Join Full Sentences Like a Pro"
+      },
+      {
+        "key": "Chapter 14",
+        "title": "Join with Care: Dependent Clauses, Lists & Zero-Punctuation Rules"
+      },
+      {
+        "key": "Chapter 15",
+        "title": "Consistency Clinic: Verbs • Pronouns • Apostrophes • Modifiers"
+      },
+      {
+        "key": "Chapter 16",
+        "title": "Smooth Linkers — Choosing the Right Transition"
+      },
+      {
+        "key": "Chapter 17",
+        "title": "Goal-First Synthesis — Turning Notes into the Best Sentence"
+      }
+    ],
+    "Math": [
+      {
+        "key": "Chapter 18",
+        "title": "Math Map: What's Tested & How to Play It"
+      },
+      {
+        "key": "Chapter 19",
+        "title": "Strategy Stack: Ballpark • RTFQ • Bite-Sized • Calculator-Smart"
+      },
+      {
+        "key": "Chapter 20",
+        "title": "Everyday Arithmetic the SAT Actually Uses"
+      },
+      {
+        "key": "Chapter 21",
+        "title": "Powers, Roots & Reading Graphs Like a Pro"
+      },
+      {
+        "key": "Chapter 22",
+        "title": "Algebra Moves: Translate, Compare, Decide"
+      },
+      {
+        "key": "Chapter 23",
+        "title": "Quadratics & Growth: Formulas That Save Time"
+      },
+      {
+        "key": "Chapter 24",
+        "title": "Beat Algebra with Backward Solving (PITA)"
+      },
+      {
+        "key": "Chapter 25",
+        "title": "Turn Variables into Numbers: Plug-In & Meaning-in-Context"
+      },
+      {
+        "key": "Chapter 26",
+        "title": "Graph Sense—From Function Machines to Circle Mastery"
+      },
+      {
+        "key": "Chapter 27",
+        "title": "Everyday Numbers Toolkit: Ratios, Conversions & Percents"
+      },
+      {
+        "key": "Chapter 28",
+        "title": "Data Sense: Averages, Spread & Survey Math"
+      },
+      {
+        "key": "Chapter 29",
+        "title": "Triangle & Line Toolkit: From Angle Rules to SOHCAHTOA"
+      },
+      {
+        "key": "Chapter 30",
+        "title": "Circle & Shape Sense: Arcs, Sectors, Radians & Volume"
+      },
+      {
+        "key": "Chapter 31",
+        "title": "Type-It-Right: Cracking DSAT Math Fill-Ins"
+      }
+    ]
+  }
+}

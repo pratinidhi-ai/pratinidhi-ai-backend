@@ -63,22 +63,7 @@ class PromptBuilder:
         
         return f"You are a subject matter expert in {subject}, capable of explaining concepts from basic fundamentals to advanced levels. You have deep knowledge of the curriculum, common misconceptions, and effective teaching strategies for this subject."
     
-    def _get_student_level_section(self, level: Optional[str]) -> str:
-        """Build the student level section of the prompt."""
-        if not level:
-            return ""
-        
-        level_descriptions = {
-            "elementary": "elementary school level, so use very simple language and basic concepts",
-            "middle_school": "middle school level, so use clear explanations with some complexity",
-            "high_school": "high school level, so you can use more advanced concepts and terminology",
-            "college": "college level, so you can engage with sophisticated ideas and complex reasoning",
-            "graduate": "graduate level, so you can discuss advanced theories and research-level concepts",
-            "professional": "professional level, so focus on practical applications and industry-relevant knowledge"
-        }
-        
-        description = level_descriptions.get(level.lower(), f"{level} level")
-        return f"The student is currently at {description}. Adjust your explanations and examples accordingly."
+
     
     def _get_exam_section(self, exam: Optional[str]) -> str:
         """Build the exam preparation section of the prompt."""
@@ -182,6 +167,28 @@ class PromptBuilder:
         else:
             formatted_content += "\nNo key insights available."
         
+        # Note on how to practice (if available)
+        how_to_practice = chapter_content.get('how_to_practice', None)
+        if how_to_practice:
+            if isinstance(how_to_practice, str):
+                practice_note = how_to_practice
+            else:
+                practice_note = how_to_practice.get('note', '')
+                sub_category = how_to_practice.get('sub_category', '')
+                tags = how_to_practice.get('tags', [])
+                subject = how_to_practice.get('subject', '')
+            
+                practice_note = f"To practice this chapter, focus on {subject} topics"
+                if sub_category:
+                    practice_note += f" in the sub-category of {sub_category}"
+                if tags:
+                    tags_str = ", ".join(tags)
+                    practice_note += f", specifically on the following tags: {tags_str}."
+                note = how_to_practice.get('note', '')
+                if note:
+                    practice_note += f" {note}"
+            formatted_content += f"\n\nPRACTICE NOTE:\n{practice_note}"
+        
         return formatted_content
     
     def _get_lecture_notes_section(self, lecture_notes: Optional[str] = None, subject: Optional[str] = None, chapter: Optional[str] = None) -> str:
@@ -235,7 +242,7 @@ class PromptBuilder:
         Follow this structure to ensure comprehensive learning and assessment."""
     
     def build_system_prompt(self, personality: str, subject: Optional[str] = None, 
-                          level: Optional[str] = None, exam: Optional[str] = None,
+                          exam: Optional[str] = None,
                           interests: Optional[List[str]] = None, goals: Optional[List[str]] = None,
                           lecture_notes: Optional[str] = None, 
                           lecture_subject: Optional[str] = None, lecture_chapter: Optional[str] = None) -> str:
@@ -244,7 +251,6 @@ class PromptBuilder:
         Args:
             personality: The tutor personality to use
             subject: The subject being taught
-            level: Student's education level
             exam: Exam being prepared for
             interests: Student's interests
             goals: Student's learning goals
@@ -287,10 +293,6 @@ class PromptBuilder:
         subject_section = self._get_subject_section(subject)
         if subject_section:
             sections.append(subject_section)
-        
-        level_section = self._get_student_level_section(level)
-        if level_section:
-            sections.append(level_section)
         
         exam_section = self._get_exam_section(exam)
         if exam_section:
@@ -347,7 +349,7 @@ Guardrails: {self.guardrails}
 
 # Convenience function for easy import
 def build_tutor_prompt(personality: str, subject: Optional[str] = None, 
-                      level: Optional[str] = None, exam: Optional[str] = None,
+                      exam: Optional[str] = None,
                       interests: Optional[List[str]] = None, goals: Optional[List[str]] = None,
                       lecture_notes: Optional[str] = None,
                       lecture_subject: Optional[str] = None, lecture_chapter: Optional[str] = None) -> str:
@@ -356,7 +358,6 @@ def build_tutor_prompt(personality: str, subject: Optional[str] = None,
     return builder.build_system_prompt(
         personality=personality,
         subject=subject,
-        level=level,
         exam=exam,
         interests=interests,
         goals=goals,

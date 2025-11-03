@@ -36,7 +36,6 @@ def start_session():
 		personality = data.get("personality", "albert_einstein")  # Default personality
 		language = data.get("language", "english")
 		subject = data.get("subject")
-		level = data.get("level")
 		exam = data.get("exam")
 		interests = data.get("interests", [])
 		goals = data.get("goals", [])
@@ -49,7 +48,6 @@ def start_session():
 		system_prompt = prompt_builder.build_system_prompt(
 			personality=personality,
 			subject=subject,
-			level=level,
 			exam=exam,
 			interests=interests,
 			goals=goals,
@@ -65,7 +63,6 @@ def start_session():
 			language=language,
 			session_id=session_id,
 			subject=subject,
-			level=level,
 			exam=exam,
 			interests=interests,
 			goals=goals,

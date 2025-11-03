@@ -14,7 +14,8 @@
           "Desmos literacy is a skill. It's a time-saver on some problems and a trap on others—practice judgment.",
           "Zero penalty for guessing. Always fill every question; use elimination aggressively.",
           "Section strategy differs. RW is fixed by skill blocks; Math difficulty ramps within each module."
-        ]
+        ],
+        "how_to_practice": "This is an overview chapter. Practice all SAT question types across both Math and Reading & Writing sections to build familiarity with the test format."
       },
       "Chapter 2": {
         "title": "Cracking the Digital SAT: Basic Principles",
@@ -27,7 +28,8 @@
           "Slow = higher score (often): Accuracy outruns rushing.",
           "Tools matter: Review/Mark, Answer Eliminator, Annotate (RW-only), neat scratch paper.",
           "Avoid careless errors: Build a 10-second double-check habit."
-        ]
+        ],
+        "how_to_practice": "This is a strategy chapter. Apply these principles while practicing any SAT questions across all subjects and sub-categories."
       },
       "Chapter 3": {
         "title": "Reading & Writing Mastery: The Three-Bucket System",
@@ -38,7 +40,12 @@
           "Rules stem = green flag. The fixed wording lets you scan-jump directly to quick grammar/punctuation wins.",
           "Rhetoric is predictable. If it's a transition or bullet list, switch to the rhetoric playbook.",
           "Play your POOD. Start where you're strongest (often mid-module for Writing-strong testers)."
-        ]
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_categories": ["craft-and-structure", "information-and-ideas", "standard-english-conventions", "expression-of-ideas"],
+          "note": "Practice all Reading & Writing question types to become familiar with identifying the three buckets (Reading, Rules, Rhetoric)."
+        }
       },
       "Chapter 4": {
         "title": "Reading Detective: The Evidence Hunt Strategy",
@@ -50,7 +57,12 @@
           "Evidence beats vibe: Use highlight + brief annotation to anchor answers; don't over-summarize.",
           "POE wins close calls: Delete answers inconsistent with your highlight/annotation; be wary of recycled wording.",
           "Know the menu: The eight types arrive in a stable order—use that predictability."
-        ]
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_categories": ["craft-and-structure", "information-and-ideas"],
+          "note": "Practice Reading questions across both Craft & Structure and Information & Ideas to master the evidence hunt strategy."
+        }
       },
       "Chapter 5": {
         "title": "Craft & Structure Mastery: Vocabulary, Purpose & Dual Text Tactics",
@@ -61,7 +73,13 @@
           "Function lives in context: read the sentence and the one before/after to see the link.",
           "Dual Texts = claim + response: highlight both sides, then label the relationship in 3 words.",
           "Watch for Extreme and Recycled-language traps across all three types."
-        ]
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "craft-and-structure",
+          "tags": ["word-in-context", "phrase-in-context", "text-structure", "sentence-function", "cross-text-comparison", "cross-text-synthesis"],
+          "note": "Focus on Craft & Structure questions, especially vocabulary, purpose/function/structure, and dual text comparisons."
+        }
       },
       "Chapter 6": {
         "title": "Information & Ideas Arsenal: The Evidence Sniper Approach",
@@ -73,7 +91,13 @@
           "Charts = two checks: Many answers fit the chart; only one also fits the claim.",
           "Conclusion tone: Prefer cautious wording when evidence is suggestive.",
           "Trap radar: Recycled-language ≠ correct idea; Right-Answer/Wrong-Question shows up a lot on Main Idea/Charts/Conclusions."
-        ]
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "information-and-ideas",
+          "tags": ["main-idea", "supporting-detail", "inference", "evidence-support", "graph-interpretation", "passage-completion", "draw-conclusion", "identify-claim"],
+          "note": "Practice Information & Ideas questions focusing on retrieval, main idea, claims, charts, and conclusions."
+        }
       },
       "Chapter 7": {
         "title": "RW Power-Ups: Vocab Wins + Trap-Busting",
@@ -83,7 +107,412 @@
           "Tiny daily vocab reps compound into higher RW accuracy.",
           "When stuck, hunt the trap, don't justify the survivor.",
           "Extreme/Beyond-text phrasing is a frequent giveaway."
-        ]
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_categories": ["craft-and-structure", "information-and-ideas"],
+          "tags": ["word-in-context", "phrase-in-context"],
+          "note": "Build vocabulary through daily practice with word-in-context questions across all reading types. Focus on identifying the 6 trap types."
+        }
+      },
+      "Chapter 8": {
+        "title": "Poetry Without Panic + Sentence Roles That Reveal Answers",
+        "notes": "Poetry = still evidence-based: You're not grading literature; find claims/evidence and apply POE. Watch a few contractions/figurative devices—don't over-infer.\n\nSentence Function = speed hack: Most non-literature passages are built from four roles: Background → Claim → Objection → Evidence. Labeling roles helps you locate main ideas and links fast.\n\nWorked pattern (suburban-pools example): They walk through sentences showing Background, Objection (\"However…\"), Evidence, Claim, then Evidence. Use signal words like however, posit, found.\n\nWhy it pays: If you can tag roles, you can jump to the sentence that answers Purpose / Dual Texts / Main Idea / Claims / Conclusions.",
+        "summary": "Treat poems like any other short text: find the claim/evidence and avoid speculation. In informational passages, tag sentence roles (Background/Claim/Objection/Evidence) to zero-in on what a question needs—especially for Purpose, Claims, Charts, and Conclusions.",
+        "key_insights": [
+          "Poetry success = type → proof → POE (not literary intuition).",
+          "Role-tagging sentences is a map to main ideas and links.",
+          "\"However\" often marks an Objection; \"posited\" flags a Claim; dense details are often Evidence."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_categories": ["craft-and-structure", "information-and-ideas"],
+          "tags": ["main-purpose", "text-structure", "sentence-function", "main-idea", "identify-claim"],
+          "note": "Practice with poetry passages and informational texts. Focus on identifying sentence roles and connecting them to question types."
+        }
+      },
+      "Chapter 9": {
+        "title": "All-Terrain RW Drill: 8 Types, 11 Questions",
+        "notes": "What this chapter is: A single drill that hits all eight RW reading types in 11 mini-passages, with answer keys and explanations. Use your Reading Basic Approach on each item.\n\nType coverage (samples): Vocab: Q1–Q3 (fill-in + \"most nearly means\") with worked annotations. Purpose/Structure: Q4 asks for overall structure (good vs bad uses example). Dual Texts: Q5—tag Text 1's claim and Text 2's response (e.g., warning about dopamine). Retrieval/Main Idea/Claims/Charts/Conclusions: Remaining items include a table data question (Q10) and a Conclusions stem that literally says \"Which choice most logically completes the text?\" (Q11).\n\nHow to work each item (universal sequence): Question → Type → Passage/Table → Highlight/Annotate → POE.\n\nWhat the explanations reinforce: Write your own word for Vocab before choices. For Purpose/Structure, build a quick annotation (\"topic + how it's developed\"). Dual Texts: label the relationship (agree/disagree/extend) and delete Extreme/Opposite traps. Charts: pull numbers directly from the table (e.g., 71% for VR sitting) to fill the example. Conclusions: prefer measured wording consistent with all info.",
+        "summary": "This drill bundles all RW reading types into 11 quick items. Run the same Basic Approach every time, then use the explanations to sharpen your trap radar: write-your-own word (Vocab), annotate structure/purpose, tag Dual-Texts relationships, read charts carefully, and choose cautious, fully supported conclusions.",
+        "key_insights": [
+          "Same skeleton beats every type: start with the question, not the passage.",
+          "Vocab locks in with YOUR word first—then POE.",
+          "Dual Texts = claim + stance (agree/disagree/extend). Label it in 3 words.",
+          "Tables don't lie: quote the number from the exact row/column the stem asks for.",
+          "Conclusions reward caution—avoid absolute predictions."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_categories": ["craft-and-structure", "information-and-ideas"],
+          "note": "Practice all 8 RW reading types using the universal sequence: Question → Type → Passage → Highlight/Annotate → POE."
+        }
+      },
+      "Chapter 10": {
+        "title": "Rule Radar: Spot What's Changing & Fix It",
+        "notes": "How to recognize Rules items: They all use the same stem — \"Which choice completes the text so that it conforms to the conventions of Standard English?\"\n\nWhy answers (not the passage) come first: Topics are mixed (punctuation, verbs, pronouns, modifiers, etc.), so you can't tell the rule from the passage; look at the answer choices to see what's changing, then apply that topic's rule and use POE.\n\nRules Basic Approach (3 steps): Look at answers → find the changing thing (topic). Apply the rule for that topic. POE.\n\nQuick topic tells from choices (examples): Same words, different punctuation → test punctuation/clauses. Same verb, different tenses → test tense/number; ignore other edits.\n\nPOOD still applies: Since topics are mixed and difficulty is \"rough,\" skip around and do your easy ones first.\n\n\"What's changing?\" drill patterns (use these to train your eye): babies' / baby's / babies' / baby's… → apostrophes (plural vs possessive). have done / has done / were doing / do → verb tense/number. standing; with / standing. With / standing, with / standing with → punctuation; connecting clauses. their / they're / it's / its → pronouns; possessive vs contraction. approaches / had approached / was approaching / approached → verb tense/aspect. Reworded subjects (e.g., \"today's experience…,\" \"we experience…\") → modifiers/subject focus.",
+        "summary": "Rules questions are easy to spot (they all use the Standard English stem). Start from the answer choices to detect the topic, apply that rule, and use POE. Because topics are mixed, use POOD to do your easiest ones first.",
+        "key_insights": [
+          "Answer-first = faster fixes: The choices reveal the rule; the passage often doesn't.",
+          "Ignore non-tested edits: If tense is being tested, don't \"fix\" wording that isn't under test.",
+          "Practice the patterns: Repeated \"what's changing\" formats train instant topic recognition.",
+          "Skip strategically: Mixed topics → follow POOD; bank your quick wins first."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["subject-verb-agreement", "verb-tense", "pronoun-antecedent", "comma-usage", "semicolon-colon-usage", "apostrophe-usage", "parallel-structure", "misplaced-modifier"],
+          "note": "Practice Standard English Conventions questions by identifying what's changing in answer choices first."
+        }
+      },
+      "Chapter 11": {
+        "title": "Sentence Sensei: Make It Complete, Keep It Consistent",
+        "notes": "What a sentence needs: a subject + main verb (sometimes an object). Questions end with ?, statements with .\n\nQuestion vs. statement (tested): Decide by meaning, not vibe: statements provide info; questions ask for it. Many items swap punctuation/word order to test this.\n\nCore rule: An -ing verb or a \"to\" verb cannot be the main verb of a sentence. If the sentence lacks a main verb, the blank must supply it.\n\nSpotting this in choices: If you see \"-ing\" and \"to ___\" forms among options, it's testing complete sentence / main verb—not tense. (Example: \"These pacemakers use electrical impulses…\", not \"using/to use.\")\n\nParallel / consistency rule: Verbs that share the same subject or sit in a list must be in the same form/tense (e.g., \"seeds can travel and access\").\n\nAnswer-first approach (fast): Look at choices to see what's changing (punctuation? verb form?). Apply that rule, then POE. The book's \"Here's How to Crack It\" boxes model this.",
+        "summary": "This chapter locks in sentence foundations: pick statement vs question by meaning, ensure the sentence has a main verb (never \"-ing\" or \"to ___\" alone), and keep verbs parallel when they share a subject or form a list. Use answer-first scanning to spot the rule being tested and eliminate breakers.",
+        "key_insights": [
+          "Main-verb check: If no true main verb exists yet, your blank must provide it (not \"to ___\" / \"___ing\").",
+          "Meaning chooses punctuation: \"Wonder/claim/report…\" → statement; explicit question → question.",
+          "Lists match: After auxiliaries like can, keep the base form consistent across the and-joined verbs.",
+          "Answers reveal the rule: Use \"Here's How to Crack It\" logic—scan choices, detect topic, apply rule, POE."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["sentence-fragment", "run-on-sentence", "parallel-structure", "verb-tense"],
+          "note": "Practice sentence completeness questions, focusing on identifying main verbs and maintaining parallel structure."
+        }
+      },
+      "Chapter 12": {
+        "title": "Glue vs. Glitter: Specifying Info vs Extra Info",
+        "notes": "Specifying vs Extra (core idea): Specifying tells you exactly which person/thing; it stays attached—no commas. Test it by removing the phrase: if meaning/identity breaks, it's Specifying. Extra adds removable detail; box it off with matching commas/dashes/parentheses (one mark only at the start/end of a sentence).\n\nFast tests that score points: that = Specifying → no commas (and never after a comma). who = people, which = things. Using which for a person is wrong. Prepositional phrase (in/of/for/by/with/on/to): usually no commas after the noun; but if it starts the sentence, use a comma. Transitions (however, moreover, therefore): comma after at the start; commas around in the middle (they're Extra). Titles/labels before names: No comma after a label before a proper name (e.g., Astronaut Mae Jemison). But \"a/an + noun\" as a description is Extra → needs commas (or dashes/parentheses).\n\nMatch the punctuation set: If you already see a comma/dash before a middle chunk that is Extra, your choice must complete the pair.\n\nHow to crack these (3 steps): Look at choices → decide Specifying vs Extra → POE (eliminate choices that misuse who/which/that or don't match the punctuation pair).",
+        "summary": "Decide whether a describing phrase is Specifying (identifies which → no commas) or Extra (removable detail → matching commas/dashes/parentheses). Use quick tells: that = no commas, who for people / which for things, prepositional phrase at start → comma, labels before names → no comma. If punctuation appears before an Extra chunk, finish the pair.",
+        "key_insights": [
+          "Remove-it test: If removing the phrase keeps the same subject/thing, it's Extra → needs a matching pair.",
+          "\"that\" never floats after a comma. If a comma precedes it, it's wrong.",
+          "Labels act like adjectives: Scientist Bert Vogelstein → no comma between the label and name.",
+          "Intro prepositional phrase? Follow with a comma; elsewhere, usually none."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["comma-usage", "misplaced-modifier"],
+          "note": "Practice questions involving specifying vs. extra information, focusing on proper comma usage and modifier placement."
+        }
+      },
+      "Chapter 13": {
+        "title": "Punctuation Power: Join Full Sentences Like a Pro",
+        "notes": "Independent clause (IC): a complete sentence (subject + main verb) that can stand alone.\n\n3 correct ways to join IC + IC: Semicolon (;) — use anywhere a period could work. Comma + FANBOYS (For/And/Nor/But/Or/Yet/So) — you need both the comma and the conjunction. Colon (:) or single dash (—) — only if clause 2 explains/defines/elaborates clause 1, and clause 1 is a full IC.\n\n3 wrong ways (auto-eliminate): just a comma (, splice), FANBOYS without the comma, no punctuation between two ICs.\n\nClassic colon trap: don't write \"are: list.\" Make the lead-in a full IC: \"I have three priorities: …\"\n\nTransitions (however/therefore/for example): to connect two ICs, use period/semicolon before the transition and comma after it: \"Sales fell; however, margins improved.\"\n\nQuick solve script (Rules items): Look at answers → what's changing? (semicolon, comma+FANBOYS, colon/dash, transition placement). Check if you truly have IC + IC and whether clause 2 explains clause 1. POE → kill comma splices, lone FANBOYS, and any colon/dash with a non-IC before it.",
+        "summary": "When two full sentences meet, join them with ;, , + FANBOYS, or : / — (only if the second explains the first and the lead-in is a full IC). Avoid comma splices and lone FANBOYS. With however/therefore, put a period/semicolon before and a comma after the transition. Solve by spotting what's changing, testing for IC + IC, and eliminating rule-breakers.",
+        "key_insights": [
+          "Semicolon = period-strength joiner. If a period works, \";\" does too.",
+          "FANBOYS needs a comma. \"…, but …\" ✅ vs \"... but …\" ❌ when both sides are ICs.",
+          "Colon/dash need a full lead-in. The first clause must be a complete sentence.",
+          "Conjunctive adverbs ≠ conjunctions. \"however/therefore/for example\" cannot replace FANBOYS; use .; however, … not \", however,\" to join ICs.",
+          "POE speed: If you spot a comma splice or \"are: list\" lead-in, delete instantly."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["comma-usage", "semicolon-colon-usage", "run-on-sentence"],
+          "note": "Practice punctuation questions focusing on joining independent clauses correctly and avoiding comma splices."
+        }
+      },
+      "Chapter 14": {
+        "title": "Join with Care: Dependent Clauses, Lists & Zero-Punctuation Rules",
+        "notes": "Dependent vs. Independent: Independent clause (IC) = full sentence. Dependent clause (DC) = has a subject+verb but starts with a subordinator (because, since, if, though, when, that), so it can't stand alone.\n\nHow to join IC + DC (only two legal ways): You may write IC + DC (usually no comma) or DC + IC (comma). These are the only punctuation patterns you'll use for IC+DC joins. Examples: \"Because it was raining, I brought my umbrella.\" / \"I brought my umbrella because it was raining.\" A comma can appear when the DC comes second for contrast/pause, but College Board avoids grey-area trickery.\n\nLists (simple → commas; complicated → semicolons): Simple lists (3+ items): commas between items; keep items in the same grammatical form. Complicated lists (items already have commas): separate big items with semicolons (e.g., \"Alex, a parent; Taylor, a teacher; and Ali, a community member.\").\n\n\"No-punctuation\" rules (auto-delete errors): Never put a single mark between a subject and its verb; Extra info is okay only if boxed by a matching pair. No punctuation after a preposition (\"of, by, with, to …\"). Overall: don't add punctuation without a reason.\n\nAnswer-choice recognition cues: If you see a subordinator (because/though/when) floating near the blank, it's IC + DC → allow comma or nothing (not : ; —). If one list item already has a comma inside, expect semicolons between items. If a choice puts punctuation after a preposition or between subject–verb, eliminate fast.",
+        "summary": "Identify DCs by their subordinators. Join IC + DC only with comma or nothing (depending on order/meaning); avoid colons/semicolons/dashes here. Use commas for simple lists and semicolons when list items themselves contain commas. Never drop a single mark between subject and verb or after a preposition—punctuate only with purpose.",
+        "key_insights": [
+          "IC+DC ≠ fancy marks: only comma or nothing joins them.",
+          "List detector: if an item already has a comma, upgrade separators to semicolons.",
+          "Zero-punctuation traps: a lone comma between subject–verb or after prepositions is almost always wrong."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["comma-usage", "semicolon-colon-usage", "sentence-fragment"],
+          "note": "Practice dependent clause punctuation and list formatting questions to master IC+DC joins and complex lists."
+        }
+      },
+      "Chapter 15": {
+        "title": "Consistency Clinic: Verbs • Pronouns • Apostrophes • Modifiers",
+        "notes": "A. Verbs — number first, then tense: Find the true subject (ignore prepositional phrases: One of the photos is). Make the verb match the subject (singular/plural) before worrying about tense. Use time cues to pick tense: Simple past for dated events (In 2015, the court ended). Present perfect (has/have + V3) for past-to-present effects (Researchers have found). Past perfect (had + V3) when one past action preceded another (By the time X began, Y had finished). Parallel verbs share the same form in lists or with the same subject (can measure and record).\n\nB. Pronouns — agree and be clear: it = singular, they = plural. Match the closest clear antecedent. Avoid switching person/number mid-sentence (no random you/one/they unless the passage sets it up).\n\nC. Apostrophes — contractions vs possession: Pronoun + ' = contraction: it's (it is / it has), they're (they are). Possessive pronouns have no apostrophe: its, their, your, whose. Noun possession: Singular → 's (artist's studio). Regular plural in -s → s' (artists' studios). Irregular plural → 's (women's league). Don't add an apostrophe unless the noun owns something.\n\nD. Modifiers — place them right: Put the modifier next to what it describes. After an opening -ing or descriptive phrase, the next noun must be the doer: ✔ Hoping to inspire others, the artist launched workshops. ✘ Hoping to inspire others, free workshops were launched.\n\nE. Fast solve script for \"Rules\": If answers include to / -ing forms, check if the sentence needs a main verb. Lock subject–verb number. Set tense from nearby time verbs/phrases. Check pronoun agreement (it/they) and clarity. Check apostrophes (contraction vs possession). Fix modifier placement (especially opening phrases). POE: cross out any option that breaks these.",
+        "summary": "This chapter is all about consistency. Make verbs agree with the real subject and choose tenses from time cues (including past perfect for \"earlier past\"). Keep pronouns matched to their antecedents. Use apostrophes only for contractions or possession (and know the plural rules). Place modifiers right next to what they describe, especially after opening -ing phrases. Solve quickly by scanning choices for what's changing and applying this checklist.",
+        "key_insights": [
+          "Number beats vibe: lock subject–verb agreement before tense tweaks.",
+          "Dates = simple past; \"by the time\" = past perfect.",
+          "its ≠ it's: one is possessive, the other a contraction.",
+          "Modifiers cling to their noun: the doer must come right after an opening phrase.",
+          "Parallel form = clean writing: keep verbs in the same shape in lists/paired actions."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "standard-english-conventions",
+          "tags": ["subject-verb-agreement", "verb-tense", "pronoun-antecedent", "pronoun-case", "apostrophe-usage", "misplaced-modifier", "parallel-structure"],
+          "note": "Practice comprehensive grammar questions covering verbs, pronouns, apostrophes, and modifiers for complete consistency mastery."
+        }
+      },
+      "Chapter 16": {
+        "title": "Smooth Linkers — Choosing the Right Transition",
+        "notes": "Rhetoric questions here are about meaning, not grammar—multiple options may be grammatically fine; you pick the one that best connects ideas.\n\nQuick method: Read the sentence before + the sentence with the blank; underline clues. Decide if the ideas agree (same direction) or disagree (contrast). Eliminate choices that go the wrong direction; use POE on what's left.\n\nSame-direction words (e.g., \"for instance,\" \"also,\" \"therefore\") reinforce or exemplify a prior idea; contrast words (e.g., \"however,\" \"still\") flip it.\n\nBeware time-sequence words (\"then,\" \"eventually\")—only use them if the context is about timing/progression. (Apply the agree/contrast test first.)\n\nExample pattern: When the second sentence gives a concrete example of the first, pick an example cue (\"for instance\"), not a value judgment (\"fortunately\") or a contrast (\"still\").",
+        "summary": "Transitions questions hinge on logical flow. Look back for context clues, label the relationship (agree vs. contrast), then pick the connector that matches that relationship and the sentence's purpose (add, example, cause/effect, contrast).",
+        "key_insights": [
+          "\"Direction first, word second\": decide agree/contrast before reading choices.",
+          "Don't overthink grammar—several answers can be correct grammatically; you're choosing logic.",
+          "Eliminate fast: if a word signals the wrong relationship, it's out."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "expression-of-ideas",
+          "tags": ["transitions", "logical-flow"],
+          "note": "Practice transition questions by identifying whether ideas agree or contrast, then selecting the appropriate connector."
+        }
+      },
+      "Chapter 17": {
+        "title": "Goal-First Synthesis — Turning Notes into the Best Sentence",
+        "notes": "You'll see bullet-point notes and a goal (e.g., \"introduce X to an audience familiar with Y\"). Identify that it's a Rhetorical Synthesis task.\n\nCore method: Highlight the goal(s) in the question stem. Eliminate any option that doesn't fully achieve those goals. Use notes as supporting details only after goal-fit.\n\nAudience cue matters: If the audience is familiar with a topic/person, don't re-explain it. If unfamiliar, include the brief definition/intro.\n\nCompare/contrast cues in goals steer wording: \"both/similarly\" for similarity; \"whereas/while\" for contrast.\n\nExamples from drill solutions: Introduce artist + material → choose the option that names the artist and the medium. Emphasize results → pick the sentence that states the outcome clearly. Familiar audience → avoid re-introducing what they already know.",
+        "summary": "Rhetorical Synthesis = \"goal-first writing.\" Start by underlining the goal(s), then choose the option that completely fulfills them. Only afterwards check the bullets for the right facts and level of detail, adjusting for whether the audience is familiar or not and for the intended relationship (introduce, emphasize results, compare, show similarity).",
+        "key_insights": [
+          "The correct choice must satisfy every part of the goal; partial = wrong.",
+          "\"Audience familiar\" = skip definitions; \"unfamiliar\" = include them.",
+          "Words like \"both/similarly/whereas\" telegraph similarity vs. contrast—match them to the goal."
+        ],
+        "how_to_practice": {
+          "subject": "reading-and-writing",
+          "sub_category": "expression-of-ideas",
+          "tags": ["integrating-information", "relevance", "introduction-focus", "clarity", "precise-wording"],
+          "note": "Practice rhetorical synthesis questions by starting with the goal, then selecting sentences that fully achieve all stated objectives."
+        }
+      },
+      "Chapter 18": {
+        "title": "Math Map: What's Tested & How to Play It",
+        "notes": "Format: Math has 2 modules × 22 Q; Module 2 adapts (easier/harder) based on Module 1. Each module mixes MCQs + fill-ins; ~25% are fill-ins.\n\nUnscored (experimental) items: ~2 per module, indistinguishable—treat every question as real.\n\nContent share (big picture): Problem Solving ~70%; Word Problems ~30%. Content areas across the test: Algebra ~35%, Advanced Math ~35%, PSDA ~15%, Geometry/Trig ~15%.\n\nOrder feels random: Topics zig-zag (algebra → stats → trig). Use POOD (Personal Order of Difficulty).\n\nStrategy—You don't have to finish: Bank accuracy on your \"easy-for-you\" items; mark/guess hard time-sinks and return later. No penalty for wrong answers.\n\nBuilt-ins: Calculator, geometry reference sheet, Mark for Review. (No Annotate in Math.)\n\nScratch paper habits: Rewrite key info, show steps, redraw/label figures, rewrite expressions if it helps.\n\nAlways enter an answer: If time's nearly up, eliminate/estimate and guess—never leave blanks.",
+        "summary": "Digital SAT Math = 2 adaptive modules with mixed topics and some fill-ins. Prioritize accuracy over completion: follow your POOD, use built-in tools + neat scratch work, and guess rather than leave blanks. Expect a jumbled order and a couple of unscored items—so play the percentages, not perfection.",
+        "key_insights": [
+          "22 Q per module; Module 2 adapts off Module 1.",
+          "Problem Solving dominates (~70%); Algebra/Adv. Math carry most of the weight.",
+          "POOD > pride: Skip early, bank certain points, return later.",
+          "Use the tools you have: calculator + reference sheet + Mark for Review (no Annotate).",
+          "Neat scratch = fewer mistakes: write steps, label diagrams, and don't leave blanks."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math", "problem-solving-and-data-analysis", "geometry-and-trigonometry"],
+          "note": "Practice all Math question types across all four sub-categories to build familiarity with the adaptive format and mixed-topic structure."
+        }
+      },
+      "Chapter 19": {
+        "title": "Strategy Stack: Ballpark • RTFQ • Bite-Sized • Calculator-Smart",
+        "notes": "Ballparking (size/sign check): Glance at choices and the story's direction to kill answers that are the wrong magnitude or sign (e.g., result must be < a given value). Prevents classic %/base traps.\n\nRTFQ—Read The Final Question: Write the exact thing they ask for on scratch (e.g., 8x−4, not x). Traps often equal an intermediate you computed, not the final target.\n\nBite-Sized Pieces: Break word problems into one tiny step at a time; after each step, peek at choices to eliminate more.\n\nWord-Problem Playbook: 1) RTFQ (underline ask + units) 2) Let answers guide your approach 3) Work bite-sized 4) POE (too big/small, wrong sign, contradicts facts).\n\nCalculator—useful, not magic: Set up on paper; then compute or graph. Practice with the same calculator/Desmos you'll use; familiarity reduces input errors.\n\nAllowed & checks: Built-in Desmos or approved handhelds (no phones/QWERTY). Quick PEMDAS test (3+4×6=27) and fresh batteries.\n\nScratch habits: Number steps, rewrite key info, and label figures—staying organized prevents unforced errors.\n\nHeads-up: Some items aren't calc-friendly; RTFQ so you don't force calculator steps that don't help.",
+        "summary": "Use four pillars: Ballpark to delete bad sizes/signs, RTFQ to target the true ask (not an intermediate), Bite-Sized to solve in tiny steps with POE along the way, and Calculator-Smart to plan on paper, then compute with a tool you've practiced on.",
+        "key_insights": [
+          "Wrong-size answers die first—don't over-solve when ballpark kills them.",
+          "Write the ask (e.g., 2a+b)—you'll dodge \"intermediate-value\" traps.",
+          "Tiny-step solving + periodic POE = fewer mistakes, faster wins.",
+          "Plan→then calc: calculators speed arithmetic, not understanding; practice with your exact tool."
+        ],
+        "how_to_practice": "This is a strategy chapter. Apply ballparking, RTFQ, bite-sized solving, and calculator-smart techniques to all Math question types across all sub-categories."
+      },
+      "Chapter 20": {
+        "title": "Everyday Arithmetic the SAT Actually Uses",
+        "notes": "PEMDAS with L→R: Do Parentheses → Exponents → then Multiplication/Division left-to-right, then Addition/Subtraction left-to-right (\"Please Excuse My Dear Aunt Sally; she walks from left to right\").\n\nBuilt-in calculator follows PEMDAS—but it only computes what you type; write steps on scratch to avoid input errors.\n\nDistributive Law helps: multiply a sum by distributing; or factor a common term to simplify before computing.\n\nFractions—reduce early, then multiply: simplify before you multiply; start with any common factor if you can't see the largest one.\n\nCalculator tip for fractions/decimals: Practice fraction/decimal modes; a decimal is just a fraction in another form; add/subtract/multiply/divide decimals safely on the calculator (mind the decimal point).\n\nMixed numbers → improper fractions (multiply integer by denominator, add numerator, put over denominator) before working.",
+        "summary": "Follow PEMDAS (with strict left-to-right for × ÷ and + −), use distributive/factoring to simplify, reduce fractions before multiplying, and rely on the calculator for clean decimal work—after you've set it up clearly on scratch. Convert mixed numbers to improper fractions first.",
+        "key_insights": [
+          "Left-to-right within × ÷ and within + − prevents \"order\" traps.",
+          "\"Simplify before you multiply\" saves time and matches SAT answer forms.",
+          "Practiced calculator input = fewer decimal/fraction mistakes."
+        ],
+        "how_to_practice": "This is a foundational arithmetic chapter. These concepts apply across all Math sub-categories. Practice basic computation accuracy in any Math questions."
+      },
+      "Chapter 21": {
+        "title": "Powers, Roots & Reading Graphs Like a Pro",
+        "notes": "Exponent rules (same base): multiply → add exponents; divide → subtract; power-of-a-power → multiply exponents (think MADSPM).\n\nNegative & fractional exponents: book highlights rules you need (negative → reciprocal; fractional → roots).\n\nSquares/roots basics: SAT asks for the positive square root unless stated otherwise.\n\nScatterplots: each dot = one case; move from axis → point → other axis; watch units and use scratch/mouse as a ruler.\n\nLine graphs: read like scatterplots; track units carefully (e.g., $2.5 million vs $2.50).\n\nBar graphs / histograms: bar height = value; if no gridlines, draw scratch lines to read heights; unit vigilance matters.\n\nTwo-way tables: headers define categories; cell = intersection; totals may be given or must be summed.",
+        "summary": "Use MADSPM to operate on exponents (add, subtract, multiply exponents appropriately), treat negative exponents as reciprocals and fractional as roots, and take the positive square root by default. For graphs/tables, read axes/units precisely and use scratch cues to line up values; for two-way tables, read intersections and totals carefully.",
+        "key_insights": [
+          "MADSPM collapses most exponent work into three moves (add/subtract/multiply exponents).",
+          "Units can change an answer by factors of 10⁶ (e.g., $2.5 vs $2.5 million).",
+          "On data displays, scratch lines and axis-to-point-to-axis reading stop misreads."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["advanced-math", "problem-solving-and-data-analysis"],
+          "tags": ["exponent-properties", "radical-simplification", "scatterplots", "best-fit-line", "data-distributions"],
+          "note": "Practice exponent/root questions (Advanced Math) and graph interpretation questions (Problem Solving & Data Analysis)."
+        }
+      },
+      "Chapter 22": {
+        "title": "Algebra Moves: Translate, Compare, Decide",
+        "notes": "Turn words into equations. \"Product is 76\" → xy=76; \"x is twice the square of y\" → x=2y². Systems like these are common setups.\n\nInequalities 101. When you multiply/divide by a negative, flip the sign; by a positive, don't. Example solution explicitly keeps the sign because the divisor is +9.\n\nAbsolute value = case work / counts. Questions often ask \"how many solutions?\" (e.g., |x|=|2x−1|); be ready to split into cases or use symmetry.\n\nSquare roots & extraneous roots. After squaring both sides, you must check candidates in the original radical equation. Also remember a principal (symbol) square root is non-negative.\n\nPercent/comparison setups. If a is \"40% less than b+c,\" write a=0.6(b+c), then use a+b+c=400 to solve quickly.\n\nSimple exponential models. If weight after w weeks is y=t⋅3^w and y=9.72 at w=5, plug and solve for t. These \"find the parameter\" items are staples.",
+        "summary": "This chapter focuses on translating words to algebra, handling inequalities safely, counting solutions in absolute-value equations, checking for extraneous roots after squaring, and using quick setups for percent/ratio problems and simple exponentials.",
+        "key_insights": [
+          "Flip inequality signs only with negative multipliers/divisors.",
+          "Always check solutions after squaring; radicals imply non-negative outputs.",
+          "Word problems usually hide a clean system (like xy=76, x=2y²). Spot the structure first."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math"],
+          "tags": ["single-variable-linear-equations", "linear-inequalities", "systems-of-equations", "linear-word-problems", "system-word-problems", "absolute-value-equations", "absolute-value-inequalities", "radical-equations", "exponential-models"],
+          "note": "Practice translating word problems into algebraic equations, working with inequalities, absolute values, and exponential models."
+        }
+      },
+      "Chapter 23": {
+        "title": "Quadratics & Growth: Formulas That Save Time",
+        "notes": "Set to zero → factor when possible. Use zero-product property after moving all terms to one side.\n\nQuadratic Formula refresher. Know it for ax²+bx+c=0; plug a,b,c to get roots.\n\nRoot shortcuts (Vieta). For ax²+bx+c=0: sum of roots=−b/a, product of roots=c/a. Massive time-saver when prompts ask for sum/product.\n\nDiscriminant = roots count. D=b²−4ac: D>0 → 2 real; D=0 → 1 real; D<0 → none. You'll often set D=0 to force \"exactly one solution.\"\n\nQuadratic favorites with two variables. Memorize: (x+y)(x−y)=x²−y², (x+y)²=x²+2xy+y², (x−y)²=x²−2xy+y². They appear a lot; squaring both sides can expose the target expression.\n\nGrowth/decay formula. Percent rate: final=original(1±r)^#changes. Multiplier form: final=original⋅(multiplier)^#changes. Example: 4% annual interest → 100(1.04)^years=160 to grow 60%.",
+        "summary": "This chapter nails fast quadratic tactics—factor when nice, formula when not, use Vieta for sum/product questions, and use the discriminant to control/diagnose the number of real roots. It also adds the go-to growth/decay equations for percent or multiplier scenarios.",
+        "key_insights": [
+          "If a problem asks for product of roots, try c/a before doing any heavy algebra.",
+          "\"Exactly one real solution\" means set D=0 and solve for the parameter.",
+          "For compounding, always pick the right form: 1±r for percent change; multiplier form for \"triples each week,\" etc."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["advanced-math", "algebra"],
+          "tags": ["quadratic-equations", "factoring-polynomials", "expanding-polynomials", "exponential-equations", "exponential-models", "nonlinear-systems"],
+          "note": "Practice quadratic equations (factoring, formula, Vieta's formulas, discriminant) and exponential growth/decay problems."
+        }
+      },
+      "Chapter 24": {
+        "title": "Beat Algebra with Backward Solving (PITA)",
+        "notes": "When to use PITA: If they ask for a specific value and the choices are numbers, plug the choices into the problem and see what works. Start with a middle choice to cut the search; then go up/down based on \"too big / too small.\"\n\nHow to do it fast: Rewrite choices on scratch and label them with the variable (e.g., \"x = …\"). That alone reduces mistakes.\n\nReal examples to mirror: Cupcakes 85%—try a middle choice, reject if it leads to a non-whole sold count; pick the first that yields whole cupcakes. Premium gas—label choice as \"gallons premium,\" compute both revenues, and match the total. \"Too big/too small\" chain—testing (C) \"too big\" lets you drop (D) instantly.\n\nSAT convention to remember: On Digital SAT, a radical symbol means the positive square root (helps when PITA'ing radical equations).",
+        "summary": "Use PITA whenever answers are numeric and a single value is sought: start in the middle, label, push higher/lower by \"too big/too small,\" and stop when one fits. Match totals/units exactly and remember √ = positive by default.",
+        "key_insights": [
+          "Middle first = fewer trials (ordered choices let you eliminate half at a time).",
+          "Label the variable on scratch—prevents plugging into the wrong place.",
+          "Context filter: reject outputs that clash with the scenario (e.g., fractional cupcakes)."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math"],
+          "tags": ["linear-word-problems", "system-word-problems", "quadratic-equations", "mixture-problems", "distance-rate-time", "age-problems"],
+          "note": "Practice PITA (Plugging In The Answers) on word problems and algebraic equations where answer choices are numeric values."
+        }
+      },
+      "Chapter 25": {
+        "title": "Turn Variables into Numbers: Plug-In & Meaning-in-Context",
+        "notes": "Plugging In (your own numbers): For variable-heavy choices, pick friendly numbers (2, 5, 10, 100), compute a target, then test each choice. Avoid 0/1 unless natural; also avoid numbers already appearing in the prompt/choices.\n\nPercent & units hacks: For percent questions, plug 100; for time in minutes, 30 or 120 are easy.\n\nMeaning-in-Context (5-step): Read what exact part you must interpret. Label the equation with real-world words. Eliminate answers that don't match labels. Plug numbers to see how changing inputs changes outputs. POE again to the winner. Example: From 25C − 20W = 400, \"how much more is a right vs wrong?\" → 25 − (−20) = 45.\n\nWorked plug-in demo: Sale + tax lamp problem—set original = 100, walk through discount + tax, set t = total, then pick the choice that returns 100 when you plug in t.",
+        "summary": "Turn abstract algebra into arithmetic: choose good numbers, get a target, and see which choice reproduces it. For meaning-in-context, label first, then use small plug-ins to confirm what a coefficient/point actually represents.",
+        "key_insights": [
+          "Good numbers (2, 10, 100) make messy expressions trivial; avoid 0/1 unless the structure demands them.",
+          "Label → then plug is the fastest path on meaning questions.",
+          "Percent shortcut: Plug 100 to skip conversions."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math"],
+          "tags": ["literal-equations", "linear-word-problems", "system-word-problems", "function-notation"],
+          "note": "Practice Plugging In (choosing your own numbers) on variable-heavy expressions and meaning-in-context questions."
+        }
+      },
+      "Chapter 26": {
+        "title": "Graph Sense—From Function Machines to Circle Mastery",
+        "notes": "Function = input→output machine. Read f(x) as \"y when x goes in.\" So f(5) means plug in x=5.\n\nTwo tactics for function items. PIV (Plug In the Value): If they give f(5), substitute directly. PITA (Plug In The Answers): If they give the output and ask for the input, try choices as x until f(x) matches.\n\nCoordinate plane & points. Ordered pairs (x,y); to check if a point lies on a line, plug x,y into its equation.\n\nSlope basics. Slope = \"rise over run,\" read left→right; use Δy/Δx.\n\nSlope-intercept form. y=mx+b: m is slope, b is y-intercept. Useful for quick POE from a graph (sign of slope, intercept).\n\nStandard form. Ax+By=C can be read directly (slope/intercepts) without rearranging—handy for parallel/perpendicular checks.\n\nParallel & perpendicular. Parallel → same slope; perpendicular → negative reciprocal.\n\nCircles—standard form. (x−h)²+(y−k)²=r²: center (h,k), radius r. If not in standard form, complete the square (or read diameter off a graph with calc).",
+        "summary": "Treat functions as machines (PIV when input is given; PITA when output is given). Read lines fast from either slope-intercept (m,b) or standard form (Ax+By=C) and use slope logic for parallel/perpendicular decisions. For circles, rewrite to (x−h)²+(y−k)²=r² via completing the square—or use the calculator to grab the diameter from extreme points and halve it.",
+        "key_insights": [
+          "\"f(x)\" isn't a variable; it's the name of the function—so f(5) just means plug in x=5.",
+          "PITA flips many function questions into quick checks when they give an output target.",
+          "In standard form, you can decide parallel/perpendicular without rewriting to y=mx+b.",
+          "For circle radius, either complete the square to get r² or read the diameter from top/bottom points on the graph and halve it."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math", "geometry-and-trigonometry"],
+          "tags": ["function-notation", "function-composition", "slope-intercept", "graphing-linear-equations", "parallel-perpendicular-lines", "circle-equations", "distance-and-midpoint"],
+          "note": "Practice function notation, coordinate plane concepts, linear equations (slope-intercept and standard form), and circle equations."
+        }
+      },
+      "Chapter 27": {
+        "title": "Everyday Numbers Toolkit: Ratios, Conversions & Percents",
+        "notes": "Proportions = equal ratios. Write the two ratios with matching units, then cross-multiply to solve. Many items mix a scale and a real-world measure—convert to the same units first (e.g., feet → inches) and then proportion.\n\nRate conversions (e.g., mph → ft/s). Convert one unit at a time and keep units aligned (miles→feet, hours→seconds). Watch for problems that require such conversions.\n\nPercent ⇄ decimal ⇄ fraction. \"Percent\" = \"per 100.\" % → fraction: put over 100 and reduce. fraction → %: divide top by bottom, then ×100. % ↔ decimal: move the point two places (left for %→decimal, right for decimal→%).\n\nSuccessive % changes apply to the new amount each time; use the %-change formula when needed.",
+        "summary": "Set up equal-ratio proportions with matched units, cross-multiply, and convert rates carefully (mph→ft/s). Treat percents as \"out of 100,\" switching forms fast, and remember that repeated % changes compound on the latest value.",
+        "key_insights": [
+          "Matching units in both numerator/denominator is non-negotiable for proportions.",
+          "Rate questions often hide a required unit conversion—plan it before computing.",
+          "Converting between %/decimal/fraction is just place-value and reduction."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_category": "problem-solving-and-data-analysis",
+          "tags": ["ratio-proportion", "unit-conversion", "percentage-calculation", "direct-variation"],
+          "note": "Practice ratio, proportion, unit conversion, and percentage problems to master everyday number skills."
+        }
+      },
+      "Chapter 28": {
+        "title": "Data Sense: Averages, Spread & Survey Math",
+        "notes": "Average formula you'll actually use: T=A⋅N. Most mean problems are about finding the total first (then divide). Works perfectly when a new score is added.\n\nMixed-unit data: Standardize before averaging (e.g., convert hours:minutes to minutes).\n\nFrequency tables: Values on the left, counts (frequencies) on the right; compute mean via Σ(value×freq)/Σfreq.\n\nStandard deviation (spread): Tight cluster → small SD; wider spread → large SD. Adding/subtracting the same constant to every data point does not change SD.\n\nMargin of error (MOE): A poll \"p% ± m%\" means the true percent likely lies in [p−m, p+m].",
+        "summary": "Use T=A⋅N to shuttle between totals and means; fix units before averaging; read frequency tables with value×frequency; think of SD as spread (unchanged by uniform shifts); and read polls as a range via the margin of error.",
+        "key_insights": [
+          "The fastest path on means is find totals using T=A⋅N.",
+          "SD measures spread, not position; shifting all points leaves SD the same.",
+          "MOE translates a single poll number into a confidence interval on the test."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_category": "problem-solving-and-data-analysis",
+          "tags": ["mean-median", "variability", "data-distributions", "two-way-tables", "margin-of-error", "sampling-methods", "statistical-inference"],
+          "note": "Practice questions involving averages, standard deviation, frequency tables, and survey/poll interpretation."
+        }
+      },
+      "Chapter 29": {
+        "title": "Triangle & Line Toolkit: From Angle Rules to SOHCAHTOA",
+        "notes": "Always do this first: sketch, label givens, write the needed formula, then ballpark.\n\nLine & angle facts: Line = 180°; full turn = 360°; vertical angles are equal; angles around a point sum to 360°.\n\nParallel + transversal: all \"big\" angles are equal to each other, all \"small\" angles equal; any big + small = 180°. Slopes: parallel → same slope; perpendicular → negative reciprocals.\n\nTriangle must-knows: angles sum to 180°; isosceles → base angles equal; equilateral → all 60°. Area = ½bh (height can be outside).\n\nRight triangles: Pythagorean a²+b²=c²; memorize 3-4-5 and 5-12-13 families.\n\nSpecial right triangles: 45-45-90: x,x,x√2. 30-60-90: x,x√3,2x.\n\nTrig basics (SOHCAHTOA): sin=opp/hyp, cos=adj/hyp, tan=opp/adj. Often paired with special triangles/Triples.\n\nSimilarity vs congruence: similar = same angles, proportional sides (AAA/SAS-prop/SSS-prop); congruent = same shape & size (SSS/SAS/ASA/AAS).",
+        "summary": "Use a quick geometry routine (sketch-label-formula-ballpark). Lean on vertical/parallel angle rules, triangle angle sum, Pythagorean triples, special right triangles, and SOHCAHTOA. Know when triangles are similar vs congruent to unlock proportions or exact matches.",
+        "key_insights": [
+          "\"Big/small\" angle pattern with a transversal speeds eliminations.",
+          "One 45-45-90 or 30-60-90 ratio can solve an entire triangle in seconds.",
+          "Similar ≠ congruent: similarity gives ratios; congruence gives equal measures."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_category": "geometry-and-trigonometry",
+          "tags": ["angle-relationships", "triangle-angles", "pythagorean-theorem", "special-right-triangles", "similar-triangles", "right-triangle-trigonometry", "area-of-polygons", "parallel-perpendicular-lines"],
+          "note": "Practice angle relationships, triangle properties, Pythagorean theorem, special right triangles (45-45-90, 30-60-90), and basic trigonometry (SOHCAHTOA)."
+        }
+      },
+      "Chapter 30": {
+        "title": "Circle & Shape Sense: Arcs, Sectors, Radians & Volume",
+        "notes": "Circle formulas: circumference 2πr=πd; area πr². A tangent is ⟂ to radius at tangency. Often leave answers in terms of π.\n\nRadians ↔ degrees: 180°=π rad; convert by proportion.\n\nArc length & sector area: arc/circ=θ/360°, sector/area=θ/360°. If θ in radians, arc s=rθ.\n\nRectangles & squares: rectangle P=2l+2w, A=lw; square side s⇒P=4s, A=s²; diagonal of square =s√2 (45-45-90).\n\nVolume & surface area (reference sheet): sphere V=(4/3)πr³, SA=4πr²; be ready to compute one from the other.\n\nBallparking tips: if choices are in π, compare coefficients; approximate π≈3 only if you must estimate. Plug simple numbers in ratio/percent geometry.",
+        "summary": "Circle problems reduce to circumference/area + proportion for arcs/sectors; convert radians↔degrees cleanly and use s=rθ in radian setups. For rectangles/squares, remember the square diagonal s√2. For 3D, grab formulas from the reference sheet; sometimes you'll compute surface area from volume (or vice versa). Ballpark with π only when helpful.",
+        "key_insights": [
+          "Using proportions handles both arc length and sector area immediately.",
+          "Radians make arc length a one-liner: s=rθ.",
+          "Many geometry choices are in terms of π; compare coefficients first to save time."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_category": "geometry-and-trigonometry",
+          "tags": ["circle-measurements", "circle-angles", "area-of-polygons", "perimeter", "volume-of-solids", "surface-area"],
+          "note": "Practice circle problems (circumference, area, arcs, sectors, radians), rectangle/square problems, and 3D volume/surface area calculations."
+        }
+      },
+      "Chapter 31": {
+        "title": "Type-It-Right: Cracking DSAT Math Fill-Ins",
+        "notes": "What \"fill-ins\" are: Math questions with no choices; you type the answer yourself. They're mixed with MCQs and follow the same loose easy→hard flow. Use your Personal Order of Difficulty (POOD): hit your strengths first.\n\nNo penalty + always answer: There's no guessing penalty; always enter something. Only enter one answer even if many are possible.\n\nInput rules (know these cold): Up to 5 characters if positive; 6 if negative (includes the minus sign). Allowed characters: digits 0–9, -, /, . (no %, π, etc.). Fractions or decimals are both fine—use the safer form. Reduce a fraction or convert to decimal if it won't fit. Don't use mixed numbers. For long/repeating decimals, fill all spaces or round the last digit. Omit symbols the box won't take (e.g., type 44944, not 44,944; omit °).\n\nCore strategies still work: Geometry Basic Approach, Plugging In, and average formula T = A·N.\n\nQuick example reminders: Vertex/axis of symmetry: For a factored quadratic, the vertex's x is the midpoint of the intercepts. (Here, x = (3 + (–11))/2 = –4.) Parallel lines: Same slope; convert to y = mx + b to read off slope (e.g., m = 3/2 = 1.5). Weighted average: Use T = A·N per group, sum Totals and Numbers, then divide (Town A/B mean). POOD in action: Even giant numbers (e.g., 44944) are OK if they fit; don't get spooked.",
+        "summary": "Fill-ins are standard DSAT Math problems where you must type the answer. Success = know the input rules (character limits, allowed symbols, fraction/decimal rules), lean on familiar math tactics (Plugging In, Geometry basics, T = A·N), and use POOD to manage time. There's no guessing penalty, so always submit an answer and double-check formatting.",
+        "key_insights": [
+          "Master the input box rules—they're low-effort points.",
+          "Choose fraction or decimal by what's less error-prone; avoid mixed numbers.",
+          "Always answer something (no penalty) and only one value.",
+          "Formatting traps are real: no commas, no symbols like °, %, π.",
+          "Your usual math tools still shine: Plugging In, Geometry Basic Approach, T = A·N."
+        ],
+        "how_to_practice": {
+          "subject": "math",
+          "sub_categories": ["algebra", "advanced-math", "problem-solving-and-data-analysis", "geometry-and-trigonometry"],
+          "note": "Practice fill-in (grid-in) questions across all Math sub-categories. Focus on input formatting rules and avoiding common entry errors."
+        }
+      },
+      "Chapter 32": {
+        "title": "Game Day & The Final Week: A Student's Playbook",
+        "notes": "Mindset: Expect real test minutes to feel faster than practice; nerves are normal—preparation keeps panic in check.\n\nThe week before: Don't suddenly sleep 12 hours the night before—this can make you groggy. Instead, wake up early each day this week so your brain is \"on\" at test time.\n\nNight-before plan: Do ~1 hour of light review or a few practice problems before dinner; avoid cramming. Then relax (\"veg out\") so you're rested.\n\nMorning-of routine: Eat a solid breakfast and warm up with a few SAT questions to get your brain thinking analytically.\n\nLogistics: Arrive early to the test center.\n\nID rules (critical): Bring acceptable ID with photo and your name (driver's license, school photo ID, or passport). Birth certificate, credit card, Social Security card are not acceptable. Also bring your admission ticket.",
+        "summary": "This chapter gives you a simple, proven test-week and test-day playbook: tune your sleep/wake schedule all week, do light review the night before, warm up your brain on the morning of, and control the controllables—arrival time and ID/ticket—so your only job is to take the test. It also reminds you that feeling nervous is normal, but planning ahead keeps those nerves from becoming panic.",
+        "key_insights": [
+          "\"Sleep strategy\" = body clock strategy: consistency beats a one-night megasleep.",
+          "Light review > heavy cram the night before.",
+          "A short question warm-up switches on analytical thinking.",
+          "Reduce fight-or-flight by eliminating avoidable stressors: go early and bring correct ID + ticket.",
+          "Feeling nervous is fine; preparedness prevents panic."
+        ],
+        "how_to_practice": "This is a test-day preparation chapter. Apply these strategies during the final week before your SAT. Do light review and practice warm-up questions on test morning."
       }
     }
   }

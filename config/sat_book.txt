@@ -1,0 +1,3176 @@
+SAT Book
+
+Chapter 1 
+GENERAL INFORMATION ABOUT THE
+DIGITAL SAT
+
+1) Notes 
+What the SAT really tests
+It’s a test-taking game: it measures how well you take this test, not your worth or school knowledge.
+
+
+Questions are written by professional test-writers; you can learn their patterns.
+
+
+Structure & timing
+Total time: 2h14m + 10-min break.
+
+
+Reading & Writing (RW): 2 modules → 27 Q / 32 min each (all multiple-choice; 4 experimental Q total across the test).
+
+
+Math: 2 modules → 22 Q / 35 min each (mostly multiple-choice + some fill-in).
+
+
+RW content order (every module)
+Craft & Structure (~28%)
+
+
+Information & Ideas (~26%)
+
+
+Standard English Conventions (~26%)
+
+
+Expression of Ideas (~20%)
+
+
+Each short passage (or pair) has just one question; some come with a small graphic.
+
+
+Math content mix (scattered within each module)
+Algebra (~35%), Advanced Math (~35%), PSDA/Data (~15%), Geo/Trig (~15%).
+
+
+Calculator: Built-in Desmos on all math questions; approved handhelds also allowed.
+
+
+Adaptive design & scoring
+Your Module 1 performance sets Module 2 (Easier vs Harder).
+
+
+Some questions are weighted more; total score 400–1600 (RW 200–800 + Math 200–800).
+
+
+No penalty for wrong answers; don’t leave blanks.
+
+
+Each module contains unmarked experimental questions—answer everything.
+
+
+Logistics
+Delivered in the Bluebook app at schools/test centers (saves progress; works even if Wi-Fi drops).
+
+
+Scores arrive in days, and only section/total scores are reported (no subscores).
+
+
+Getting started smartly
+Take a diagnostic, read the category report, focus on high-impact skills first, and practice with the same calculator you’ll use on test day.
+
+
+
+
+
+2) Short Summary
+The Digital SAT is a 2-hour-14-minute adaptive test with two sections (Reading & Writing, Math), each split into two timed modules. RW uses short passages with one question each and follows a fixed order of skills; Math mixes four content areas and allows Desmos on every question. Your first module performance determines whether the second is easier or harder, and some questions carry extra weight. There’s no guessing penalty and a few unscored experimental items. Treat the SAT like a learnable system: practice the formats, use your calculator wisely, and train to maximize points on the most valuable questions.
+
+3) Key Insights (what you should come away with)
+Game mindset beats generic studying. Learn patterns and traps; don’t study everything equally.
+
+
+Adaptive = targeted. Doing well early unlocks a higher ceiling; accuracy in Module 1 matters.
+
+
+Weighted questions exist. Prioritize getting through and nailing the “payoff” items.
+
+
+Desmos literacy is a skill. It’s a time-saver on some problems and a trap on others—practice judgment.
+
+
+Zero penalty for guessing. Always fill every question; use elimination aggressively.
+
+
+Section strategy differs. RW is fixed by skill blocks; Math difficulty ramps within each module.
+
+
+
+
+
+
+4) Flashcards (ready to use)
+Q: Total test timing?
+ A: 2h14m + 10-minute break.
+Q: RW module format?
+ A: 27 Q / 32 min, short passages with one question each; all multiple-choice.
+Q: Math module format?
+ A: 22 Q / 35 min; mostly MCQ + some fill-ins.
+Q: Calculator policy on Digital SAT?
+ A: Built-in Desmos on all Math questions; approved handhelds also allowed.
+Q: RW content order?
+ A: Craft & Structure → Information & Ideas → Standard English Conventions → Expression of Ideas.
+Q: Math content weights?
+ A: Algebra ~35%, Advanced Math ~35%, Data ~15%, Geo/Trig ~15%.
+Q: What does “adaptive” change?
+ A: Your Module 1 performance selects an Easier or Harder Module 2.
+Q: Scoring scale?
+ A: 400–1600 total (RW 200–800 + Math 200–800). No penalty for wrong answers.
+Q: Experimental questions?
+ A: Present and unmarked; answer everything.
+Q: First step after this chapter?
+ A: Take a diagnostic, study your report, target high-value weaknesses.
+
+
+
+5) Instagram Content Ideas (quick, punchy)
+Reel: “Digital SAT in 30 seconds” — timer on screen; flash the four RW blocks and math mix.
+
+
+Carousel: “Adaptive SAT explained” — slide 1: Module 1 → slide 2: Easier vs Harder → slide 3: scoring weights.
+
+
+Reel: “Desmos: When to Use / When to Skip” — 3 examples where it saves time vs slows you down.
+
+
+Carousel: “RW = 1 Q per passage” — mini screenshots showing how to scan fast and find evidence.
+
+
+Reel: “No Negative Marking = No Blank Bubbles” — quick elimination demo on a tricky RW item.
+
+
+Carousel: “Math 35/35/15/15” — four tiles with what each bucket typically tests + one tip each.
+
+
+Story Polls: “Your target section: RW or Math?” → “Tried a diagnostic yet?”
+
+
+Reel: “Test-Writer Mindset” — 3 classic wrong-answer traps to spot this week.
+
+
+
+
+
+
+
+
+
+Chapter 2 
+Cracking the Digital SAT: Basic
+Principles
+1) Notes
+Mindset: The SAT repeats patterns; learn how test-writers think. It’s a different skill from school tests.
+
+
+Two-Pass Method (“Take the easy test first”): Skip early, skip often. First pass = cherry-pick quick/accurate points; second pass = come back to marked items. Don’t get stuck; if time’s low, guess so nothing is blank.
+
+
+POOD (Personal Order Of Difficulty): RW has rough order by content area; Math by overall difficulty—but your order is personal. Work in the order that suits your strengths.
+
+
+Mark & Move On + Review Page caution: Use Mark for Review and the Overview/Review tool to jump around and see unanswered items. On the Review Page, clicking Next ends the module—no confirm!
+
+
+Guessing policy: No wrong-answer penalty; eliminate what you can and guess. Any letter is fine (roughly even distribution).
+
+
+Pace for score gains: You’re scored on correct answers, not attempts. It’s often better to slow slightly, nail your POOD items, and leave/guess the rest.
+
+
+POE (Process of Elimination): Look for wrong answers first; Answer Eliminator helps track crossed-off choices; Annotate is RW-only (not answer choices/figures; not in Math).
+
+
+Scratch-paper system: Next to each Q#, use ✓ (seems right), ~ (maybe), ? (don’t understand), and X (wrong). Keep it neat and consistent.
+
+
+Careless-error firewall: Build habits—re-read the question, check transcription & calculations before locking an answer.
+
+
+2) Short Summary
+Chapter 2 gives the core playbook: treat the Digital SAT like a strategy game. Do an easy-first two-pass, guided by your POOD; mark & move to protect time; use POE (+ Answer Eliminator & Annotate) to narrow choices; guess instead of leaving blanks; and slow down to score more by avoiding careless errors.
+3) Key Insights (what you should internalize)
+Points > pride: Skip fast, bank easy points, return later.
+
+
+Your order wins: POOD beats official order; play to strengths.
+
+
+No blanks: Eliminate → guess; distribution is roughly even.
+
+
+Slow = higher score (often): Accuracy outruns rushing.
+
+
+Tools matter: Review/Mark, Answer Eliminator, Annotate (RW-only), neat scratch paper.
+
+
+Avoid careless errors: Build a 10-second double-check habit.
+
+
+4) Flashcards (ready to use)
+Q: What’s the two-pass method? A: First pass = quick/accurate POOD questions; second pass = marked/time-heavy ones; guess if time’s low.
+
+
+Q: Define POOD. A: Personal Order Of Difficulty—work questions in the order that fits your strengths.
+
+
+Q: What’s the Review Page warning? A: Clicking Next there submits the module with no confirmation.
+
+
+Q: Guessing policy? A: No penalty; eliminate what you can and guess—any letter is fine.
+
+
+Q: POE in one line? A: Find wrong answers first; use Answer Eliminator to track.
+
+
+Q: Annotate tool limits? A: RW only; not on answer choices/figures; not in Math.
+
+
+Q: Scratch-paper system? A: ✓, ~, ?, X by Q#; keep it neat and consistent.
+
+
+Q: How to cut careless errors? A: Re-read prompt; check transcription & calculations before submitting.
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel: “Two-Pass Method in 20s”—screen record of Review grid: pass-1 green, pass-2 yellow, blanks → guesses.
+
+
+Carousel: “POOD ≠ Official Order”—slide 1: RW order; slide 2: your personal order; slide 3: how to decide.
+
+
+Reel: “Review Page Trap”—show the Next button ending module; CTA: “Double-check before Next!”
+
+
+Carousel: “Guess Smart, Never Blank”—panel on no penalty + even distribution; example elimination.
+
+
+Reel: “POE in Action”—tap to cross off wrongs with Answer Eliminator; reveal correct.
+
+
+Story Polls: “Do you use a symbol system on scratch paper? ✓/~/?/X” (share your template).
+
+
+Carousel: “Slow Down, Score More”—before/after showing fewer attempts → higher accuracy.
+
+
+
+
+
+
+6) Some common Patterns/traps
+a) RW: The Extreme-Word Trap (wrong answer pattern)
+What it is: A tempting choice uses absolute language that the passage never supports.
+ Red flags: always, never, completely, only, proves, must, everyone, none.
+ Mini-example:
+ Passage: “Some researchers suggest the method may help in certain cases.”
+ Wrong choice: “The method always cures patients.”
+ Better choice: “The method may help some patients.”
+ Teach the fix: Match the scope and tone of the passage. Circle hedging words (may, can, sometimes, tends) and reject answers that crank them up to absolutes.
+b) Math: Linear vs Exponential Growth (misread pattern)
+What it is: Students mix up “adds the same amount each year” (linear) with “increases by the same percent” (exponential).
+ Cues:
+Linear → “+ 5 points each month,” “decreases by 12 units per year,” form: y=mx+by = mx + by=mx+b.
+
+
+Exponential → “grows by 8% each year,” “multiplies by 1.08,” form: y=a(r)ty = a(r)^ty=a(r)t.
+ Mini-example: Start = 100. After 3 years…
+
+
+Linear +15/year → 100+3⋅15=145100 + 3\cdot 15 = 145100+3⋅15=145
+
+
+Exponential +15%/year → 100(1.15)3≈152100(1.15)^3 \approx 152100(1.15)3≈152
+ Teach the fix: Underline the keyword (amount vs percent). Write a quick model before computing. If it’s percent, multiply; if it’s amount, add.
+
+
+
+Bonus one-liners (optional, quick to share)
+RW: Half-Right, Whole-Wrong. Choice quotes a true detail but adds an unsupported claim. If any part isn’t backed by the text, toss it.
+
+
+Math: Average-Speed Trap. You can’t average speeds; compute total distance ÷ total time (round-trip equal distances ≠ mean of mph).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 3 Reading and Writing Introduction
+1) Notes 
+
+Structure & timing: RW has 2 modules, 27 Q / 32 min each (total 54). About 25–33 Reading and 19–31 Writing across both modules.
+
+
+Reading vs Writing (what they test): Reading = meaning/purpose/inference; Writing = punctuation, grammar, style, transitions/rhetorical fit.
+
+
+Three buckets to recognize (helps POOD): Think of each module as Reading → Rules → Rhetoric (in that order & rough proportion). Start where you’re strongest.
+
+
+Reading bucket—how to spot: Poems/fiction, dual texts, graphs, or fill-in-the-blank word questions live here; many ask for meaning/purpose.
+
+
+Rules bucket—how to spot: They all use the same stem: “Which choice completes the text so that it conforms to the conventions of Standard English?” Often among the fastest items.
+
+
+Rhetoric bucket—how to spot: Two formats: transitions and bullet-point items (no Rules stem).
+
+
+How to start each question: Read the question first → identify bucket → run that playbook. This also tells you what to hunt for when you read the text.
+
+
+POOD reminder: If you’re stronger at Writing, it can make sense to start mid-module where those appear; if Reading is easier, start at the top.
+
+
+2) Short Summary
+RW = two 32-minute modules (27 Q each). Treat each module as Reading → Rules → Rhetoric. Spot the type quickly: poems/dual texts/graphs/fill-in-word = Reading; fixed Standard English stem = Rules; transitions/bullet-points = Rhetoric. Start with the question, pick the bucket, and apply the right steps—following your POOD to begin where you’ll score fastest.
+3) Key Insights (what to internalize)
+Bucket first, passage second. Identifying Reading / Rules / Rhetoric up front saves time and errors.
+
+
+Rules stem = green flag. The fixed wording lets you scan-jump directly to quick grammar/punctuation wins.
+
+
+Rhetoric is predictable. If it’s a transition or bullet list, switch to the rhetoric playbook.
+
+
+Play your POOD. Start where you’re strongest (often mid-module for Writing-strong testers).
+
+
+
+4) Flashcards (ready to use)
+Q: How many Q and minutes per RW module? A: 27 Q / 32 min.
+
+
+Q: The three RW buckets? A: Reading → Rules → Rhetoric (in that order).
+
+
+Q: Fixed stem that signals a Rules question? A: “Which choice completes the text so that it conforms to the conventions of Standard English?”
+
+
+Q: Fast way to start any RW item? A: Read the question first, identify the bucket, then apply the matching strategy.
+
+
+Q: How to spot Reading questions quickly? A: Poems/fiction, dual texts, graphs, or fill-in-word prompts.
+
+
+Q: What are the two Rhetoric formats? A: Transitions and bullet-point items.
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Carousel: “Spot the Rules Stem” — slide 1 shows the exact stem; slides 2–4: comma, verb-form, pronoun mini-tips.
+
+
+Reel (15s): “Reading vs Writing in 1 breath” — split-screen: meaning/inference vs punctuation/style/transition.
+
+
+Reel (20s): “3 Buckets, 3 Playbooks” — flash labels Reading/Rules/Rhetoric with one micro-tip each.
+
+
+Story Polls: “Which bucket will you start with this week—Reading or Writing?” (POOD awareness).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 4 The Reading Questions
+
+1) Notes
+What you face: Reading is just over half of RW and always comes before Writing; each passage is 25–150 words with one question—so efficiency matters.
+
+
+Open-book mindset: RW Reading is about finding support in the text; there’s one right answer based on the passage(s).
+
+
+Mission: Identify the task quickly and locate support efficiently.
+
+
+POOD for Reading: If a passage/type looks slow, mark & move, then come back; consider type, literature, and topic to decide order; always guess on skipped items.
+
+
+Eight Reading types (fixed order): Vocabulary → Purpose → Dual Texts → Retrieval → Main Idea → Claims → Charts → Conclusions. Not all appear in every module.
+
+
+Basic approach (5 steps): Question → Type → Passage → Highlight/Annotate → POE. Start from the question so you know what to hunt in the passage.
+
+
+Active reading: Don’t read the passage first; know your goal before you read.
+
+
+Annotate when it helps (e.g., Purpose): Jot main idea + attitude; use it to drive eliminations.
+
+
+Classic traps to spot with POE: Recycled Language (re-uses words, twists idea), Beyond the Text / Half-Right (partly supported, partly not).
+
+
+2) Short Summary
+Chapter 4 reframes Reading as an evidence hunt: start with the question, identify the type, then read the passage only to find what solves that task. Use highlighting/annotation to anchor evidence and POE to delete trap answers (e.g., recycled language, half-right). Apply POOD—skip, mark, and return—to spend time where you score fastest.
+3) Key Insights (what to internalize)
+Question-first saves time: It tells you exactly what to look for when you read.
+
+
+POOD is power: Order questions by your ease; mark & return instead of getting stuck.
+
+
+Evidence beats vibe: Use highlight + brief annotation to anchor answers; don’t over-summarize.
+
+
+POE wins close calls: Delete answers inconsistent with your highlight/annotation; be wary of recycled wording.
+
+
+Know the menu: The eight types arrive in a stable order—use that predictability.
+
+
+4) Flashcards (ready to use)
+Q: Why read the question before the passage?
+ A: To know the task and read actively for it.
+
+
+Q: The 5 steps of the Reading approach?
+ A: Question → Type → Passage → Highlight/Annotate → POE.
+
+
+Q: What is “recycled language”?
+ A: Answer borrows passage words but twists the idea—eliminate.
+
+
+Q: When should you annotate?
+ A: On types like Purpose—write main idea + attitude.
+
+
+Q: What’s your POOD move on a dense passage?
+ A: Mark & move, return later; don’t stall.
+
+
+Q: Eight Reading types in order?
+ A: Vocab → Purpose → Dual Texts → Retrieval → Main Idea → Claims → Charts → Conclusions.
+
+
+Q: Single biggest mindset for Reading?
+ A: It’s open-book—find support in the text; one best answer.
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “Question → Type → Passage” with a timer and on-screen highlight; end with POE crosses.
+
+
+Carousel: “8 Reading Types = Fixed Order” — one slide per type with a one-liner cue.
+
+
+Reel (15s): “Recycled Language Trap” — show how matching words ≠ matching idea.
+
+
+Story Poll: “Do you annotate Purpose Qs?” (Yes = main idea + attitude; No = try it this week).
+
+
+Carousel: “POOD in Reading” — mark & move grid, then return for points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 5: Reading Question Types 1–3: Craft
+and Structure
+
+
+1) Notes 
+Scope of this chapter
+You’ll tackle three RW types about how passages are built: Vocabulary, Purpose/Function/Structure, and Dual Texts (Text 1 + Text 2).
+
+
+Vocabulary (two formats + playbook)
+Formats to spot: “most logical and precise word/phrase” (fill-in) and “As used in the text, … most nearly means” (in-context).
+
+
+Steps: treat the target as a blank → read sentence + nearby lines → highlight the context clue → write your own word → use POE.
+
+
+Common traps: Beyond the Text, Extreme Language, Opposite.
+
+
+Smart study: use the book’s Greatest Hits, build your own list, and read one challenging article/story daily; don’t over-memorize rare, archaic lit words.
+
+
+Purpose / Function / Structure (playbook)
+What they ask: why the author wrote it (purpose), what a sentence is doing (function), how the passage is organized (structure). Evidence-based, not speculation.
+
+
+Steps: read the question → if you see purpose/function/structure, it’s this type → read the sentence and the line before/after → highlight the connection → annotate the role → POE.
+
+
+
+
+Dual Texts (playbook)
+What they ask: how Text 2 responds to a claim/idea in Text 1 (agree / disagree / extend).
+
+
+Steps: read stem → highlight the claim in Text 1 → highlight Text 2’s stance on that same claim → annotate the relationship (agree/disagree/extend) → POE. Traps = Opposites & Extreme. Use POOD if time-heavy.
+
+
+Worked example: Text 2 presents handwashing as a possible alternative (not a total replacement) → keep moderate wording, reject Extreme/Recycled answers.
+
+
+
+2) Short Summary
+Chapter 5 teaches three RW skills: pick precise Vocabulary using context and POE; find Purpose/Function/Structure by reading adjacent sentences, highlighting links, and annotating the role; and handle Dual Texts by locating the claim in Text 1 and Text 2’s stance on it, then eliminating Opposite/Extreme traps. Use POOD if an item looks time-heavy.
+
+3) Key Insights (what to internalize)
+Write your own word before looking at vocab choices—this locks your compass and speeds POE.
+
+
+Function lives in context: read the sentence and the one before/after to see the link.
+
+
+Dual Texts = claim + response: highlight both sides, then label the relationship in 3 words.
+
+
+Watch for Extreme and Recycled-language traps across all three types.
+
+
+
+
+
+4) Flashcards (ready to use)
+Q: Two vocab formats to spot?
+ A: “Most logical and precise word/phrase” and “As used in the text, … most nearly means.”
+
+
+Q: Vocab first move?
+ A: Highlight the context clue and write your own word before POE.
+
+
+Q: 3 classic vocab traps?
+ A: Beyond the Text, Extreme Language, Opposite.
+
+
+Q: Function question evidence window?
+ A: The sentence plus the one before/after.
+
+
+Q: Purpose/Structure ask for…
+ A: The best-supported reason/organization—always evidence-based.
+
+
+Q: Dual Texts steps (micro-script)?
+ A: Claim in T1 → response in T2 → annotate relation (agree/disagree/extend) → POE.
+
+
+Q: Dual Texts common traps?
+ A: Opposites and Extreme wording.
+
+
+Q: Vocab study plan?
+ A: Book’s Greatest Hits + your own list + 1 challenging article/story daily.
+
+
+
+
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “Vocab in 4 steps” — highlight clue → write your word → cross off Extreme/Opposite → lock answer.
+
+
+Carousel: “Function = Neighbors Matter” — Slide 1: rule “look before & after”; Slides 2–3: tiny Dumas example with why B/C are traps.
+
+
+Reel (25s): “Dual Texts: 3-word Annotation” — “T2 extends T1” / “T2 disagrees T1”; demo eliminating an Extreme answer.
+
+
+Story Polls: “Which trap gets you more — Extreme or Recycled?” (share examples next story).
+
+
+Carousel: “Vocab Study Stack” — Greatest Hits + My List + Daily Read (with 3 source suggestions).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 6: Reading Question Types 4–8:
+Information and Ideas
+
+
+1)Notes 
+The 5 types (goal): Retrieval, Main Idea, Claims, Charts, Conclusions — all are evidence hunts; apply the Basic Approach with small tweaks per type.
+
+
+Retrieval — “According to the text…”
+Task: pull exactly what the passage says; find the line that answers and match it. Watch for Recycled/Extreme/Beyond-text traps.
+
+
+Mini-playbook: Question → scan for who/what → highlight the phrase that answers → POE.
+
+
+Main Idea — central idea
+Task: what every sentence builds on (often first/last line, but not always). Eliminate detail-only answers (Right-Answer/Wrong-Question).
+
+
+Mini-playbook: track topic across sentences → highlight the best summary line → POE.
+
+
+Claims — illustrate / support / weaken
+Task: underline the named claim; choose what (if true) does the job (support/weaken/illustrate). Traps: Half-Right, Opposite, Extreme/Beyond-text.
+
+
+Mini-playbook: find the claim (often right before the blank) → keep only choices that fully address it.
+
+
+
+
+Charts — use table/graph + passage
+Task: answer must fit both the chart and the claim; biggest trap = true-about-chart but not about the claim (Right-Answer/Wrong-Question).
+
+
+Mini-playbook: read title/axes/units → find claim in passage → keep only answers consistent with chart + claim; ignore distractor metrics.
+
+
+Conclusions — “Which choice most logically completes the text?”
+Task: pick a logical ending/summary consistent with all info. Traps: Recycled-language, detail-only (Right-Answer/Wrong-Question), Beyond-text; prefer cautious wording when evidence is suggestive (“may”).
+
+
+
+
+
+
+2) Short Summary
+Chapter 6 turns you into an “evidence sniper.” For Retrieval and Main Idea, highlight exactly what answers the stem and delete detail-traps. For Claims, pick the option that (if true) does the required job. For Charts, first read the title/units, then keep only answers consistent with both chart and passage claim. For Conclusions, choose the ending that fits all info—avoid recycled-word bait and prefer measured language.
+
+
+
+3) Key Insights (what to internalize)
+Line-lock: For Retrieval/Main Idea, highlight the sentence(s) your answer must match; don’t “feel” it.
+
+
+Claims = job-based: Ask “Does this choice actually do what the stem asks (if true)?” not “Is it in the passage?”
+
+
+Charts = two checks: Many answers fit the chart; only one also fits the claim.
+
+
+Conclusion tone: Prefer cautious wording when evidence is suggestive.
+
+
+Trap radar: Recycled-language ≠ correct idea; Right-Answer/Wrong-Question shows up a lot on Main Idea/Charts/Conclusions.
+
+
+
+
+
+4) Flashcards (ready to use)
+Q: Retrieval golden rule?
+ A: Find and highlight the exact line that answers; then POE.
+
+
+Q: Main Idea trap to avoid?
+ A: Right-Answer/Wrong-Question (a true detail, not the central idea).
+
+
+Q: Where is a Claim often placed in “illustrate the claim” items?
+ A: Just before the colon/blank in the stem.
+
+
+Q: What makes a support/weaken answer valid on Claims?
+ A: If true, it best supports/weakens the claim (needn’t be stated in the passage).
+
+
+Q: First step unique to Charts?
+ A: Read title/legend/variables/units before answers.
+
+
+Q: Biggest Charts trap?
+ A: True about chart, not about the claim (Right-Answer/Wrong-Question).
+
+
+Q: Conclusions stem phrase to spot?
+ A: “Which choice most logically completes the text?”
+
+
+Q: Safer language for Conclusions?
+ A: Measured words like “may” when evidence is suggestive.
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “Retrieval = Line-Lock” — zoom on a line highlight; show striking out recycled-word bait.
+
+
+Carousel: “Main Idea ≠ Detail” — slide 1 rule; slides 2–4 show how detail answers get eliminated.
+
+
+Reel (25s): “Claims = Does it DO the Job?” — quick demo of a support vs an opposite vs half-right.
+
+
+Carousel: “Charts: Two Checks” — slide 1 “chart fit”; slide 2 “claim fit”; slide 3 common traps.
+
+
+Reel (15s): “Conclusions: Pick the Calm Ending” — show “may” beating an absolute claim.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 7 — RW Power-Ups: Vocab Wins + Trap-Busting
+1) Notes 
+Why vocab matters: It shows up a lot and gets tougher if you land in a harder Module 2. Train a “Greatest Hits” list 5–10 min daily (book list + your own misses).
+
+
+Endgame POE (“down to two”): When two choices remain, stop justifying—ask: “Which one is the trap?” Then eliminate by type.
+
+
+The 6 traps to memorize: Opposite, Extreme Language, Recycled Language, Right-Answer/Wrong-Question, Beyond the Text, Half-Right.
+
+
+How they look in practice:
+
+
+Extreme = goes further than text supports (e.g., “will happen”).
+
+
+Beyond the Text = sounds logical but isn’t stated/supported.
+
+
+Half-Right = one correct idea + one wrong/unsupported idea.
+
+
+2) Short Summary
+Build daily vocab with a Greatest Hits list, and in close calls use trap IDs to eliminate the wrong answer instead of “talking yourself into” a choice.
+3) Key Insights
+Tiny daily vocab reps compound into higher RW accuracy.
+
+
+When stuck, hunt the trap, don’t justify the survivor.
+
+
+Extreme/Beyond-text phrasing is a frequent giveaway.
+
+
+4) Flashcards
+Q: Daily vocab routine? A: 5–10 min on book + personal Greatest Hits.
+
+
+Q: POE when two remain? A: Ask “Which is the trap?” then eliminate by trap type.
+
+
+Q: Name the 6 traps. A: Opposite, Extreme, Recycled, Right-Answer/Wrong-Question, Beyond-Text, Half-Right.
+
+
+Q: Why “will” is risky? A: It’s often Extreme for Conclusions items.
+
+
+5) Instagram Ideas
+Reel (20s): “Down to Two? Spot the Trap.” Quick demo circling Extreme and Beyond-Text bait.
+
+
+Carousel: “The 6 SAT Traps — with mini examples.” One slide each, bold labels.
+
+
+Story: Daily Vocab Greatest Hits checklist + streak tracker.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 8 — Poetry Without Panic + Sentence Roles That Reveal Answers
+1) Notes 
+Poetry = still evidence-based: You’re not grading literature; find claims/evidence and apply POE. Watch a few contractions/figurative devices—don’t over-infer.
+
+
+Sentence Function = speed hack: Most non-literature passages are built from four roles: Background → Claim → Objection → Evidence. Labeling roles helps you locate main ideas and links fast.
+
+
+Worked pattern (suburban-pools example): They walk through sentences showing Background, Objection (“However…”), Evidence, Claim, then Evidence. Use signal words like however, posit, found.
+
+
+Why it pays: If you can tag roles, you can jump to the sentence that answers Purpose / Dual Texts / Main Idea / Claims / Conclusions.
+
+
+2) Short Summary
+Treat poems like any other short text: find the claim/evidence and avoid speculation. In informational passages, tag sentence roles (Background/Claim/Objection/Evidence) to zero-in on what a question needs—especially for Purpose, Claims, Charts, and Conclusions.
+3) Key Insights
+Poetry success = type → proof → POE (not literary intuition).
+
+
+Role-tagging sentences is a map to main ideas and links.
+
+
+“However” often marks an Objection; “posited” flags a Claim; dense details are often Evidence.
+
+
+4) Flashcards
+Q: Four common sentence roles? A: Background, Claim, Objection, Evidence.
+
+
+Q: Quick poetry plan? A: Identify question type → find claim/evidence → POE traps.
+
+
+Q: Word that signals an Objection? A: “However.”
+
+
+Q: Why role-tagging helps Purpose/Main Idea? A: It sends you to the exact sentence that carries the idea.
+
+
+5) Instagram Ideas
+Reel (20s): “Poetry = Evidence Hunt.” Show claim highlight + strike an Extreme or Beyond-Text option.
+
+
+Carousel: “Sentence Roles in 4 Slides” — each slide labeled with a one-line cue + a micro example.
+
+
+Story Poll: “Which role was hardest today—Background, Claim, Objection, or Evidence?” with follow-up tips.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 9 — All-Terrain RW Drill: 8 Types, 11 Questions
+
+1) Notes 
+What this chapter is: A single drill that hits all eight RW reading types in 11 mini-passages, with answer keys and explanations. Use your Reading Basic Approach on each item.
+
+
+Type coverage (samples):
+
+
+Vocab: Q1–Q3 (fill-in + “most nearly means”) with worked annotations.
+
+
+Purpose/Structure: Q4 asks for overall structure (good vs bad uses example).
+
+
+Dual Texts: Q5—tag Text 1’s claim and Text 2’s response (e.g., warning about dopamine).
+
+
+Retrieval/Main Idea/Claims/Charts/Conclusions: Remaining items include a table data question (Q10) and a Conclusions stem that literally says “Which choice most logically completes the text?” (Q11).
+
+
+How to work each item (universal sequence): Question → Type → Passage/Table → Highlight/Annotate → POE.
+
+
+What the explanations reinforce:
+
+
+Write your own word for Vocab before choices.
+
+
+For Purpose/Structure, build a quick annotation (“topic + how it’s developed”).
+
+
+Dual Texts: label the relationship (agree/disagree/extend) and delete Extreme/Opposite traps.
+
+
+Charts: pull numbers directly from the table (e.g., 71% for VR sitting) to fill the example.
+
+
+Conclusions: prefer measured wording consistent with all info.
+
+
+2) Short Summary
+This drill bundles all RW reading types into 11 quick items. Run the same Basic Approach every time, then use the explanations to sharpen your trap radar: write-your-own word (Vocab), annotate structure/purpose, tag Dual-Texts relationships, read charts carefully, and choose cautious, fully supported conclusions.
+
+3) Key Insights (what to internalize)
+Same skeleton beats every type: start with the question, not the passage.
+
+
+Vocab locks in with YOUR word first—then POE.
+
+
+Dual Texts = claim + stance (agree/disagree/extend). Label it in 3 words.
+
+
+Tables don’t lie: quote the number from the exact row/column the stem asks for.
+
+
+Conclusions reward caution—avoid absolute predictions.
+
+
+
+
+
+4) Flashcards (ready to use)
+Q: Universal RW sequence? A: Q → Type → Passage/Table → Highlight/Annotate → POE.
+
+
+Q: Vocab first move? A: Treat target as a blank, write your word from context, then POE.
+
+
+Q: Dual Texts note? A: Tag T1 claim + T2 stance; watch Opposite/Extreme traps.
+
+
+Q: Chart habit? A: Read the entry carefully and lift the exact value (e.g., VR sitting 71%).
+
+
+Q: Conclusions stem to spot? A: “Which choice most logically completes the text?”
+
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “One Sequence for All 8 Types” — on-screen steps: Q → Type → Passage → Highlight → POE.
+
+
+Carousel: “Vocab in 3 Moves” — highlight clue → write your word → strike traps.
+
+
+Reel (15s): “Dual Texts in 10s” — T1 claim bubble → T2 stance bubble → eliminate Extreme.
+
+
+Carousel: “Chart to Answer” — zoom on a single table cell (71%) → show the filled statement.
+
+
+Story Poll: “Conclusions: ‘may’ or ‘will’?” — reveal why measured beats absolute.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 10 — Rule Radar: Spot What’s Changing & Fix It
+
+1) Notes 
+How to recognize Rules items: They all use the same stem — “Which choice completes the text so that it conforms to the conventions of Standard English?”
+
+
+Why answers (not the passage) come first: Topics are mixed (punctuation, verbs, pronouns, modifiers, etc.), so you can’t tell the rule from the passage; look at the answer choices to see what’s changing, then apply that topic’s rule and use POE.
+
+
+Rules Basic Approach (3 steps):
+
+
+Look at answers → find the changing thing (topic).
+
+
+Apply the rule for that topic.
+
+
+POE.
+
+
+Quick topic tells from choices (examples):
+
+
+Same words, different punctuation → test punctuation/clauses.
+
+
+Same verb, different tenses → test tense/number; ignore other edits.
+
+
+POOD still applies: Since topics are mixed and difficulty is “rough,” skip around and do your easy ones first.
+
+
+“What’s changing?” drill patterns (use these to train your eye):
+
+
+babies’ / baby’s / babies’ / baby’s… → apostrophes (plural vs possessive).
+
+
+have done / has done / were doing / do → verb tense/number.
+
+
+standing; with / standing. With / standing, with / standing with → punctuation; connecting clauses.
+
+
+their / they’re / it’s / its → pronouns; possessive vs contraction.
+
+
+approaches / had approached / was approaching / approached → verb tense/aspect.
+
+
+Reworded subjects (e.g., “today’s experience…,” “we experience…”) → modifiers/subject focus.
+
+
+
+2) Short Summary
+Rules questions are easy to spot (they all use the Standard English stem). Start from the answer choices to detect the topic, apply that rule, and use POE. Because topics are mixed, use POOD to do your easiest ones first.
+
+
+3) Key Insights (what to internalize)
+Answer-first = faster fixes: The choices reveal the rule; the passage often doesn’t.
+
+
+Ignore non-tested edits: If tense is being tested, don’t “fix” wording that isn’t under test.
+
+
+Practice the patterns: Repeated “what’s changing” formats train instant topic recognition.
+
+
+Skip strategically: Mixed topics → follow POOD; bank your quick wins first.
+
+
+
+
+
+4) Flashcards (ready to use)
+Q: What stem tells me it’s a Rules item?
+ A: “Which choice completes the text so that it conforms to the conventions of Standard English?”
+
+
+Q: What’s the Rules Basic Approach?
+ A: 1) Look at answers → find topic 2) Apply rule 3) POE.
+
+
+Q: Same words but different punctuation — what’s being tested?
+ A: Punctuation/clauses.
+
+
+Q: Same verb, different tenses — what’s being tested?
+ A: Verb tense/number; ignore other edits.
+
+
+Q: babies’ vs baby’s — what rule?
+ A: Apostrophes (plural vs possessive).
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “Answer-First Grammar” — show choices first, circle the changing part, reveal the rule, strike 3 traps.
+
+
+Carousel: “Spot-the-Change Challenge” — slides with: babies’/baby’s; have/has/were doing; their/they’re/it’s/its; each with the tested rule in small text.
+
+
+Reel (15s): “POOD in Action” — timer on screen, student skips a tough item, nails two quick verb/commas questions. 
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 11 — Sentence Sensei: Make It Complete, Keep It Consistent
+
+1) Notes 
+What a sentence needs: a subject + main verb (sometimes an object). Questions end with ?, statements with .
+
+
+Question vs. statement (tested): Decide by meaning, not vibe: statements provide info; questions ask for it. Many items swap punctuation/word order to test this.
+
+
+Core rule: An -ing verb or a “to” verb cannot be the main verb of a sentence. If the sentence lacks a main verb, the blank must supply it.
+
+
+Spotting this in choices: If you see “-ing” and “to ___” forms among options, it’s testing complete sentence / main verb—not tense. (Example: “These pacemakers use electrical impulses…”, not “using/to use.”)
+
+
+Parallel / consistency rule: Verbs that share the same subject or sit in a list must be in the same form/tense (e.g., “seeds can travel and access”).
+
+
+Answer-first approach (fast): Look at choices to see what’s changing (punctuation? verb form?). Apply that rule, then POE. The book’s “Here’s How to Crack It” boxes model this.
+
+
+
+2) Short Summary
+This chapter locks in sentence foundations: pick statement vs question by meaning, ensure the sentence has a main verb (never “-ing” or “to ___” alone), and keep verbs parallel when they share a subject or form a list. Use answer-first scanning to spot the rule being tested and eliminate breakers.
+
+3) Key Insights (memorize these)
+Main-verb check: If no true main verb exists yet, your blank must provide it (not “to ___” / “___ing”).
+
+
+Meaning chooses punctuation: “Wonder/claim/report…” → statement; explicit question → question.
+
+
+Lists match: After auxiliaries like can, keep the base form consistent across the and-joined verbs.
+
+
+Answers reveal the rule: Use “Here’s How to Crack It” logic—scan choices, detect topic, apply rule, POE.
+
+
+
+
+4) Flashcards (ready to use)
+Q: What must every sentence include?
+ A: A subject + main verb (object if required by meaning).
+
+
+Q: How do I decide between ? and .?
+ A: Questions ask; statements provide information—choose by meaning.
+
+
+Q: Why is “to regulate” or “regulating” often wrong in a blank?
+ A: “To/-ing” cannot be the main verb.
+
+
+Q: Parallel verbs rule in lists/shared subjects?
+ A: Keep the same form/tense (e.g., “can travel and access”).
+
+
+Q: Fast method on Rules items?
+ A: Look at answers → spot what’s changing → apply rule → POE.
+
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (15s): “Is it a ? or a .?” — show “Historians wonder …” → pick statement, not question.
+
+
+Carousel: “Main Verb Check” — panel 1: rule “-ing / to ≠ main verb”; panel 2: pacemakers use…; panel 3: wrong forms crossed out.
+
+
+Reel (20s): “Parallel Verbs = Clean Writing” — highlight “can travel and access …” then eliminate mismatched forms.
+
+
+Story Quiz: “Which completes the sentence?” with one correct main-verb choice vs two “to/-ing” traps.
+
+
+Carousel: “Answer-First Grammar” — step-by-step using a “Here’s How to Crack It” example (scan choices → detect topic → apply rule). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 12 — Glue vs. Glitter: Specifying Info vs Extra Info
+1) Notes 
+Specifying vs Extra (core idea):
+
+
+Specifying tells you exactly which person/thing; it stays attached—no commas. Test it by removing the phrase: if meaning/identity breaks, it’s Specifying.
+
+
+Extra adds removable detail; box it off with matching commas/dashes/parentheses (one mark only at the start/end of a sentence).
+
+
+Fast tests that score points:
+
+
+that = Specifying → no commas (and never after a comma).
+
+
+who = people, which = things. Using which for a person is wrong.
+
+
+Prepositional phrase (in/of/for/by/with/on/to): usually no commas after the noun; but if it starts the sentence, use a comma.
+
+
+Transitions (however, moreover, therefore): comma after at the start; commas around in the middle (they’re Extra).
+
+
+Titles/labels before names:
+
+
+No comma after a label before a proper name (e.g., Astronaut Mae Jemison).
+
+
+But “a/an + noun” as a description is Extra → needs commas (or dashes/parentheses).
+
+
+Match the punctuation set: If you already see a comma/dash before a middle chunk that is Extra, your choice must complete the pair.
+
+
+How to crack these (3 steps):
+ Look at choices → decide Specifying vs Extra → POE (eliminate choices that misuse who/which/that or don’t match the punctuation pair).
+
+
+
+2) Short Summary
+Decide whether a describing phrase is Specifying (identifies which → no commas) or Extra (removable detail → matching commas/dashes/parentheses). Use quick tells: that = no commas, who for people / which for things, prepositional phrase at start → comma, labels before names → no comma. If punctuation appears before an Extra chunk, finish the pair.
+
+3) Key Insights (memorize these)
+Remove-it test: If removing the phrase keeps the same subject/thing, it’s Extra → needs a matching pair.
+
+
+“that” never floats after a comma. If a comma precedes it, it’s wrong.
+
+
+Labels act like adjectives: Scientist Bert Vogelstein → no comma between the label and name.
+
+
+Intro prepositional phrase? Follow with a comma; elsewhere, usually none.
+
+
+
+4) Flashcards (ready to use)
+Q: How do I decide Specifying vs Extra fast?
+ A: Try removing the phrase. If meaning/identity stays, it’s Extra → add matching commas/dashes/parentheses.
+
+
+Q: “that” after a comma—okay?
+ A: No. that is always Specifying and doesn’t take commas.
+
+
+Q: People vs things?
+ A: who = people; which = things.
+
+
+Q: Label before a name—comma?
+ A: No comma (e.g., Astronaut Mae Jemison).
+
+
+Q: Prepositional phrase at the start—comma?
+ A: Yes, then continue the sentence.
+
+
+Q: Mid-sentence “however”—punctuation?
+ A: , however, (commas around).
+
+
+Q: See a comma before an Extra chunk—what next?
+ A: Finish the pair with a matching comma/dash/parenthesis.
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Carousel: “Specifying vs Extra in 3 moves” — Slide 1: remove-it test; Slide 2: that = no commas; Slide 3: pair the punctuation.
+
+
+Reel (15s): “Who or Which?” — quick pop-up rule + two mini examples.
+
+
+Reel (20s): “Intro Prep Phrase → Comma” — show At the top of the tree, then finish sentence; contrast with mid-sentence usage.
+
+
+Carousel: “Title Before Name = No Comma” — Scientist Bert Vogelstein vs wrong punctuated versions.
+
+
+Story Poll: “Is this Extra?” Show a sentence with a removable middle chunk and ask viewers to vote; reveal with the remove-it test + matching commas.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 13 — Punctuation Power: Join Full Sentences Like a Pro
+1) Notes 
+Independent clause (IC): a complete sentence (subject + main verb) that can stand alone.
+
+
+3 correct ways to join IC + IC:
+
+
+Semicolon (;) — use anywhere a period could work.
+
+
+Comma + FANBOYS (For/And/Nor/But/Or/Yet/So) — you need both the comma and the conjunction.
+
+
+Colon (:) or single dash (—) — only if clause 2 explains/defines/elaborates clause 1, and clause 1 is a full IC.
+
+
+3 wrong ways (auto-eliminate):
+ • just a comma (, splice) · • FANBOYS without the comma · • no punctuation between two ICs.
+
+
+Classic colon trap: don’t write “are: list.” Make the lead-in a full IC: “I have three priorities: …”
+
+
+Transitions (however/therefore/for example): to connect two ICs, use period/semicolon before the transition and comma after it: “Sales fell; however, margins improved.”
+
+
+Quick solve script (Rules items):
+
+
+Look at answers → what’s changing? (semicolon, comma+FANBOYS, colon/dash, transition placement)
+
+
+Check if you truly have IC + IC and whether clause 2 explains clause 1.
+
+
+POE → kill comma splices, lone FANBOYS, and any colon/dash with a non-IC before it.
+
+
+
+2) Short Summary
+When two full sentences meet, join them with ;, , + FANBOYS, or : / — (only if the second explains the first and the lead-in is a full IC). Avoid comma splices and lone FANBOYS. With however/therefore, put a period/semicolon before and a comma after the transition. Solve by spotting what’s changing, testing for IC + IC, and eliminating rule-breakers.
+
+3) Key Insights (memorize these)
+Semicolon = period-strength joiner. If a period works, “;” does too.
+
+
+FANBOYS needs a comma. “…, but …” ✅ vs “... but …” ❌ when both sides are ICs.
+
+
+Colon/dash need a full lead-in. The first clause must be a complete sentence.
+
+
+Conjunctive adverbs ≠ conjunctions. “however/therefore/for example” cannot replace FANBOYS; use .; however, … not “, however,” to join ICs.
+
+
+POE speed: If you spot a comma splice or “are: list” lead-in, delete instantly.
+
+
+
+4) Flashcards (ready to use)
+Q: Three correct ways to join IC + IC?
+ A: ; · , + FANBOYS · : / — (only if clause 2 explains clause 1).
+
+
+Q: What must come before a colon or single dash used to join?
+ A: A full independent clause.
+
+
+Q: Fix: “We finished the trial, we posted the data.”
+ A: “We finished the trial; we posted the data.” (or) “We finished the trial, and we posted the data.”
+
+
+Q: With however between two ICs, what punctuation?
+ A: Period/semicolon before, comma after → “…, however, …”.
+
+
+Q: Which is a comma splice?
+ A: “The test ended, students left.” (two ICs joined by just a comma)
+
+
+Q: Choose the only okay standalone joiner:
+ A: Semicolon. (FANBOYS needs a comma; transitions need . or ; before)
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (15s): “Comma Splice Detector” — flash three sentences; viewers tap the splice; fix with “;” and “, + but”.
+
+
+Carousel: “Colon vs Semicolon” — Slide 1: rule; Slide 2: wrong “are: list”; Slide 3: fixed “I have three priorities: …”.
+
+
+Reel (20s): “However Done Right” — show bad “, however,” join → replace with “; however,” and explain why.
+
+
+Story Quiz: “IC or not?” — rapid-fire clauses; followers decide if a colon is legal.
+
+
+Carousel: “3 Right / 3 Wrong Joins” — side-by-side green checks vs red Xs for instant patterning.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 14 — Join with Care: Dependent Clauses, Lists & Zero-Punctuation Rules
+1) Notes
+Dependent vs. Independent
+
+
+Independent clause (IC) = full sentence. Dependent clause (DC) = has a subject+verb but starts with a subordinator (because, since, if, though, when, that), so it can’t stand alone.
+
+
+How to join IC + DC (only two legal ways)
+
+
+You may write IC + DC (usually no comma) or DC + IC (comma). These are the only punctuation patterns you’ll use for IC+DC joins. Examples: “Because it was raining, I brought my umbrella.” / “I brought my umbrella because it was raining.”
+
+
+A comma can appear when the DC comes second for contrast/pause, but College Board avoids grey-area trickery.
+
+
+Lists (simple → commas; complicated → semicolons)
+
+
+Simple lists (3+ items): commas between items; keep items in the same grammatical form.
+
+
+Complicated lists (items already have commas): separate big items with semicolons (e.g., “Alex, a parent; Taylor, a teacher; and Ali, a community member.”).
+
+
+“No-punctuation” rules (auto-delete errors)
+
+
+Never put a single mark between a subject and its verb; Extra info is okay only if boxed by a matching pair.
+
+
+No punctuation after a preposition (“of, by, with, to …”).
+
+
+Overall: don’t add punctuation without a reason.
+
+
+Answer-choice recognition cues
+
+
+If you see a subordinator (because/though/when) floating near the blank, it’s IC + DC → allow comma or nothing (not : ; —).
+
+
+If one list item already has a comma inside, expect semicolons between items.
+
+
+If a choice puts punctuation after a preposition or between subject–verb, eliminate fast.
+
+
+
+2) Short Summary
+Identify DCs by their subordinators. Join IC + DC only with comma or nothing (depending on order/meaning); avoid colons/semicolons/dashes here. Use commas for simple lists and semicolons when list items themselves contain commas. Never drop a single mark between subject and verb or after a preposition—punctuate only with purpose.
+
+3) Key Insights (memorize these)
+IC+DC ≠ fancy marks: only comma or nothing joins them.
+
+
+List detector: if an item already has a comma, upgrade separators to semicolons.
+
+
+Zero-punctuation traps: a lone comma between subject–verb or after prepositions is almost always wrong.
+
+
+
+4) Flashcards (ready to use)
+Q: What makes a clause dependent on SAT?
+ A: A subordinator like because/since/if/though/when/that.
+
+
+Q: Legal punctuation to join IC + DC?
+ A: Comma (DC + IC) or nothing (IC + DC).
+
+
+Q: Simple list punctuation?
+ A: Commas between items; maintain parallel form.
+
+
+Q: Complicated list rule?
+ A: Use semicolons between items that already include commas.
+
+
+Q: Fast error check between subject and verb?
+ A: No single mark may separate them.
+
+
+Q: Can punctuation come after a preposition?
+ A: No. Delete those choices.
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (20s): “IC + DC in 2 moves” — show Because… , IC vs IC because…; cross out “IC; because DC”.
+
+
+Carousel: “Comma List vs Semicolon List” — slide 1 simple list; slide 2 “Alex, a parent; Taylor, a teacher; …”.
+
+
+Reel (15s): “Subject–Verb Shield” — animate a shield blocking a lone comma between subject and verb.
+
+
+Story Quiz: “After a preposition, what mark?” (Answer: none) with quick examples.
+
+
+Carousel: “Spot the Subordinator” — highlight because/though/when in 3 sentences and fix punctuation. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 15 — Consistency Clinic: Verbs • Pronouns • Apostrophes • Modifiers
+1) Notes
+A. Verbs — number first, then tense
+Find the true subject (ignore prepositional phrases: One of the photos is).
+
+
+Make the verb match the subject (singular/plural) before worrying about tense.
+
+
+Use time cues to pick tense:
+
+
+Simple past for dated events (In 2015, the court ended).
+
+
+Present perfect (has/have + V3) for past-to-present effects (Researchers have found).
+
+
+Past perfect (had + V3) when one past action preceded another (By the time X began, Y had finished).
+
+
+Parallel verbs share the same form in lists or with the same subject (can measure and record).
+
+
+B. Pronouns — agree and be clear
+it = singular, they = plural. Match the closest clear antecedent.
+
+
+Avoid switching person/number mid-sentence (no random you/one/they unless the passage sets it up).
+
+
+C. Apostrophes — contractions vs possession
+Pronoun + ’ = contraction: it’s (it is / it has), they’re (they are).
+
+
+Possessive pronouns have no apostrophe: its, their, your, whose.
+
+
+Noun possession:
+
+
+Singular → ’s (artist’s studio).
+
+
+Regular plural in -s → s’ (artists’ studios).
+
+
+Irregular plural → ’s (women’s league).
+
+
+Don’t add an apostrophe unless the noun owns something.
+
+
+D. Modifiers — place them right
+Put the modifier next to what it describes.
+
+
+After an opening -ing or descriptive phrase, the next noun must be the doer:
+
+
+✔ Hoping to inspire others, the artist launched workshops.
+
+
+✘ Hoping to inspire others, free workshops were launched.
+
+
+E. Fast solve script for “Rules”
+If answers include to / -ing forms, check if the sentence needs a main verb.
+
+
+Lock subject–verb number.
+
+
+Set tense from nearby time verbs/phrases.
+
+
+Check pronoun agreement (it/they) and clarity.
+
+
+Check apostrophes (contraction vs possession).
+
+
+Fix modifier placement (especially opening phrases).
+
+
+POE: cross out any option that breaks these.
+
+
+
+2) Short Summary
+This chapter is all about consistency. Make verbs agree with the real subject and choose tenses from time cues (including past perfect for “earlier past”). Keep pronouns matched to their antecedents. Use apostrophes only for contractions or possession (and know the plural rules). Place modifiers right next to what they describe, especially after opening -ing phrases. Solve quickly by scanning choices for what’s changing and applying this checklist.
+
+3) Key Insights (memorize these)
+Number beats vibe: lock subject–verb agreement before tense tweaks.
+
+
+Dates = simple past; “by the time” = past perfect.
+
+
+its ≠ it’s: one is possessive, the other a contraction.
+
+
+Modifiers cling to their noun: the doer must come right after an opening phrase.
+
+
+Parallel form = clean writing: keep verbs in the same shape in lists/paired actions.
+
+
+
+4) Flashcards (ready to use)
+Q: What do you fix first on verb items?
+ A: Subject–verb number, then tense.
+
+
+Q: Which tense fits a dated past event (“In 2015…”)?
+ A: Simple past.
+
+
+Q: Which tense shows “earlier past” before another past event?
+ A: Past perfect (had + V3).
+
+
+Q: On SAT RW, it vs they?
+ A: it = singular, they = plural; match the antecedent.
+
+
+Q: Which has an apostrophe: its or it’s?
+ A: it’s (contraction: it is/has). its is possessive.
+
+
+Q: Plural nouns ending in -s show possession how?
+ A: Add s’ (students’ projects).
+
+
+Q: Irregular plural possession (e.g., women)?
+ A: women’s.
+
+
+Q: Modifier rule for opening phrases?
+ A: The next noun must be the doer of that phrase.
+
+
+Q: Parallel verbs after an auxiliary (can, will)?
+ A: Use the base form each time (can analyze and compare).
+
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (15s): “its vs it’s in 3 examples” — quick before/after fixes with captions.
+
+
+Carousel: “When to use had + V3” — three mini timelines (earlier-past vs past).
+
+
+Reel (20s): “Modifier Makeover” — wrong: Hoping to inspire… free workshops… → right: …the artist launched….
+
+
+Story Quiz: “it or they?” — four antecedents; tap your answer; reveal.
+
+
+Carousel: “Verb Trap: One of the…” — highlight true subject and show is vs are.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 16: Smooth Linkers — Choosing the Right Transition
+1) Notes
+Rhetoric questions here are about meaning, not grammar—multiple options may be grammatically fine; you pick the one that best connects ideas.
+
+
+Quick method:
+
+
+Read the sentence before + the sentence with the blank; underline clues.
+
+
+Decide if the ideas agree (same direction) or disagree (contrast).
+
+
+Eliminate choices that go the wrong direction; use POE on what’s left.
+
+
+Same-direction words (e.g., “for instance,” “also,” “therefore”) reinforce or exemplify a prior idea; contrast words (e.g., “however,” “still”) flip it.
+
+
+Beware time-sequence words (“then,” “eventually”)—only use them if the context is about timing/progression. (Apply the agree/contrast test first.)
+
+
+Example pattern: When the second sentence gives a concrete example of the first, pick an example cue (“for instance”), not a value judgment (“fortunately”) or a contrast (“still”).
+
+
+2) Summary
+Transitions questions hinge on logical flow. Look back for context clues, label the relationship (agree vs. contrast), then pick the connector that matches that relationship and the sentence’s purpose (add, example, cause/effect, contrast).
+3) Key insights
+“Direction first, word second”: decide agree/contrast before reading choices.
+
+
+Don’t overthink grammar—several answers can be correct grammatically; you’re choosing logic.
+
+
+Eliminate fast: if a word signals the wrong relationship, it’s out.
+
+
+4) Flashcards (prompt → back)
+Agree or contrast? → Identify the relationship between sentences before picking a transition.
+
+
+Same-direction examples → “for instance,” “also,” “moreover,” “therefore” (when cause/effect fits).
+
+
+Contrast examples → “however,” “still,” “nevertheless,” “on the other hand.”
+
+
+Example signal → Use when the second sentence gives a specific illustration of the first.
+
+
+Cause/effect signal → Use only if one idea clearly explains why the other happens.
+
+
+Time words trap → Use time words only if the passage is about sequence.
+
+
+POE tip → Toss choices that don’t match the labeled relationship.
+
+
+Context rule → Always read the prior sentence for clues.
+
+
+5) Instagram content ideas
+“3-step Transition Test” reel: Context → Direction → Pick.
+
+
+Carousel: “Agree vs. Contrast—spot the clue” with quick examples.
+
+
+Mini-quiz story: 5 blanks, poll stickers for A/B, reveal with explanation.
+
+
+One-pager graphic: “Example vs. Addition vs. Contrast vs. Cause/Effect.”
+
+
+“Common traps” reel: time words and value-judgment words that don’t fit context.
+
+
+
+Chapter 17: Goal-First Synthesis — Turning Notes into the Best Sentence
+1) Notes 
+You’ll see bullet-point notes and a goal (e.g., “introduce X to an audience familiar with Y”). Identify that it’s a Rhetorical Synthesis task.
+
+
+Core method:
+
+
+Highlight the goal(s) in the question stem.
+
+
+Eliminate any option that doesn’t fully achieve those goals.
+
+
+Use notes as supporting details only after goal-fit.
+
+
+Audience cue matters:
+ • If the audience is familiar with a topic/person, don’t re-explain it.
+ • If unfamiliar, include the brief definition/intro.
+
+
+Compare/contrast cues in goals steer wording: “both/similarly” for similarity; “whereas/while” for contrast.
+
+
+Examples from drill solutions:
+ • Introduce artist + material → choose the option that names the artist and the medium.
+ • Emphasize results → pick the sentence that states the outcome clearly.
+ • Familiar audience → avoid re-introducing what they already know.
+
+
+2) Summary
+Rhetorical Synthesis = “goal-first writing.” Start by underlining the goal(s), then choose the option that completely fulfills them. Only afterwards check the bullets for the right facts and level of detail, adjusting for whether the audience is familiar or not and for the intended relationship (introduce, emphasize results, compare, show similarity).
+3) Key insights
+The correct choice must satisfy every part of the goal; partial = wrong.
+
+
+“Audience familiar” = skip definitions; “unfamiliar” = include them.
+
+
+Words like “both/similarly/whereas” telegraph similarity vs. contrast—match them to the goal.
+
+
+4) Flashcards (prompt → back)
+First step in Synthesis? → Highlight the goal(s) in the question stem.
+
+
+What to eliminate? → Any option that doesn’t fully meet the goal(s).
+
+
+Audience familiar → Do not re-introduce/define known terms.
+
+
+Audience unfamiliar → Brief intro/definition is expected.
+
+
+“Emphasize results” goal → Choose the sentence that states the outcome of the work.
+
+
+“Compare lines/dates” goal → Use an option that directly compares both items and avoids extra background.
+
+
+Similarity cue words → “both,” “similarly,” “in common.”
+
+
+Contrast cue words → “while,” “whereas,” “however.”
+
+
+5) Instagram content ideas
+Reel: “Goal-First Synthesis in 30 seconds”—underline, eliminate, confirm.
+
+
+Before/after carousel: weak vs. strong answer for a “familiar audience” goal.
+
+
+Poll: Is this goal “introduce,” “compare,” or “emphasize results”? Reveal + explanation.
+
+
+“Audience traps” infographic: familiar vs. unfamiliar with mini examples.
+
+
+Timed challenge story: 3 synthesis stems; students pick A/B/C/D; reveal with goal highlights.
+
+
+
+
+Chapter 18 — Math Map: What’s Tested & How to Play It
+
+
+1) Notes 
+Format: Math has 2 modules × 22 Q; Module 2 adapts (easier/harder) based on Module 1. Each module mixes MCQs + fill-ins; ~25% are fill-ins.
+
+
+Unscored (experimental) items: ~2 per module, indistinguishable—treat every question as real.
+
+
+Content share (big picture): Problem Solving ~70%; Word Problems ~30%. Content areas across the test: Algebra ~35%, Advanced Math ~35%, PSDA ~15%, Geometry/Trig ~15%.
+
+
+Order feels random: Topics zig-zag (algebra → stats → trig). Use POOD (Personal Order of Difficulty).
+
+
+Strategy—You don’t have to finish: Bank accuracy on your “easy-for-you” items; mark/guess hard time-sinks and return later. No penalty for wrong answers.
+
+
+Built-ins: Calculator, geometry reference sheet, Mark for Review. (No Annotate in Math.)
+
+
+Scratch paper habits: Rewrite key info, show steps, redraw/label figures, rewrite expressions if it helps.
+
+
+Always enter an answer: If time’s nearly up, eliminate/estimate and guess—never leave blanks.
+
+
+
+
+2) Short Summary
+Digital SAT Math = 2 adaptive modules with mixed topics and some fill-ins. Prioritize accuracy over completion: follow your POOD, use built-in tools + neat scratch work, and guess rather than leave blanks. Expect a jumbled order and a couple of unscored items—so play the percentages, not perfection.
+
+
+3) Key Insights (memorize these)
+22 Q per module; Module 2 adapts off Module 1.
+
+
+Problem Solving dominates (~70%); Algebra/Adv. Math carry most of the weight.
+
+
+POOD > pride: Skip early, bank certain points, return later.
+
+
+Use the tools you have: calculator + reference sheet + Mark for Review (no Annotate).
+
+
+Neat scratch = fewer mistakes: write steps, label diagrams, and don’t leave blanks.
+
+
+
+4) Flashcards (ready to use)
+Q: How many questions per Math module? A: 22.
+
+
+Q: What % are fill-ins? A: About 25%.
+
+
+Q: Which share is bigger—Problem Solving or Word Problems? A: Problem Solving (~70%).
+
+
+Q: Name two heavy content areas. A: Algebra (~35%), Advanced Math (~35%).
+
+
+Q: Best response when stuck? A: Mark/guess/move on (POOD).
+
+
+Q: Is Annotate available in Math? A: No (Calculator & reference sheet are).
+
+
+Q: Smart scratch-paper habits? A: Show steps; redraw & label figures.
+
+
+Q: Are there experimental questions? A: Yes—~2 per module, unlabeled.
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (15s): “POOD in Math” — student skips a gnarly algebra item, nails two easier ones, then returns.
+
+
+Carousel: “What’s on Math?” — slides for Algebra, Adv. Math, PSDA, Geo/Trig with ~% shares.
+
+
+Reel (20s): “Fill-in Tips” — quick grid-in demo + estimate-and-check.
+
+
+Story Poll: “Calculator + Ref Sheet: do you use both?” with a follow-up tip slide.
+
+
+Carousel: “Scratch Like a Pro” — before/after of messy vs. labeled geometry work. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter 19 — Strategy Stack: Ballpark • RTFQ • Bite-Sized • Calculator-Smart
+1) Notes 
+Ballparking (size/sign check): Glance at choices and the story’s direction to kill answers that are the wrong magnitude or sign (e.g., result must be < a given value). Prevents classic %/base traps.
+
+
+RTFQ—Read The Final Question: Write the exact thing they ask for on scratch (e.g., 8x−4, not x). Traps often equal an intermediate you computed, not the final target.
+
+
+Bite-Sized Pieces: Break word problems into one tiny step at a time; after each step, peek at choices to eliminate more.
+
+
+Word-Problem Playbook: 1) RTFQ (underline ask + units) 2) Let answers guide your approach 3) Work bite-sized 4) POE (too big/small, wrong sign, contradicts facts).
+
+
+Calculator—useful, not magic: Set up on paper; then compute or graph. Practice with the same calculator/Desmos you’ll use; familiarity reduces input errors.
+
+
+Allowed & checks: Built-in Desmos or approved handhelds (no phones/QWERTY). Quick PEMDAS test (3+4×6=27) and fresh batteries.
+
+
+Scratch habits: Number steps, rewrite key info, and label figures—staying organized prevents unforced errors.
+
+
+Heads-up: Some items aren’t calc-friendly; RTFQ so you don’t force calculator steps that don’t help.
+
+
+2) Short Summary
+Use four pillars: Ballpark to delete bad sizes/signs, RTFQ to target the true ask (not an intermediate), Bite-Sized to solve in tiny steps with POE along the way, and Calculator-Smart to plan on paper, then compute with a tool you’ve practiced on.
+3) Key Insights (memorize these)
+Wrong-size answers die first—don’t over-solve when ballpark kills them.
+
+
+Write the ask (e.g., 2a+b)—you’ll dodge “intermediate-value” traps.
+
+
+Tiny-step solving + periodic POE = fewer mistakes, faster wins.
+
+
+Plan→then calc: calculators speed arithmetic, not understanding; practice with your exact tool.
+
+
+4) Flashcards (ready to use)
+Q: What’s ballparking for? A: Deleting choices with the wrong size/sign fast.
+
+
+Q: First move on word problems? A: RTFQ—write the final ask on scratch.
+
+
+Q: Classic trap after partial work? A: The intermediate you computed, not the final expression.
+
+
+Q: Bite-Sized means… A: One small step → check choices → continue.
+
+
+Q: Word-problem playbook? A: RTFQ → answers guide → bite-sized → POE.
+
+
+Q: Calculator best practice? A: Plan on paper, then compute; train on your actual tool.
+
+
+Q: Allowed devices? A: Built-in Desmos or approved handhelds (no phone calculators).
+
+
+Q: Scratch tip that pays? A: Number steps + label figures to avoid slips.
+
+
+5) Instagram Content Ideas (quick + punchy)
+Reel (15s): “Ballpark → Boom” — eliminate 2 choices by size/sign in a live example.
+
+
+Carousel: “RTFQ Hall of Traps” — show how picking 8x instead of 8x−4 loses points.
+
+
+Reel (20s): “Bite-Sized Solving” — step-1 cut, step-2 cut, answer.
+
+
+Story Poll: “Plan first or calc first?”—reveal why plan→calc wins.
+
+
+Carousel: “What’s Allowed?” — Desmos vs. phone; quick PEMDAS check (3+4×6).
+
+Chapter 20 — Everyday Arithmetic the SAT Actually Uses
+
+1) Notes 
+PEMDAS with L→R: Do Parentheses → Exponents → then Multiplication/Division left-to-right, then Addition/Subtraction left-to-right (“Please Excuse My Dear Aunt Sally; she walks from left to right”).
+
+
+Built-in calculator follows PEMDAS—but it only computes what you type; write steps on scratch to avoid input errors.
+
+
+Distributive Law helps: multiply a sum by distributing; or factor a common term to simplify before computing.
+
+
+Fractions—reduce early, then multiply: simplify before you multiply; start with any common factor if you can’t see the largest one.
+
+
+Calculator tip for fractions/decimals: Practice fraction/decimal modes; a decimal is just a fraction in another form; add/subtract/multiply/divide decimals safely on the calculator (mind the decimal point).
+
+
+Mixed numbers → improper fractions (multiply integer by denominator, add numerator, put over denominator) before working.
+
+
+
+
+2) Short Summary
+Follow PEMDAS (with strict left-to-right for × ÷ and + −), use distributive/factoring to simplify, reduce fractions before multiplying, and rely on the calculator for clean decimal work—after you’ve set it up clearly on scratch. Convert mixed numbers to improper fractions first.
+3) Key Insights You Learned
+Left-to-right within × ÷ and within + − prevents “order” traps.
+
+
+“Simplify before you multiply” saves time and matches SAT answer forms.
+
+
+Practiced calculator input = fewer decimal/fraction mistakes.
+
+
+
+4) Flashcards
+Q: What does PEMDAS mean and what’s special about × ÷, + −?
+ A: Parentheses, Exponents, then × ÷ left→right, then + − left→right.
+
+
+Q: Best move before multiplying fractions?
+ A: Reduce first (any common factor).
+
+
+Q: Quick rule for mixed numbers?
+ A: Convert to an improper fraction before working.
+
+
+
+5) Instagram Content Ideas
+Reel: “PEMDAS with L→R” using 24 ÷ 4 × 6 → show wrong vs right (1 vs 36).
+
+
+Carousel: “Simplify Before You Multiply”—two fraction products reduced vs unreduced.
+
+
+Story tip: “Turn 3⅔ into a single fraction in 5 seconds.”
+
+
+
+
+Chapter 21 — Powers, Roots & Reading Graphs Like a Pro
+1) Notes 
+Exponent rules (same base): multiply → add exponents; divide → subtract; power-of-a-power → multiply exponents (think MADSPM).
+
+
+Negative & fractional exponents: book highlights rules you need (negative → reciprocal; fractional → roots).
+
+
+Squares/roots basics: SAT asks for the positive square root unless stated otherwise.
+
+
+Scatterplots: each dot = one case; move from axis → point → other axis; watch units and use scratch/mouse as a ruler.
+
+
+Line graphs: read like scatterplots; track units carefully (e.g., $2.5 million vs $2.50).
+
+
+Bar graphs / histograms: bar height = value; if no gridlines, draw scratch lines to read heights; unit vigilance matters.
+
+
+Two-way tables: headers define categories; cell = intersection; totals may be given or must be summed.
+
+
+2) Short Summary
+Use MADSPM to operate on exponents (add, subtract, multiply exponents appropriately), treat negative exponents as reciprocals and fractional as roots, and take the positive square root by default. For graphs/tables, read axes/units precisely and use scratch cues to line up values; for two-way tables, read intersections and totals carefully.
+3) Key Insights You Learned
+MADSPM collapses most exponent work into three moves (add/subtract/multiply exponents).
+
+
+Units can change an answer by factors of 10⁶ (e.g., $2.5 vs $2.5 million).
+
+
+On data displays, scratch lines and axis-to-point-to-axis reading stop misreads.
+
+
+4) Flashcards
+Q: xa⋅xb= ?x^a\cdot x^b=\ ?xa⋅xb= ?
+ A: xa+bx^{a+b}xa+b.
+
+
+Q: xaxb= ?\dfrac{x^a}{x^b}=\ ?xbxa​= ?
+ A: xa−bx^{a-b}xa−b.
+
+
+Q: (xa)b= ?(x^a)^b=\ ?(xa)b= ?
+ A: xabx^{ab}xab.
+
+
+Q: What does a negative exponent mean?
+ A: Take the reciprocal (rule highlighted in book).
+
+
+Q: Which square root does SAT want by default?
+ A: The positive root.
+
+
+Q: Fast way to read a bar with no gridlines?
+ A: Draw scratch lines to the axis to gauge height.
+
+
+5) Instagram Content Ideas
+Reel: “MADSPM in 20 seconds”—multiply/divide/power-of-power with quick examples.
+
+
+Carousel: “$2.5 vs $2.5M—unit traps on line graphs.”
+
+
+Story quiz: “Which cell is this?”—a two-way table prompt; reveal answer + tip to read intersections.
+
+
+Reel: “Axis → Point → Axis”—pointer + scratch paper demo on a scatterplot.
+
+
+Carousel: “Bar vs Histogram—same reading, different x-axis labels.”
+
+
+
+
+
+
+Chapter 22 — Algebra Moves: Translate, Compare, Decide
+
+1) Notes
+Turn words into equations. “Product is 76” → xy=76xy=76xy=76; “xxx is twice the square of yyy” → x=2y2x=2y^2x=2y2. Systems like these are common setups.
+
+
+Inequalities 101. When you multiply/divide by a negative, flip the sign; by a positive, don’t. Example solution explicitly keeps the sign because the divisor is +9.
+
+
+Absolute value = case work / counts. Questions often ask “how many solutions?” (e.g., ∣x∣=∣2x−1∣|x|=|2x-1|∣x∣=∣2x−1∣); be ready to split into cases or use symmetry.
+
+
+Square roots & extraneous roots. After squaring both sides, you must check candidates in the original radical equation. Also remember a principal (symbol) square root is non-negative.
+
+
+Percent/comparison setups. If aaa is “40% less than b+cb+cb+c,” write a=0.6(b+c)a=0.6(b+c)a=0.6(b+c), then use a+b+c=400a+b+c=400a+b+c=400 to solve quickly.
+
+
+Simple exponential models. If weight after www weeks is y=t⋅3 wy=t\cdot 3^{\,w}y=t⋅3w and y=9.72y=9.72y=9.72 at w=5w=5w=5, plug and solve for ttt. These “find the parameter” items are staples.
+
+
+
+
+2) Summary
+This half focuses on translating words to algebra, handling inequalities safely, counting solutions in absolute-value equations, checking for extraneous roots after squaring, and using quick setups for percent/ratio problems and simple exponentials.
+3) Key insights (what you learned)
+Flip inequality signs only with negative multipliers/divisors.
+
+
+Always check solutions after squaring; radicals imply non-negative outputs.
+
+
+Word problems usually hide a clean system (like xy=76,  x=2y2xy=76,\;x=2y^2xy=76,x=2y2). Spot the structure first.
+
+
+4) Flashcards
+Q: When do you flip an inequality sign? A: Only when multiplying/dividing by a negative.
+
+
+Q: After squaring both sides of a radical equation, what must you do? A: Check for extraneous solutions in the original equation.
+
+
+Q: Translate: “xxx is twice the square of yyy.” A: x=2y2x=2y^2x=2y2.
+
+
+Q: What’s special about ⋅\sqrt{\cdot}⋅​ on the SAT? A: The principal square root is non-negative.
+
+
+5) Instagram content ideas
+“Don’t Flip It!” 15-sec reel showing when the inequality sign doesn’t flip (positive divisor).
+
+
+“Square-Check-Reject” carousel: how squaring creates fake solutions (with a mini example).
+
+
+“From Words to Math” post: turn “product 76 & twice the square” into equations.
+
+
+“ABS Case Hack” reel: fast way to count solutions for ∣x∣=∣2x−1∣|x|=|2x-1|∣x∣=∣2x−1∣.
+
+
+
+
+Mini-Chapter 23 — Quadratics & Growth: Formulas That Save Time
+
+1) Notes (detailed but concise)
+Set to zero → factor when possible. Use zero-product property after moving all terms to one side.
+
+
+Quadratic Formula refresher. Know it for ax2+bx+c=0ax^2+bx+c=0ax2+bx+c=0; plug a,b,ca,b,ca,b,c to get roots.
+
+
+Root shortcuts (Vieta). For ax2+bx+c=0ax^2+bx+c=0ax2+bx+c=0:
+ sum of roots=−ba\text{sum of roots}=-\frac{b}{a}sum of roots=−ab​, product of roots=ca\text{product of roots}=\frac{c}{a}product of roots=ac​. Massive time-saver when prompts ask for sum/product.
+
+
+Discriminant = roots count. D=b2−4acD=b^2-4acD=b2−4ac: D>0D>0D>0 → 2 real; D=0D=0D=0 → 1 real; D<0D<0D<0 → none. You’ll often set D=0D=0D=0 to force “exactly one solution.”
+
+
+Quadratic favorites with two variables. Memorize:
+ (x+y)(x−y)=x2−y2(x+y)(x-y)=x^2-y^2(x+y)(x−y)=x2−y2, (x+y)2=x2+2xy+y2(x+y)^2=x^2+2xy+y^2(x+y)2=x2+2xy+y2, (x−y)2=x2−2xy+y2(x-y)^2=x^2-2xy+y^2(x−y)2=x2−2xy+y2. They appear a lot; squaring both sides can expose the target expression.
+
+
+Growth/decay formula.
+ Percent rate: final=original(1±r)#changes\text{final}=\text{original}(1\pm r)^{\#\text{changes}}final=original(1±r)#changes.
+ Multiplier form: final=original⋅(multiplier)#changes\text{final}=\text{original}\cdot (\text{multiplier})^{\#\text{changes}}final=original⋅(multiplier)#changes.
+ Example: 4% annual interest → 100(1.04)years=160100(1.04)^{\text{years}}=160100(1.04)years=160 to grow 60%.
+
+
+
+2) Summary
+This half nails fast quadratic tactics—factor when nice, formula when not, use Vieta for sum/product questions, and use the discriminant to control/diagnose the number of real roots. It also adds the go-to growth/decay equations for percent or multiplier scenarios.
+3) Key insights (what you learned)
+If a problem asks for product of roots, try c/ac/ac/a before doing any heavy algebra.
+
+
+“Exactly one real solution” means set D=0D=0D=0 and solve for the parameter.
+
+
+For compounding, always pick the right form: 1±r1\pm r1±r for percent change; multiplier form for “triples each week,” etc.
+
+
+4) Flashcards
+Q: What’s the discriminant and what does it tell you?
+ A: D=b2−4acD=b^2-4acD=b2−4ac; sign of DDD gives number of real roots (2/1/0).
+
+
+Q: For ax2+bx+c=0ax^2+bx+c=0ax2+bx+c=0, product of roots? A: c/ac/ac/a. Sum? −b/a-b/a−b/a.
+
+
+Q: When should you set a quadratic to 0? A: Before factoring—so zero-product works.
+
+
+Q: Growth at 4% per year from 100 to 160 equation? A: 100(1.04)y=160100(1.04)^{y}=160100(1.04)y=160.
+
+
+5) Instagram content ideas
+“Vieta in 20 seconds” reel: show c/ac/ac/a and −b/a-b/a−b/a tricks on a real SAT-style item.
+
+
+“Discriminant Decoder” carousel: D>0,=0,<0D>0,=0,<0D>0,=0,<0 with tiny example pics.
+
+
+“Bank Balance Math” reel: 100(1.04)y=160100(1.04)^y=160100(1.04)y=160 solved quickly.
+
+
+“Quadratic Trio to Memorize” one-slide graphic of the three two-variable identities.
+
+
+Chapter 24 — Beat Algebra with Backward Solving (PITA)
+
+1) Notes 
+When to use PITA: If they ask for a specific value and the choices are numbers, plug the choices into the problem and see what works. Start with a middle choice to cut the search; then go up/down based on “too big / too small.”
+
+
+How to do it fast: Rewrite choices on scratch and label them with the variable (e.g., “x = …”). That alone reduces mistakes.
+
+
+Real examples to mirror:
+
+
+Cupcakes 85%—try a middle choice, reject if it leads to a non-whole sold count; pick the first that yields whole cupcakes.
+
+
+Premium gas—label choice as “gallons premium,” compute both revenues, and match the total.
+
+
+“Too big/too small” chain—testing (C) “too big” lets you drop (D) instantly.
+
+
+SAT convention to remember: On Digital SAT, a radical symbol means the positive square root (helps when PITA’ing radical equations).
+
+
+
+2) Short Summary
+Use PITA whenever answers are numeric and a single value is sought: start in the middle, label, push higher/lower by “too big/too small,” and stop when one fits. Match totals/units exactly and remember √ = positive by default.
+
+3) Key Insights You Learned
+Middle first = fewer trials (ordered choices let you eliminate half at a time).
+
+
+Label the variable on scratch—prevents plugging into the wrong place.
+
+
+Context filter: reject outputs that clash with the scenario (e.g., fractional cupcakes).
+
+
+4) Flashcards
+Q: When do you prefer PITA?
+ A: Specific value + numeric choices. Start in the middle.
+
+
+Q: What’s the first scratch step?
+ A: Rewrite & label choices as the variable.
+
+
+Q: Digital SAT square root default?
+ A: Positive root only.
+
+
+5) Instagram Ideas
+Reel: “Middle-First PITA in 20s” — try (C), go up/down by size, land answer.
+
+
+Carousel: “Cupcake Check = Whole Numbers Only.”
+
+
+Reel: “Gas Station Backsolve—match total revenue.”
+
+
+
+
+
+Chapter 25 — Turn Variables into Numbers: Plug-In & Meaning-in-Context
+1) Notes 
+Plugging In (your own numbers): For variable-heavy choices, pick friendly numbers (2, 5, 10, 100), compute a target, then test each choice. Avoid 0/1 unless natural; also avoid numbers already appearing in the prompt/choices.
+
+
+Percent & units hacks: For percent questions, plug 100; for time in minutes, 30 or 120 are easy.
+
+
+Meaning-in-Context (5-step):
+
+
+Read what exact part you must interpret.
+
+
+Label the equation with real-world words.
+
+
+Eliminate answers that don’t match labels.
+
+
+Plug numbers to see how changing inputs changes outputs.
+
+
+POE again to the winner.
+ Example: From 25C − 20W = 400, “how much more is a right vs wrong?” → 25 − (−20) = 45.
+
+
+Worked plug-in demo: Sale + tax lamp problem—set original = 100, walk through discount + tax, set t = total, then pick the choice that returns 100 when you plug in t.
+
+
+
+2) Short Summary
+Turn abstract algebra into arithmetic: choose good numbers, get a target, and see which choice reproduces it. For meaning-in-context, label first, then use small plug-ins to confirm what a coefficient/point actually represents.
+
+3) Key Insights You Learned
+Good numbers (2, 10, 100) make messy expressions trivial; avoid 0/1 unless the structure demands them.
+
+
+Label → then plug is the fastest path on meaning questions.
+
+
+Percent shortcut: Plug 100 to skip conversions.
+
+
+4) Flashcards
+Q: First move on meaning-in-context?
+ A: Label the equation with real-world words.
+
+
+Q: Which numbers should you plug?
+ A: Simple ones (2, 5, 10, 100); avoid 0/1 and numbers appearing in prompt/answers.
+
+
+Q: In 25C−20W=40025C-20W=40025C−20W=400, how much more for a right than a wrong?
+ A: 45 points.
+
+
+Q: Why pick 100 in percent problems?
+ A: It makes percent arithmetic and final comparisons trivial.
+
+
+5) Instagram Ideas
+Reel: “Plug-In Playbook (3 steps)” on the lamp discount+tax problem.
+
+
+Carousel: “Meaning-in-Context, 5 moves” with a pizza-price example (label → plug).
+
+
+Story Quiz: “Which is a good number to plug here—2, 100, or 1?” (Reveal: avoid 1). 
+
+
+
+
+
+Chapter 26 Graph Sense—From Function Machines to Circle Mastery
+
+1) Notes 
+Function = input→output machine. Read f(x)f(x)f(x) as “y when x goes in.” So f(5)f(5)f(5) means plug in x=5x=5x=5.
+
+
+Two tactics for function items.
+
+
+PIV (Plug In the Value): If they give f(5)f(5)f(5), substitute directly.
+
+
+PITA (Plug In The Answers): If they give the output and ask for the input, try choices as x until f(x)f(x)f(x) matches.
+
+
+Coordinate plane & points. Ordered pairs (x,y)(x,y)(x,y); to check if a point lies on a line, plug x,yx,yx,y into its equation.
+
+
+Slope basics. Slope = “rise over run,” read left→right; use Δy/Δx\Delta y/\Delta xΔy/Δx.
+
+
+Slope-intercept form. y=mx+by=mx+by=mx+b: mmm is slope, bbb is y-intercept. Useful for quick POE from a graph (sign of slope, intercept).
+
+
+Standard form. Ax+By=CAx+By=CAx+By=C can be read directly (slope/intercepts) without rearranging—handy for parallel/perpendicular checks.
+
+
+Parallel & perpendicular. Parallel → same slope; perpendicular → negative reciprocal.
+
+
+Circles—standard form. (x−h)2+(y−k)2=r2(x-h)^2+(y-k)^2=r^2(x−h)2+(y−k)2=r2: center (h,k)(h,k)(h,k), radius rrr. If not in standard form, complete the square (or read diameter off a graph with calc).
+
+
+2) Summary
+Treat functions as machines (PIV when input is given; PITA when output is given). Read lines fast from either slope-intercept (m,bm,bm,b) or standard form (Ax+By=CAx+By=CAx+By=C) and use slope logic for parallel/perpendicular decisions. For circles, rewrite to (x−h)2+(y−k)2=r2(x-h)^2+(y-k)^2=r^2(x−h)2+(y−k)2=r2 via completing the square—or use the calculator to grab the diameter from extreme points and halve it.
+3) Key insights you gained
+“f(x)f(x)f(x)” isn’t a variable; it’s the name of the function—so f(5)f(5)f(5) just means plug in x=5x=5x=5.
+
+
+PITA flips many function questions into quick checks when they give an output target.
+
+
+In standard form, you can decide parallel/perpendicular without rewriting to y=mx+by=mx+by=mx+b.
+
+
+For circle radius, either complete the square to get r2r^2r2 or read the diameter from top/bottom points on the graph and halve it.
+
+
+4) Flashcards
+Q: What does f(5)f(5)f(5) mean? A: Evaluate at x=5x=5x=5 (function = input→output).
+
+
+Q: When do I use PITA on function items? A: When an output is given and you need the input. Try choices as x.
+
+
+Q: In y=mx+by=mx+by=mx+b, what are mmm and bbb? A: Slope and y-intercept.
+
+
+Q: Parallel vs perpendicular slope rule? A: Same slope vs negative reciprocal.
+
+
+Q: Circle in standard form? A: (x−h)2+(y−k)2=r2(x-h)^2+(y-k)^2=r^2(x−h)2+(y−k)2=r2; radius =r2=\sqrt{r^2}=r2​.
+
+
+5) Instagram content ideas
+Carousel: “Graph → Equation in 3 cues” (slope sign, y-intercept, quick POE).
+
+
+Reel: “Parallel in Standard Form—no rearranging!” (scan Ax+By=CAx+By=CAx+By=C to match slopes).
+
+
+Reel: “PIV vs PITA on Functions” with one example each (input given vs output target).
+
+
+Story Tip: “Radius from a messy circle” — tap extreme points to get diameter → radius.
+
+
+Chapter 27 — Everyday Numbers Toolkit: Ratios, Conversions & Percents
+
+1) Notes 
+Proportions = equal ratios. Write the two ratios with matching units, then cross-multiply to solve. Many items mix a scale and a real-world measure—convert to the same units first (e.g., feet → inches) and then proportion.
+
+
+Rate conversions (e.g., mph → ft/s). Convert one unit at a time and keep units aligned (miles→feet, hours→seconds). Watch for problems that require such conversions.
+
+
+Percent ⇄ decimal ⇄ fraction. “Percent” = “per 100.”
+ • % → fraction: put over 100 and reduce.
+ • fraction → %: divide top by bottom, then ×100.
+ • % ↔ decimal: move the point two places (left for %→decimal, right for decimal→%).
+
+
+Successive % changes apply to the new amount each time; use the %-change formula when needed.
+
+
+2) Short Summary
+Set up equal-ratio proportions with matched units, cross-multiply, and convert rates carefully (mph→ft/s). Treat percents as “out of 100,” switching forms fast, and remember that repeated % changes compound on the latest value.
+
+3) Key Insights You Learned
+Matching units in both numerator/denominator is non-negotiable for proportions.
+
+
+Rate questions often hide a required unit conversion—plan it before computing.
+
+
+Converting between %/decimal/fraction is just place-value and reduction.
+
+
+4) Flashcards
+Q: First step on scale problems?
+ A: Put everything in the same unit and set a proportion.
+
+
+Q: mph → ft/s conversion idea?
+ A: Convert miles→feet and hours→seconds, then reduce.
+
+
+Q: % ↔ decimal?
+ A: Move the decimal two places (left to go %→decimal; right to go decimal→%).
+
+
+5) Instagram Ideas
+Carousel: “Proportion Playbook” — 3 slides: set up ratios → convert units → cross-multiply.
+
+
+Reel (15s): “65 mph in ft/s” — quick unit-ladder demo.
+
+
+Story Tip: “%→decimal in 1s” — swipe left twice.
+
+
+
+
+
+
+
+
+Chapter  28 — Data Sense: Averages, Spread & Survey Math
+
+1) Crisp Notes (detailed but concise)
+Average formula you’ll actually use: T=A⋅NT = A \cdot NT=A⋅N. Most mean problems are about finding the total first (then divide). Works perfectly when a new score is added.
+
+
+Mixed-unit data: Standardize before averaging (e.g., convert hours:minutes to minutes).
+
+
+Frequency tables: Values on the left, counts (frequencies) on the right; compute mean via ∑(value×freq)/∑freq\sum(\text{value} \times \text{freq}) / \sum \text{freq}∑(value×freq)/∑freq.
+
+
+Standard deviation (spread): Tight cluster → small SD; wider spread → large SD. Adding/subtracting the same constant to every data point does not change SD.
+
+
+Margin of error (MOE): A poll “p% ± m%” means the true percent likely lies in [p−m, p+m].
+
+
+2) Short Summary
+Use T=A⋅NT=A\cdot NT=A⋅N to shuttle between totals and means; fix units before averaging; read frequency tables with value×frequency; think of SD as spread (unchanged by uniform shifts); and read polls as a range via the margin of error.
+3) Key Insights You Learned
+The fastest path on means is find totals using T=A⋅NT=A\cdot NT=A⋅N.
+
+
+SD measures spread, not position; shifting all points leaves SD the same.
+
+
+MOE translates a single poll number into a confidence interval on the test.
+
+
+4) Flashcards
+Q: Mean shortcut?
+ A: T=A⋅NT=A\cdot NT=A⋅N (Total = Average × Number).
+
+
+Q: Why convert 1:05 and 0:59 to minutes first?
+ A: To standardize units before averaging.
+
+
+Q: What happens to SD if you subtract 35 from all values?
+ A: SD doesn’t change (spread is unchanged).
+
+
+Q: Poll says 48% ±3%. What range?
+ A: 45%–51%.
+
+
+5) Instagram Ideas
+Reel: “T = A·N in 20s” — add a new test score, recompute mean.
+
+
+Carousel: “SD = spread” — same data shifted down; SD unchanged.
+
+
+Story Quiz: “Which is the mean from a frequency table?” with ∑(value⋅freq)/∑freq\sum(\text{value}\cdot\text{freq})/\sum \text{freq}∑(value⋅freq)/∑freq reveal.
+
+
+
+
+
+
+
+
+
+
+Chapter 29 — Triangle & Line Toolkit: From Angle Rules to SOHCAHTOA
+1) Notes 
+Always do this first: sketch, label givens, write the needed formula, then ballpark.
+
+
+Line & angle facts: Line = 180°; full turn = 360°; vertical angles are equal; angles around a point sum to 360°.
+
+
+Parallel + transversal: all “big” angles are equal to each other, all “small” angles equal; any big + small = 180°. Slopes: parallel → same slope; perpendicular → negative reciprocals.
+
+
+Triangle must-knows: angles sum to 180°; isosceles → base angles equal; equilateral → all 60°. Area = ½bh (height can be outside).
+
+
+Right triangles: Pythagorean a2+b2=c2a^2+b^2=c^2a2+b2=c2; memorize 3-4-5 and 5-12-13 families.
+
+
+Special right triangles:
+
+
+45-45-90: x,x,x2x, x, x\sqrt2x,x,x2​
+
+
+30-60-90: x,x3,2xx, x\sqrt3, 2xx,x3​,2x.
+
+
+Trig basics (SOHCAHTOA): sin⁡=opphyp\sin=\frac{\text{opp}}{\text{hyp}}sin=hypopp​, cos⁡=adjhyp\cos=\frac{\text{adj}}{\text{hyp}}cos=hypadj​, tan⁡=oppadj\tan=\frac{\text{opp}}{\text{adj}}tan=adjopp​. Often paired with special triangles/Triples.
+
+
+Similarity vs congruence: similar = same angles, proportional sides (AAA/SAS-prop/SSS-prop); congruent = same shape & size (SSS/SAS/ASA/AAS).
+
+
+2) Short Summary
+Use a quick geometry routine (sketch-label-formula-ballpark). Lean on vertical/parallel angle rules, triangle angle sum, Pythagorean triples, special right triangles, and SOHCAHTOA. Know when triangles are similar vs congruent to unlock proportions or exact matches.
+3) Key Insights You Learned
+“Big/small” angle pattern with a transversal speeds eliminations.
+
+
+One 45-45-90 or 30-60-90 ratio can solve an entire triangle in seconds.
+
+
+Similar ≠ congruent: similarity gives ratios; congruence gives equal measures.
+
+
+4) Flashcards
+Q: Vertical angles are… A: Equal.
+
+
+Q: Parallel lines cut by a transversal—what sums to 180°? A: Any big + small angle pair.
+
+
+Q: 45-45-90 side ratio? A: x:x:x2x:x:x\sqrt2x:x:x2​. 30-60-90? x:x3:2xx:x\sqrt3:2xx:x3​:2x.
+
+
+Q: Pythagorean triples to memorize? A: 3-4-5, 5-12-13 (and multiples).
+
+
+Q: Similar vs congruent? A: Similar = same angles/proportional sides; Congruent = identical shape & size.
+
+
+5) Instagram Ideas
+Carousel: “Transversal Big/Small Cheat” with quick color coding.
+
+
+Reel (15s): “Solve a 30-60-90 in two steps.”
+
+
+Story Quiz: “Similar or Congruent?”—3 mini diagrams → poll + reveal.
+
+
+
+
+
+Chapter 30 — Circle & Shape Sense: Arcs, Sectors, Radians & Volume
+
+1) Notes 
+Circle formulas: circumference 2πr=πd2\pi r=\pi d2πr=πd; area πr2\pi r^2πr2. A tangent is ⟂ to radius at tangency. Often leave answers in terms of π\piπ.
+
+
+Radians ↔ degrees: 180∘=π180^\circ=\pi180∘=π rad; convert by proportion.
+
+
+Arc length & sector area: arccirc=θ360∘\dfrac{\text{arc}}{\text{circ}}=\dfrac{\theta}{360^\circ}circarc​=360∘θ​, sectorarea=θ360∘\dfrac{\text{sector}}{\text{area}}=\dfrac{\theta}{360^\circ}areasector​=360∘θ​. If θ\thetaθ in radians, arc s=rθs=r\thetas=rθ.
+
+
+Rectangles & squares: rectangle P=2l+2wP=2l+2wP=2l+2w, A=lwA=lwA=lw; square side s⇒P=4s, A=s2s\Rightarrow P=4s,\ A=s^2s⇒P=4s, A=s2; diagonal of square =s2= s\sqrt2=s2​ (45-45-90).
+
+
+Volume & surface area (reference sheet): sphere V=43πr3, SA=4πr2V=\tfrac{4}{3}\pi r^3,\ SA=4\pi r^2V=34​πr3, SA=4πr2; be ready to compute one from the other.
+
+
+Ballparking tips: if choices are in π\piπ, compare coefficients; approximate π≈3\pi\approx3π≈3 only if you must estimate. Plug simple numbers in ratio/percent geometry.
+
+
+
+2) Short Summary
+Circle problems reduce to circumference/area + proportion for arcs/sectors; convert radians↔degrees cleanly and use s=rθs=r\thetas=rθ in radian setups. For rectangles/squares, remember the square diagonal s2s\sqrt2s2​. For 3D, grab formulas from the reference sheet; sometimes you’ll compute surface area from volume (or vice versa). Ballpark with π\piπ only when helpful.
+3) Key Insights You Learned
+Using proportions handles both arc length and sector area immediately.
+
+
+Radians make arc length a one-liner: s=rθs=r\thetas=rθ.
+
+
+Many geometry choices are in terms of π\piπ; compare coefficients first to save time.
+
+
+4) Flashcards
+Q: Circle circumference & area? A: 2πr2\pi r2πr and πr2\pi r^2πr2.
+
+
+Q: Degrees↔radians anchor? A: 180∘=π180^\circ=\pi180∘=π rad.
+
+
+Q: Arc length with radians? A: s=rθs=r\thetas=rθ.
+
+
+Q: Sector area proportion? A: sectorπr2=θ360∘\dfrac{\text{sector}}{\pi r^2}=\dfrac{\theta}{360^\circ}πr2sector​=360∘θ​.
+
+
+Q: Square diagonal from side sss? A: s2s\sqrt2s2​.
+
+
+Q: Sphere VVV and SASASA? A: 43πr3\tfrac{4}{3}\pi r^334​πr3 and 4πr24\pi r^24πr2.
+
+
+5) Instagram Ideas
+Reel (20s): “Arc & Sector in One Proportion” — quick visual pie-slice demo.
+
+
+Carousel: “Radians in 3 Pics” — 180∘=π180^\circ=\pi180∘=π, then s=rθs=r\thetas=rθ examples.
+
+
+Reel: “Square Diagonal Hack” — show 45-45-90 overlay.
+
+
+Story Poll: “Which formula finds SA from given volume?”—spheres and cylinders pulled from the ref sheet.
+
+
+
+Chapter 31 — “Type-It-Right: Cracking DSAT Math Fill-Ins”
+1) Notes 
+What “fill-ins” are: Math questions with no choices; you type the answer yourself. They’re mixed with MCQs and follow the same loose easy→hard flow. Use your Personal Order of Difficulty (POOD): hit your strengths first.
+
+
+No penalty + always answer: There’s no guessing penalty; always enter something. Only enter one answer even if many are possible.
+
+
+Input rules (know these cold):
+
+
+Up to 5 characters if positive; 6 if negative (includes the minus sign).
+
+
+Allowed characters: digits 0–9, -, /, . (no %, π, etc.).
+
+
+Fractions or decimals are both fine—use the safer form. Reduce a fraction or convert to decimal if it won’t fit. Don’t use mixed numbers.
+
+
+For long/repeating decimals, fill all spaces or round the last digit.
+
+
+Omit symbols the box won’t take (e.g., type 44944, not 44,944; omit °).
+
+
+Core strategies still work: Geometry Basic Approach, Plugging In, and average formula T = A·N.
+
+
+Quick example reminders:
+
+
+Vertex/axis of symmetry: For a factored quadratic, the vertex’s x is the midpoint of the intercepts. (Here, x = (3 + (–11))/2 = –4.)
+
+
+Parallel lines: Same slope; convert to y = mx + b to read off slope (e.g., m = 3/2 = 1.5).
+
+
+Weighted average: Use T = A·N per group, sum Totals and Numbers, then divide (Town A/B mean).
+
+
+POOD in action: Even giant numbers (e.g., 44944) are OK if they fit; don’t get spooked.
+
+
+2) Chapter summary (short)
+Fill-ins are standard DSAT Math problems where you must type the answer. Success = know the input rules (character limits, allowed symbols, fraction/decimal rules), lean on familiar math tactics (Plugging In, Geometry basics, T = A·N), and use POOD to manage time. There’s no guessing penalty, so always submit an answer and double-check formatting.
+3) Key insights you should take away
+Master the input box rules—they’re low-effort points.
+
+
+Choose fraction or decimal by what’s less error-prone; avoid mixed numbers.
+
+
+Always answer something (no penalty) and only one value.
+
+
+Formatting traps are real: no commas, no symbols like °, %, π.
+
+
+Your usual math tools still shine: Plugging In, Geometry Basic Approach, T = A·N.
+
+
+4) Flashcards (ready to make)
+Q: What are DSAT Math “fill-ins”?
+ A: Student-produced responses where you type one answer (no choices).
+
+
+Q: Is there a guessing penalty on fill-ins?
+ A: No—always enter an answer.
+
+
+Q: How many characters can you enter?
+ A: 5 if positive; 6 if negative (minus sign counts).
+
+
+Q: Which characters are allowed?
+ A: 0–9, -, /, . (no %, π, etc.).
+
+
+Q: Fraction vs. decimal?
+ A: Either is fine—pick the safer one; reduce or convert if it won’t fit.
+
+
+Q: Can you enter mixed numbers?
+ A: No—convert to fraction or decimal.
+
+
+Q: What to do with long/repeating decimals?
+ A: Fill all spaces or round the last digit.
+
+
+Q: Two go-to strategies for fill-ins?
+ A: Plugging In & Geometry Basic Approach.
+
+
+Q: Average shortcut to remember?
+ A: T = A·N, sum Totals & Numbers, then divide.
+
+
+Q: Formatting gotcha with big numbers/angles?
+ A: No commas or degree symbols (e.g., 44944; leave out °).
+
+
+5) Instagram content ideas (snackable)
+“5 Fill-In Rules in 15 seconds” reel (char limits, allowed symbols, no mixed numbers).
+
+
+Carousel: “Fraction or Decimal? When to pick which on DSAT.”
+
+
+Meme: “No degree sign? No problem.” (Angle answer without °).
+
+
+Mini-tutorial reel: “T = A·N for weighted averages (Town A + Town B).”
+
+
+Before/after carousel: messy long decimal → properly filled/rounded entry.
+
+
+Reel: “POOD: How to skip smart and score faster on fill-ins.”
+
+
+One-screen tip: “Parallel lines = same slope. Convert to y=mx+b, read m.”
+
+
+Quick demo: Factor → find vertex x via midpoint of intercepts.
+
+
+
+
+
+
+Chapter 32 Game Day & The Final Week: A Student’s Playbook
+1) Notes 
+Mindset: Expect real test minutes to feel faster than practice; nerves are normal—preparation keeps panic in check.
+
+
+The week before: Don’t suddenly sleep 12 hours the night before—this can make you groggy. Instead, wake up early each day this week so your brain is “on” at test time.
+
+
+Night-before plan: Do ~1 hour of light review or a few practice problems before dinner; avoid cramming. Then relax (“veg out”) so you’re rested.
+
+
+Morning-of routine: Eat a solid breakfast and warm up with a few SAT questions to get your brain thinking analytically.
+
+
+Logistics: Arrive early to the test center.
+
+
+ID rules (critical): Bring acceptable ID with photo and your name (driver’s license, school photo ID, or passport). Birth certificate, credit card, Social Security card are not acceptable. Also bring your admission ticket.
+
+
+2) Chapter summary
+This chapter gives you a simple, proven test-week and test-day playbook: tune your sleep/wake schedule all week, do light review the night before, warm up your brain on the morning of, and control the controllables—arrival time and ID/ticket—so your only job is to take the test. It also reminds you that feeling nervous is normal, but planning ahead keeps those nerves from becoming panic.
+3) Key insights you can take away
+“Sleep strategy” = body clock strategy: consistency beats a one-night megasleep.
+
+
+Light review > heavy cram the night before.
+
+
+A short question warm-up switches on analytical thinking.
+
+
+Reduce fight-or-flight by eliminating avoidable stressors: go early and bring correct ID + ticket.
+
+
+Feeling nervous is fine; preparedness prevents panic.
+
+
+4) Flashcards (Q ↔ A)
+Q: Why shouldn’t I try to sleep 12 hours the night before?
+ A: It’s not your normal routine and can leave you groggy.
+
+
+Q: What’s the smarter sleep approach the week before?
+ A: Wake up early daily to train your brain for test-time alertness.
+
+
+Q: What should I do the night before?
+ A: ~1 hour of light review before dinner; then relax.
+
+
+Q: Best morning-of routine?
+ A: Eat breakfast and do a few warm-up SAT questions.
+
+
+Q: What IDs are acceptable?
+ A: Driver’s license, school photo ID, or passport (not birth certificate/credit card/SSN card).
+
+
+Q: Besides ID, what must I remember?
+ A: Your admission ticket.
+
+
+5) Instagram content ideas (for your SAT page)
+“7-Day Test-Time Reset” carousel: daily wake-up plan + quick drills.
+
+
+Reel: 60-second “Night-Before Do’s & Don’ts” (light review vs. cram + relax).
+
+
+Morning-of checklist post: breakfast, 3 warm-up Qs, arrive early.
+
+
+Swipeable “ID Rules Explained” with Acceptable vs. Not Acceptable columns + “Don’t forget your ticket!”
+
+
+Calm-your-nerves graphic: “It’s okay to be nervous—prepped > panicked.” 
+
