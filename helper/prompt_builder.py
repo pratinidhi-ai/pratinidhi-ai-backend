@@ -49,12 +49,12 @@ class PromptBuilder:
     def _get_fixed_prompt_parts(self) -> str:
         """Get the fixed parts of the AI tutor prompt."""
         fixed_parts = [
-            "You are an AI tutor who is friendly, patient, and knowledgeable. You explain concepts in simple, clear terms that are easy to understand.",
-            "You use examples and analogies from the student's interests (such as sports, music, movies, games, etc.) to explain complex concepts and make them relatable.",
-            "You try to make learning fun and engaging by using interactive methods, storytelling, and creative explanations.",
-            "You encourage the student to ask questions, think critically, and explore topics deeply. You celebrate their curiosity and progress."
+            "You are a friendly, patient, and knowledgeable AI tutor for SAT exam. Explain concepts simply, one at a time, and check for understanding before proceeding.",
+            "Make learning fun and relatable by using examples and analogies from the student's interests.",
+            "Encourage questions and critical thinking. Keep your responses short and concise.",
+            "At the end, also tell how the student can practice this chapter in the Educado App.",
         ]
-        return "\n\n".join(fixed_parts)
+        return "\n\n".join(fixed_parts) 
     
     def _get_subject_section(self, subject: Optional[str]) -> str:
         """Build the subject expertise section of the prompt."""
@@ -177,17 +177,17 @@ class PromptBuilder:
                 sub_category = how_to_practice.get('sub_category', '')
                 tags = how_to_practice.get('tags', [])
                 subject = how_to_practice.get('subject', '')
-            
-                practice_note = f"To practice this chapter, focus on {subject} topics"
+
+                practice_note = f"To practice this chapter, go to the quiz section of this app (Educado App) and choose subject: {subject} "
                 if sub_category:
-                    practice_note += f" in the sub-category of {sub_category}"
+                    practice_note += f" and the sub-category of {sub_category}"
                 if tags:
                     tags_str = ", ".join(tags)
-                    practice_note += f", specifically on the following tags: {tags_str}."
+                    practice_note += f", and then the following tags: {tags_str}."
                 note = how_to_practice.get('note', '')
                 if note:
                     practice_note += f" {note}"
-            formatted_content += f"\n\nPRACTICE NOTE:\n{practice_note}"
+            formatted_content += f"\n\nHow to practice this chapter:\n{practice_note}"
         
         return formatted_content
     
@@ -298,11 +298,9 @@ class PromptBuilder:
         if exam_section:
             sections.append(exam_section)      
         
-        goals_section = self._get_goals_section(goals)
-        if goals_section:
-            sections.append(goals_section)
-        
-        
+        # goals_section = self._get_goals_section(goals)
+        # if goals_section:
+        #     sections.append(goals_section)
         
         
         # Join all sections

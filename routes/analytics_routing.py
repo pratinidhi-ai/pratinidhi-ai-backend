@@ -5,6 +5,8 @@ Handles all analytics-related endpoints for student performance tracking
 
 from flask import Blueprint, jsonify, request
 import logging
+import threading
+import uuid
 from typing import Dict, Any
 
 from helper.middleware import authenticate_request
@@ -16,12 +18,223 @@ logger = logging.getLogger(__name__)
 
 analytics_bp = Blueprint('analytics', __name__)
 
+# Complete taxonomy of all available tags organized by subject and sub_category
+# This ensures we consider tags that haven't been attempted yet
+SUBJECT_TAG_TAXONOMY = {
+    "math": {
+        "algebra": [
+            "single-variable-linear-equations",
+            "linear-inequalities",
+            "slope-intercept",
+            "graphing-linear-equations",
+            "parallel-perpendicular-lines",
+            "systems-of-equations",
+            "systems-of-inequalities",
+            "linear-word-problems",
+            "system-word-problems",
+            "literal-equations",
+            "inequality-word-problems",
+            "mixture-problems",
+            "distance-rate-time",
+            "direct-variation",
+            "age-problems"
+        ],
+        "advanced-math": [
+            "absolute-value-equations",
+            "absolute-value-inequalities",
+            "quadratic-equations",
+            "factoring-polynomials",
+            "expanding-polynomials",
+            "rational-expressions",
+            "rational-equations",
+            "radical-equations",
+            "radical-simplification",
+            "exponent-properties",
+            "exponential-equations",
+            "exponential-models",
+            "function-notation",
+            "function-composition",
+            "nonlinear-systems"
+        ],
+        "problem-solving-and-data-analysis": [
+            "ratio-proportion",
+            "unit-conversion",
+            "percentage-calculation",
+            "mean-median",
+            "variability",
+            "data-distributions",
+            "scatterplots",
+            "best-fit-line",
+            "probability",
+            "conditional-probability",
+            "two-way-tables",
+            "sampling-methods",
+            "experimental-design",
+            "margin-of-error",
+            "statistical-inference"
+        ],
+        "geometry-and-trigonometry": [
+            "area-of-polygons",
+            "perimeter",
+            "angle-relationships",
+            "triangle-angles",
+            "similar-triangles",
+            "right-triangle-trigonometry",
+            "volume-of-solids",
+            "distance-and-midpoint",
+            "pythagorean-theorem",
+            "special-right-triangles",
+            "polygon-angles",
+            "circle-measurements",
+            "circle-angles",
+            "circle-equations",
+            "surface-area"
+        ]
+    },
+    "reading-and-writing": {
+        "craft-and-structure": [
+            "word-in-context",
+            "phrase-in-context",
+            "figurative-language",
+            "word-choice-effect",
+            "text-structure",
+            "main-purpose",
+            "author-tone",
+            "author-attitude",
+            "point-of-view",
+            "sentence-function",
+            "author-technique",
+            "argument-structure",
+            "cross-text-comparison",
+            "cross-text-synthesis",
+            "intended-audience"
+        ],
+        "information-and-ideas": [
+            "main-idea",
+            "supporting-detail",
+            "inference",
+            "evidence-support",
+            "graph-interpretation",
+            "cause-and-effect",
+            "compare-and-contrast",
+            "passage-completion",
+            "draw-conclusion",
+            "author-stance",
+            "hypothetical-application",
+            "identify-claim",
+            "paragraph-main-idea",
+            "passage-title",
+            "not-in-passage"
+        ],
+        "standard-english-conventions": [
+            "subject-verb-agreement",
+            "verb-tense",
+            "pronoun-antecedent",
+            "pronoun-case",
+            "parallel-structure",
+            "misplaced-modifier",
+            "faulty-comparison",
+            "comma-usage",
+            "semicolon-colon-usage",
+            "apostrophe-usage",
+            "sentence-fragment",
+            "run-on-sentence",
+            "idiomatic-usage",
+            "diction-errors",
+            "adjective-vs-adverb"
+        ],
+        "expression-of-ideas": [
+            "conciseness",
+            "clarity",
+            "precise-wording",
+            "tone-consistency",
+            "relevance",
+            "supporting-evidence",
+            "introduction-focus",
+            "conclusion-summary",
+            "logical-flow",
+            "transitions",
+            "sentence-combination",
+            "paragraph-organization",
+            "integrating-information",
+            "active-voice",
+            "formal-tone"
+        ]
+    }
+}
+
+
+def process_quiz_submission_background(submission_data: dict, request_id: str):
+    """
+    Background task to process quiz submission and store analytics
+    This runs asynchronously after sending immediate response to user
+    
+    Args:
+        submission_data: The validated quiz submission data
+        request_id: Unique ID for tracking this submission
+    """
+    try:
+        logger.info(f"[{request_id}] Starting background processing for student {submission_data['student_id']}")
+        
+        # Convert tag_wise_details to TagDetail objects with score calculation
+        tag_details = []
+        difficulty_level = submission_data['difficulty_level']
+        
+        for tag_data in submission_data['tag_wise_details']:
+            # Calculate score and total_possible_score for this tag
+            total_questions = tag_data['total_questions']
+            correct_answers = tag_data['correct_answers']
+            
+            # Score = correct_answers * difficulty_level
+            score = correct_answers * difficulty_level
+            total_possible_score = total_questions * difficulty_level
+            
+            tag_detail = TagDetail(
+                tag=tag_data['tag'],
+                total_questions=total_questions,
+                correct_answers=correct_answers,
+                score=score,
+                total_possible_score=total_possible_score
+            )
+            tag_details.append(tag_detail)
+        
+        # Create QuizSubmission object
+        submission = QuizSubmission(
+            student_id=submission_data['student_id'],
+            time_spent=submission_data['time_spent'],
+            number_of_questions=submission_data['number_of_questions'],
+            number_of_correct_answers=submission_data['number_of_correct_answers'],
+            subject=submission_data['subject'],
+            sub_category=submission_data['sub_category'],
+            difficulty_level=difficulty_level,
+            tag_wise_details=tag_details,
+            correct_question_ids=submission_data['correct_question_ids'],
+            incorrect_question_ids=submission_data['incorrect_question_ids']
+        )
+        
+        # Submit to analytics database
+        analytics_db = get_analytics_db()
+        success, session_id = analytics_db.submit_quiz_analytics(submission)
+        
+        if success:
+            logger.info(f"[{request_id}] Successfully processed quiz analytics for student {submission_data['student_id']}, session {session_id}")
+        else:
+            logger.error(f"[{request_id}] Failed to submit analytics for student {submission_data['student_id']}")
+            
+    except Exception as e:
+        logger.error(f"[{request_id}] Error in background processing: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 
 @analytics_bp.route('/submit-quiz', methods=['POST'])
 @authenticate_request
 def submit_quiz():
     """
-    Submit quiz results and update analytics
+    Submit quiz results and update analytics (ASYNC)
+    
+    This endpoint accepts the quiz data, validates it, and immediately returns a response
+    with a request_id. The actual processing and storage happens asynchronously in the background.
     
     Request Body (JSON):
     {
@@ -48,9 +261,10 @@ def submit_quiz():
     Response:
     {
         "success": true,
-        "message": "Quiz analytics submitted successfully",
-        "session_id": "uuid-string",
-        "summary": {calculated metrics}
+        "message": "Quiz submission received and is being processed",
+        "request_id": "uuid-string",
+        "estimated_score": integer,
+        "estimated_accuracy": float
     }
     """
     try:
@@ -86,84 +300,66 @@ def submit_quiz():
                 'message': f"Student with ID {data['student_id']} does not exist"
             }), 404
         
-        # Convert tag_wise_details to TagDetail objects with score calculation
-        tag_details = []
-        difficulty_level = data['difficulty_level']
-        
-        for tag_data in data['tag_wise_details']:
-            # Calculate score and total_possible_score for this tag
-            total_questions = tag_data['total_questions']
-            correct_answers = tag_data['correct_answers']
-            
-            # Score = correct_answers * difficulty_level
-            score = correct_answers * difficulty_level
-            total_possible_score = total_questions * difficulty_level
-            
-            tag_detail = TagDetail(
-                tag=tag_data['tag'],
-                total_questions=total_questions,
-                correct_answers=correct_answers,
-                score=score,
-                total_possible_score=total_possible_score
-            )
-            tag_details.append(tag_detail)
-        
-        # Create QuizSubmission object
+        # Basic validation of data structure
         try:
-            submission = QuizSubmission(
-                student_id=data['student_id'],
-                time_spent=data['time_spent'],
-                number_of_questions=data['number_of_questions'],
-                number_of_correct_answers=data['number_of_correct_answers'],
-                subject=data['subject'],
-                sub_category=data['sub_category'],
-                difficulty_level=difficulty_level,
-                tag_wise_details=tag_details,
-                correct_question_ids=data['correct_question_ids'],
-                incorrect_question_ids=data['incorrect_question_ids']
-            )
-        except ValueError as ve:
+            difficulty_level = data['difficulty_level']
+            
+            # Quick calculation for immediate feedback (estimated)
+            estimated_score = 0
+            estimated_total_possible = 0
+            
+            for tag_data in data['tag_wise_details']:
+                if 'tag' not in tag_data or 'total_questions' not in tag_data or 'correct_answers' not in tag_data:
+                    return jsonify({
+                        'error': 'Invalid tag_wise_details',
+                        'message': 'Each tag detail must have tag, total_questions, and correct_answers'
+                    }), 400
+                
+                correct = tag_data['correct_answers']
+                total = tag_data['total_questions']
+                estimated_score += correct * difficulty_level
+                estimated_total_possible += total * difficulty_level
+            
+            estimated_accuracy = round((data['number_of_correct_answers'] / data['number_of_questions'] * 100), 2) if data['number_of_questions'] > 0 else 0
+            
+        except (ValueError, KeyError, TypeError) as ve:
             return jsonify({
                 'error': 'Invalid data',
                 'message': str(ve)
             }), 400
         
-        # Submit to analytics database
-        analytics_db = get_analytics_db()
-        success, session_id = analytics_db.submit_quiz_analytics(submission)
+        # Generate unique request ID for tracking
+        request_id = str(uuid.uuid4())
         
-        if not success:
-            return jsonify({
-                'error': 'Failed to submit analytics',
-                'message': 'An error occurred while processing your quiz results'
-            }), 500
+        # Start background processing in a separate thread
+        background_thread = threading.Thread(
+            target=process_quiz_submission_background,
+            args=(data, request_id),
+            daemon=True  # Daemon thread won't prevent app shutdown
+        )
+        background_thread.start()
         
-        # Prepare summary response
-        summary = {
-            'score': submission.calculate_score(),
-            'total_possible_score': submission.calculate_total_possible_score(),
-            'accuracy': submission.get_accuracy(),
-            'time_spent_minutes': round(submission.time_spent / 60, 2),
-            'subject': submission.subject,
-            'sub_category': submission.sub_category,
-            'difficulty_level': submission.difficulty_level
-        }
+        logger.info(f"[{request_id}] Quiz submission accepted for student {data['student_id']}, processing in background")
         
-        logger.info(f"Quiz analytics submitted successfully for student {data['student_id']}, session {session_id}")
-        
+        # Return immediate response
         return jsonify({
             'success': True,
-            'message': 'Quiz analytics submitted successfully',
-            'session_id': session_id,
-            'summary': summary
-        }), 201
+            'message': 'Quiz submission received and is being processed',
+            'request_id': request_id,
+            'estimated_score': estimated_score,
+            'estimated_total_possible_score': estimated_total_possible,
+            'estimated_accuracy': estimated_accuracy,
+            'subject': data['subject'],
+            'sub_category': data['sub_category'],
+            'difficulty_level': data['difficulty_level']
+        }), 202  # 202 Accepted - indicates async processing
         
     except Exception as e:
-        logger.error(f"Error submitting quiz analytics: {str(e)}")
+        logger.error(f"Error accepting quiz submission: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
-            'error': 'Failed to submit quiz analytics',
+            'error': 'Failed to accept quiz submission',
             'message': str(e)
         }), 500
 
@@ -792,6 +988,7 @@ def get_my_weakness():
 def get_my_least_attempted():
     """
     Get the tag with least number of questions attempted by the user in a subject
+    Considers ALL tags from the taxonomy, including tags with zero attempts
     
     Request Body (JSON):
     {
@@ -813,7 +1010,7 @@ def get_my_least_attempted():
         }
     }
     
-    Returns empty string if no data available or all tags have zero attempts
+    Returns empty string if subject is invalid
     """
     try:
         data = request.get_json()
@@ -842,44 +1039,59 @@ def get_my_least_attempted():
                 'message': f"Student with ID {user_id} does not exist"
             }), 404
         
+        # Verify subject is valid
+        if subject not in SUBJECT_TAG_TAXONOMY:
+            return jsonify({
+                'error': 'Invalid subject',
+                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            }), 400
+        
         # Get performance summary
         analytics_db = get_analytics_db()
         summary = analytics_db.get_performance_summary(user_id)
         
-        if not summary or 'subjects' not in summary:
-            return jsonify({
-                'success': True,
-                'least_attempted': ""
-            }), 200
+        # Build a map of attempted tags with their data
+        attempted_tags = {}
+        if summary and 'subjects' in summary:
+            subjects_data = summary.get('subjects', {})
+            if subject in subjects_data:
+                subject_data = subjects_data[subject]
+                sub_categories = subject_data.get('sub_categories', {})
+                
+                for sub_cat_name, sub_cat_data in sub_categories.items():
+                    tags = sub_cat_data.get('tags', {})
+                    for tag_name, tag_data in tags.items():
+                        attempted_tags[f"{sub_cat_name}|{tag_name}"] = tag_data
         
-        # Check if subject exists
-        subjects_data = summary.get('subjects', {})
-        if subject not in subjects_data:
-            return jsonify({
-                'success': True,
-                'least_attempted': ""
-            }), 200
-        
-        subject_data = subjects_data[subject]
-        sub_categories = subject_data.get('sub_categories', {})
-        
-        if not sub_categories:
-            return jsonify({
-                'success': True,
-                'least_attempted': ""
-            }), 200
-        
-        # Find the least attempted tag
+        # Now check ALL tags from taxonomy and find the least attempted
         least_attempted_tag = None
         least_attempts = float('inf')
         least_attempted_sub_category = None
-        least_attempted_tag_data = None
+        least_attempted_tag_data = {
+            'total_score': 0,
+            'score_percentage': 0,
+            'total_questions_attempted': 0,
+            'accuracy': 0
+        }
         
-        for sub_cat_name, sub_cat_data in sub_categories.items():
-            tags = sub_cat_data.get('tags', {})
-            
-            for tag_name, tag_data in tags.items():
-                total_questions = tag_data.get('total_questions_attempted', 0)
+        # Iterate through all tags in the taxonomy for this subject
+        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[subject].items():
+            for tag_name in tag_list:
+                tag_key = f"{sub_cat_name}|{tag_name}"
+                
+                # Get attempt count (0 if not attempted)
+                if tag_key in attempted_tags:
+                    tag_data = attempted_tags[tag_key]
+                    total_questions = tag_data.get('total_questions_attempted', 0)
+                else:
+                    # Tag has never been attempted
+                    total_questions = 0
+                    tag_data = {
+                        'total_score': 0,
+                        'score_percentage': 0,
+                        'total_questions_attempted': 0,
+                        'accuracy': 0
+                    }
                 
                 # Find tag with minimum attempts
                 if total_questions < least_attempts:
@@ -887,13 +1099,6 @@ def get_my_least_attempted():
                     least_attempted_tag = tag_name
                     least_attempted_sub_category = sub_cat_name
                     least_attempted_tag_data = tag_data
-        
-        # If no tag found or all are at 0
-        if least_attempted_tag is None:
-            return jsonify({
-                'success': True,
-                'least_attempted': ""
-            }), 200
         
         # Return the least attempted tag
         return jsonify({
