@@ -1220,3 +1220,250 @@ def get_daily_progress(student_id: str):
             'error': 'Failed to get daily progress',
             'message': str(e)
         }), 500
+
+
+@analytics_bp.route('/get-my-performance-analytics', methods=['POST'])
+@authenticate_request
+def get_my_performance_analytics():
+    """
+    Get comprehensive performance analytics for a user in a subject
+    Combines strength, weakness, and least attempted tag in a single API call
+    
+    Request Body (JSON):
+    {
+        "user_id": "string",
+        "subject": "string" (e.g., "math", "reading-and-writing")
+    }
+    
+    Response:
+    {
+        "success": true,
+        "analytics": {
+            "subject": "math",
+            "strength": {
+                "sub_category": "algebra",
+                "tag": "linear-equations",
+                "total_score": 120,
+                "score_percentage": 95.5,
+                "total_questions_attempted": 25,
+                "accuracy": 96.0
+            },
+            "weakness": {
+                "sub_category": "geometry-and-trigonometry",
+                "tag": "circle-equations",
+                "total_score": 30,
+                "score_percentage": 45.5,
+                "total_questions_attempted": 20,
+                "accuracy": 50.0
+            },
+            "least_attempted": {
+                "sub_category": "algebra",
+                "tag": "mixture-problems",
+                "total_score": 0,
+                "score_percentage": 0,
+                "total_questions_attempted": 0,
+                "accuracy": 0
+            }
+        }
+    }
+    
+    Note: Any of strength, weakness, or least_attempted can be empty string if no data available
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'error': 'Invalid request',
+                'message': 'Request body must be JSON'
+            }), 400
+        
+        # Validate required fields
+        user_id = data.get('user_id')
+        subject = data.get('subject')
+        
+        if not user_id or not subject:
+            return jsonify({
+                'error': 'Missing required fields',
+                'message': 'user_id and subject are required'
+            }), 400
+        
+        # Verify user exists
+        user_db = get_user_db()
+        if not user_db.user_exists(user_id):
+            return jsonify({
+                'error': 'User not found',
+                'message': f"Student with ID {user_id} does not exist"
+            }), 404
+        
+        # Verify subject is valid
+        if subject not in SUBJECT_TAG_TAXONOMY:
+            return jsonify({
+                'error': 'Invalid subject',
+                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            }), 400
+        
+        # Get performance summary once for all calculations
+        analytics_db = get_analytics_db()
+        summary = analytics_db.get_performance_summary(user_id)
+        
+        # Initialize response structure
+        analytics_response = {
+            'subject': subject,
+            'strength': "",
+            'weakness': "",
+            'least_attempted': ""
+        }
+        
+        # Check if we have any data
+        if not summary or 'subjects' not in summary:
+            return jsonify({
+                'success': True,
+                'analytics': analytics_response
+            }), 200
+        
+        subjects_data = summary.get('subjects', {})
+        if subject not in subjects_data:
+            return jsonify({
+                'success': True,
+                'analytics': analytics_response
+            }), 200
+        
+        subject_data = subjects_data[subject]
+        sub_categories = subject_data.get('sub_categories', {})
+        
+        # Calculate Strength (highest combined score)
+        if sub_categories:
+            best_tag = None
+            best_score = -1
+            best_sub_category = None
+            best_tag_data = {}
+            
+            for sub_cat_name, sub_cat_data in sub_categories.items():
+                tags = sub_cat_data.get('tags', {})
+                
+                for tag_name, tag_data in tags.items():
+                    total_score = tag_data.get('total_score', 0)
+                    score_percentage = tag_data.get('score_percentage', 0)
+                    
+                    if total_score == 0 and score_percentage == 0:
+                        continue
+                    
+                    normalized_total_score = min(total_score, 100)
+                    combined_score = (score_percentage * 0.7) + (normalized_total_score * 0.3)
+                    
+                    if combined_score > best_score:
+                        best_score = combined_score
+                        best_tag = tag_name
+                        best_sub_category = sub_cat_name
+                        best_tag_data = tag_data
+            
+            if best_tag is not None and best_tag_data:
+                analytics_response['strength'] = {
+                    'sub_category': best_sub_category,
+                    'tag': best_tag,
+                    'total_score': best_tag_data.get('total_score', 0),
+                    'score_percentage': best_tag_data.get('score_percentage', 0),
+                    'total_questions_attempted': best_tag_data.get('total_questions_attempted', 0),
+                    'accuracy': best_tag_data.get('accuracy', 0)
+                }
+        
+        # Calculate Weakness (lowest combined score)
+        if sub_categories:
+            worst_tag = None
+            worst_score = float('inf')
+            worst_sub_category = None
+            worst_tag_data = {}
+            
+            for sub_cat_name, sub_cat_data in sub_categories.items():
+                tags = sub_cat_data.get('tags', {})
+                
+                for tag_name, tag_data in tags.items():
+                    total_score = tag_data.get('total_score', 0)
+                    score_percentage = tag_data.get('score_percentage', 0)
+                    
+                    if total_score == 0 and score_percentage == 0:
+                        continue
+                    
+                    normalized_total_score = min(total_score, 100)
+                    combined_score = (score_percentage * 0.7) + (normalized_total_score * 0.3)
+                    
+                    if combined_score < worst_score:
+                        worst_score = combined_score
+                        worst_tag = tag_name
+                        worst_sub_category = sub_cat_name
+                        worst_tag_data = tag_data
+            
+            if worst_tag is not None and worst_tag_data:
+                analytics_response['weakness'] = {
+                    'sub_category': worst_sub_category,
+                    'tag': worst_tag,
+                    'total_score': worst_tag_data.get('total_score', 0),
+                    'score_percentage': worst_tag_data.get('score_percentage', 0),
+                    'total_questions_attempted': worst_tag_data.get('total_questions_attempted', 0),
+                    'accuracy': worst_tag_data.get('accuracy', 0)
+                }
+        
+        # Calculate Least Attempted (considers all tags from taxonomy)
+        attempted_tags = {}
+        if sub_categories:
+            for sub_cat_name, sub_cat_data in sub_categories.items():
+                tags = sub_cat_data.get('tags', {})
+                for tag_name, tag_data in tags.items():
+                    attempted_tags[f"{sub_cat_name}|{tag_name}"] = tag_data
+        
+        least_attempted_tag = None
+        least_attempts = float('inf')
+        least_attempted_sub_category = None
+        least_attempted_tag_data = {
+            'total_score': 0,
+            'score_percentage': 0,
+            'total_questions_attempted': 0,
+            'accuracy': 0
+        }
+        
+        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[subject].items():
+            for tag_name in tag_list:
+                tag_key = f"{sub_cat_name}|{tag_name}"
+                
+                if tag_key in attempted_tags:
+                    tag_data = attempted_tags[tag_key]
+                    total_questions = tag_data.get('total_questions_attempted', 0)
+                else:
+                    total_questions = 0
+                    tag_data = {
+                        'total_score': 0,
+                        'score_percentage': 0,
+                        'total_questions_attempted': 0,
+                        'accuracy': 0
+                    }
+                
+                if total_questions < least_attempts:
+                    least_attempts = total_questions
+                    least_attempted_tag = tag_name
+                    least_attempted_sub_category = sub_cat_name
+                    least_attempted_tag_data = tag_data
+        
+        if least_attempted_tag is not None:
+            analytics_response['least_attempted'] = {
+                'sub_category': least_attempted_sub_category,
+                'tag': least_attempted_tag,
+                'total_score': least_attempted_tag_data.get('total_score', 0),
+                'score_percentage': least_attempted_tag_data.get('score_percentage', 0),
+                'total_questions_attempted': least_attempted_tag_data.get('total_questions_attempted', 0),
+                'accuracy': least_attempted_tag_data.get('accuracy', 0)
+            }
+        
+        return jsonify({
+            'success': True,
+            'analytics': analytics_response
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting performance analytics for user: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'error': 'Failed to get performance analytics',
+            'message': str(e)
+        }), 500
