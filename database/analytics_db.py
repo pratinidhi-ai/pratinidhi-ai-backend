@@ -7,9 +7,10 @@ Handles all analytics-related database interactions including:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional, List
 import uuid
+import pytz
 
 from database.firebase_client import get_firestore_client
 from models.analytics_schema import (
@@ -22,6 +23,9 @@ from models.analytics_schema import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Indian Standard Time timezone
+IST = pytz.timezone('Asia/Kolkata')
 
 
 class AnalyticsDatabase:
@@ -419,6 +423,193 @@ class AnalyticsDatabase:
         except Exception as e:
             logger.error(f"Error getting incorrect questions for {student_id}: {str(e)}")
             return {}
+    
+    def update_daily_progress(self, student_id: str, submission: QuizSubmission) -> bool:
+        """
+        Update daily progress statistics for a student
+        Tracks today's and yesterday's stats with IST timezone
+        
+        Daily Progress includes:
+        1. Quizzing Time Today
+        2. Number of Quizzes Taken Today
+        3. Accuracy Today
+        4. Hot Topic Today (most attempted tag)
+        5. Streak (consecutive days of activity)
+        
+        Args:
+            student_id: The student's user ID
+            submission: QuizSubmission object with quiz results
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            if not self._check_connection():
+                return False
+            
+            # Get current IST date
+            now_ist = datetime.now(IST)
+            today_date = now_ist.date().isoformat()  # YYYY-MM-DD format
+            
+            # Reference to daily_progress document
+            daily_progress_ref = (self.db.collection('users')
+                                 .document(student_id)
+                                 .collection('analytics')
+                                 .document('daily_progress'))
+            
+            # Get existing daily progress or create new one
+            progress_doc = daily_progress_ref.get()
+            
+            if progress_doc.exists:
+                progress_data = progress_doc.to_dict()
+            else:
+                progress_data = {
+                    'student_id': student_id,
+                    'today': {},
+                    'yesterday': {},
+                    'streak': 0,
+                    'last_activity_date': None
+                }
+            
+            # Check if we need to roll over to a new day
+            last_activity_date = progress_data.get('last_activity_date')
+            
+            if last_activity_date and last_activity_date != today_date:
+                # Check if it's a new day
+                yesterday_ist = (now_ist - timedelta(days=1)).date().isoformat()
+                
+                if last_activity_date == yesterday_ist:
+                    # Consecutive day - increment streak
+                    progress_data['streak'] = progress_data.get('streak', 0) + 1
+                    # Move today's data to yesterday
+                    progress_data['yesterday'] = progress_data.get('today', {})
+                else:
+                    # Gap in activity - reset streak to 1
+                    progress_data['streak'] = 1
+                    # Clear yesterday's data
+                    progress_data['yesterday'] = {}
+                
+                # Reset today's data for new day
+                progress_data['today'] = {}
+            elif not last_activity_date:
+                # First time activity
+                progress_data['streak'] = 1
+            
+            # Initialize today's data if empty
+            if not progress_data.get('today'):
+                progress_data['today'] = {
+                    'date': today_date,
+                    'total_time_spent': 0,
+                    'total_quizzes': 0,
+                    'total_questions': 0,
+                    'total_correct': 0,
+                    'tags': {}  # tag -> count mapping
+                }
+            
+            # Update today's stats
+            today_stats = progress_data['today']
+            today_stats['total_time_spent'] += submission.time_spent
+            today_stats['total_quizzes'] += 1
+            today_stats['total_questions'] += submission.number_of_questions
+            today_stats['total_correct'] += submission.number_of_correct_answers
+            
+            # Update tag counts to determine hot topic
+            for tag_detail in submission.tag_wise_details:
+                tag_name = tag_detail.tag
+                if tag_name not in today_stats['tags']:
+                    today_stats['tags'][tag_name] = 0
+                today_stats['tags'][tag_name] += tag_detail.total_questions
+            
+            # Calculate accuracy
+            if today_stats['total_questions'] > 0:
+                today_stats['accuracy'] = round(
+                    (today_stats['total_correct'] / today_stats['total_questions']) * 100, 2
+                )
+            else:
+                today_stats['accuracy'] = 0
+            
+            # Determine hot topic (most attempted tag)
+            if today_stats['tags']:
+                hot_topic = max(today_stats['tags'].items(), key=lambda x: x[1])
+                today_stats['hot_topic'] = hot_topic[0]
+                today_stats['hot_topic_count'] = hot_topic[1]
+            else:
+                today_stats['hot_topic'] = None
+                today_stats['hot_topic_count'] = 0
+            
+            # Update last activity date
+            progress_data['last_activity_date'] = today_date
+            progress_data['last_updated'] = datetime.now(timezone.utc).isoformat()
+            
+            # Save updated daily progress
+            daily_progress_ref.set(progress_data)
+            
+            logger.info(f"Updated daily progress for student {student_id} on {today_date}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating daily progress for {student_id}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def get_daily_progress(self, student_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get daily progress statistics for a student
+        
+        Args:
+            student_id: The student's user ID
+            
+        Returns:
+            Dictionary with daily progress data or None if not found
+        """
+        try:
+            if not self._check_connection():
+                return None
+            
+            daily_progress_ref = (self.db.collection('users')
+                                 .document(student_id)
+                                 .collection('analytics')
+                                 .document('daily_progress'))
+            
+            progress_doc = daily_progress_ref.get()
+            
+            if progress_doc.exists:
+                progress_data = progress_doc.to_dict()
+                
+                # Ensure today's date is current (IST)
+                now_ist = datetime.now(IST)
+                today_date = now_ist.date().isoformat()
+                
+                last_activity_date = progress_data.get('last_activity_date')
+                
+                # If last activity was not today, return empty today stats
+                if last_activity_date != today_date:
+                    progress_data['today'] = {
+                        'date': today_date,
+                        'total_time_spent': 0,
+                        'total_quizzes': 0,
+                        'total_questions': 0,
+                        'total_correct': 0,
+                        'accuracy': 0,
+                        'hot_topic': None,
+                        'hot_topic_count': 0,
+                        'tags': {}
+                    }
+                    
+                    # Check if streak should be reset
+                    yesterday_ist = (now_ist - timedelta(days=1)).date().isoformat()
+                    if last_activity_date != yesterday_ist:
+                        progress_data['streak'] = 0
+                
+                return progress_data
+            
+            logger.info(f"No daily progress found for student {student_id}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting daily progress for {student_id}: {str(e)}")
+            return None
 
 
 # Singleton instance

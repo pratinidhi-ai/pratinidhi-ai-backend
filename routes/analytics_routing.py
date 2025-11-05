@@ -218,6 +218,13 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
         
         if success:
             logger.info(f"[{request_id}] Successfully processed quiz analytics for student {submission_data['student_id']}, session {session_id}")
+            
+            # Update daily progress stats (IST timezone aware)
+            daily_progress_success = analytics_db.update_daily_progress(submission_data['student_id'], submission)
+            if daily_progress_success:
+                logger.info(f"[{request_id}] Successfully updated daily progress for student {submission_data['student_id']}")
+            else:
+                logger.warning(f"[{request_id}] Failed to update daily progress for student {submission_data['student_id']}")
         else:
             logger.error(f"[{request_id}] Failed to submit analytics for student {submission_data['student_id']}")
             
@@ -1120,5 +1127,96 @@ def get_my_least_attempted():
         traceback.print_exc()
         return jsonify({
             'error': 'Failed to get least attempted',
+            'message': str(e)
+        }), 500
+
+
+@analytics_bp.route('/daily-progress/<student_id>', methods=['GET'])
+@authenticate_request
+def get_daily_progress(student_id: str):
+    """
+    Get daily progress statistics for a student (IST timezone)
+    
+    URL Parameters:
+        student_id: The student's user ID
+    
+    Response:
+    {
+        "success": true,
+        "daily_progress": {
+            "today": {
+                "date": "2025-11-04",
+                "total_time_spent": 1200 (seconds),
+                "total_quizzes": 5,
+                "total_questions": 50,
+                "total_correct": 42,
+                "accuracy": 84.0,
+                "hot_topic": "linear-equations",
+                "hot_topic_count": 15,
+                "tags": {"linear-equations": 15, "quadratic-equations": 10, ...}
+            },
+            "yesterday": {
+                "date": "2025-11-03",
+                "total_time_spent": 900,
+                "total_quizzes": 3,
+                "total_questions": 30,
+                "total_correct": 25,
+                "accuracy": 83.33,
+                "hot_topic": "systems-of-equations",
+                "hot_topic_count": 12,
+                "tags": {...}
+            },
+            "streak": 5,
+            "last_activity_date": "2025-11-04"
+        }
+    }
+    """
+    try:
+        # Verify user exists
+        user_db = get_user_db()
+        if not user_db.user_exists(student_id):
+            return jsonify({
+                'error': 'User not found',
+                'message': f"Student with ID {student_id} does not exist"
+            }), 404
+        
+        # Get daily progress
+        analytics_db = get_analytics_db()
+        daily_progress = analytics_db.get_daily_progress(student_id)
+        
+        if not daily_progress:
+            # Return empty structure if no data found
+            return jsonify({
+                'success': True,
+                'message': 'No daily progress data found for this student',
+                'daily_progress': {
+                    'today': {
+                        'date': None,
+                        'total_time_spent': 0,
+                        'total_quizzes': 0,
+                        'total_questions': 0,
+                        'total_correct': 0,
+                        'accuracy': 0,
+                        'hot_topic': None,
+                        'hot_topic_count': 0,
+                        'tags': {}
+                    },
+                    'yesterday': {},
+                    'streak': 0,
+                    'last_activity_date': None
+                }
+            }), 200
+        
+        return jsonify({
+            'success': True,
+            'daily_progress': daily_progress
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting daily progress for {student_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'error': 'Failed to get daily progress',
             'message': str(e)
         }), 500
