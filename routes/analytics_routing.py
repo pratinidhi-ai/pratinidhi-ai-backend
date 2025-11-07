@@ -13,6 +13,8 @@ from helper.middleware import authenticate_request
 from database.analytics_db import get_analytics_db
 from database.user_db import get_user_db
 from models.analytics_schema import QuizSubmission, TagDetail
+from database.leaderboard_db import get_leaderboard_db
+from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +165,26 @@ SUBJECT_TAG_TAXONOMY = {
     }
 }
 
+def update_leaderboard_db(submission_data: dict, request_id: str):
+    leaderboard_db = get_leaderboard_db()
+    current_user_metrics = leaderboard_db.get_leaderboard_entity(submission_data['student_id'])
+    if not current_user_metrics:
+        logger.error(f"[{request_id}] No leaderboard entry found for student {submission_data['student_id']}")
+        return
+    # Update performance metrics
+    current_user_metrics.performance_metric.update_from_quiz(
+        correct=submission_data['number_of_correct_answers'],
+        total=submission_data['number_of_questions'],
+        points=sum(tag['score'] for tag in submission_data['tag_wise_details'])
+    )
+    
+    # Save updated metrics back to DB
+    success = leaderboard_db.update_leaderboard_entity(current_user_metrics)
+    if success:
+        logger.info(f"[{request_id}] Successfully updated leaderboard for student {submission_data['student_id']}")
+    else:
+        logger.error(f"[{request_id}] Failed to update leaderboard for student {submission_data['student_id']}")
+    return
 
 def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
@@ -228,6 +250,8 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
         else:
             logger.error(f"[{request_id}] Failed to submit analytics for student {submission_data['student_id']}")
             
+        # Update leaderboard metrics
+        update_leaderboard_db(submission_data, request_id)
     except Exception as e:
         logger.error(f"[{request_id}] Error in background processing: {str(e)}")
         import traceback
