@@ -7,6 +7,7 @@ from routes.tutor_routing import tutor_bp
 from routes.task_routing import task_bp
 from routes.question_routing import question_bp
 from routes.analytics_routing import analytics_bp
+from routes.math_tutor_routing import math_tutor_bp
 
 app = Flask(__name__)
 
@@ -23,6 +24,7 @@ app.register_blueprint(tutor_bp)
 app.register_blueprint(task_bp, url_prefix='/api/tasks')
 app.register_blueprint(question_bp, url_prefix='/api/questions')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+app.register_blueprint(math_tutor_bp)
 
 # Health check endpoint
 @app.route('/', methods=['GET'])

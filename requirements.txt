@@ -61,6 +61,7 @@ langchain-text-splitters==0.3.11
 langsmith==0.4.31
 MarkupSafe==3.0.2
 marshmallow==3.26.1
+moviepy==2.1.1
 msgpack==1.1.1
 multidict==6.6.4
 mypy_extensions==1.1.0
@@ -98,6 +99,7 @@ typing-inspection==0.4.1
 typing_extensions==4.15.0
 uritemplate==4.2.0
 urllib3==2.5.0
+websockets==14.1
 Werkzeug==3.1.3
 yarl==1.20.1
 zstandard==0.25.0
