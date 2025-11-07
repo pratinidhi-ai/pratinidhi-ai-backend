@@ -7,6 +7,7 @@ aws/
 educado-ai-private-key.json
 testing/test_token.txt
 demo_output/
+eduEnv/
 
 # Ignore video files
 *.mp4
