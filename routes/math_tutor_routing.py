@@ -10,7 +10,7 @@ from math_tutor.math_ai_video_generator import generate_math_ai_video
 from math_tutor.process_video import process_knolify_video
 
 logger = logging.getLogger(__name__)
-math_tutor_bp = Blueprint('math_tutor', __name__, url_prefix='/math-tutor')
+math_tutor_bp = Blueprint('math_tutor', __name__)
 
 
 @math_tutor_bp.route('/solve', methods=['POST'])

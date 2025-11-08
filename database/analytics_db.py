@@ -87,6 +87,13 @@ class AnalyticsDatabase:
                 logger.error(f"Failed to update question lists for student {student_id}")
                 return False, None
             
+            # 4. Update last 15 math questions if this is a math quiz
+            if submission.subject.lower() == 'math':
+                last_15_success = self._update_last_15_math_questions(analytics_ref, submission)
+                if not last_15_success:
+                    logger.warning(f"Failed to update last 15 math questions for student {student_id}")
+                    # Don't fail the entire operation for this
+            
             logger.info(f"Successfully processed quiz analytics for student {student_id}, session {submission.session_id}")
             return True, submission.session_id
             
@@ -261,6 +268,202 @@ class AnalyticsDatabase:
             
         except Exception as e:
             logger.error(f"Error updating question lists: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _update_last_15_math_questions(self, analytics_ref, submission: QuizSubmission) -> bool:
+        """
+        Update the last 15 math questions attempted by the user
+        Stores full question data including question_text and options
+        
+        This document stores:
+        - question_id
+        - question_text
+        - options (A, B, C, D)
+        - correct_answer
+        - is_answered_correctly (boolean)
+        - difficulty_level
+        - tags (list of tags for this question)
+        - timestamp
+        - sub_category
+        
+        Args:
+            analytics_ref: Reference to analytics subcollection
+            submission: QuizSubmission object with quiz results
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            from database.firebase_client import get_question_db_client
+            
+            last_15_ref = analytics_ref.document('last_15_math_questions')
+            
+            # Get existing document or create new one
+            last_15_doc = last_15_ref.get()
+            
+            if last_15_doc.exists:
+                last_15_data = last_15_doc.to_dict()
+                questions_list = last_15_data.get('questions', [])
+            else:
+                last_15_data = {
+                    'student_id': submission.student_id,
+                    'questions': []
+                }
+                questions_list = []
+            
+            # Create new question entries from the submission
+            # Fetch full question data from question bank using collection group query
+            question_db = get_question_db_client()
+            new_questions = []
+            
+            # Build a mapping of tag to questions from tag_wise_details
+            # Since we don't have individual question-tag mapping in submission,
+            # we'll store all tags for this quiz with each question
+            all_tags = [tag_detail.tag for tag_detail in submission.tag_wise_details]
+            
+            # Helper function to fetch question by document ID using the correct path
+            def fetch_question_data(question_id: str) -> Optional[Dict[str, Any]]:
+                """
+                Fetch question data using the correct Firestore path.
+                Path: /question_bank/{subject}|{sub_category}/difficulty_levels/{level}/questions/{question_id}
+                """
+                try:
+                    # Construct the correct path using submission data
+                    subject_subcategory = f"{submission.subject}|{submission.sub_category}"
+                    difficulty_level = str(submission.difficulty_level)
+                    
+                    # Build the path to the specific question document
+                    question_ref = (question_db
+                                   .collection('question_bank')
+                                   .document(subject_subcategory)
+                                   .collection('difficulty_levels')
+                                   .document(difficulty_level)
+                                   .collection('questions')
+                                   .document(question_id))
+                    
+                    # Fetch the document
+                    question_doc = question_ref.get()
+                    
+                    if question_doc.exists:
+                        data = question_doc.to_dict()
+                        if data:
+                            data['id'] = question_doc.id
+                            logger.info(f"Found question {question_id} at path {subject_subcategory}/difficulty_levels/{difficulty_level}")
+                            return data
+                    
+                    logger.warning(f"Question {question_id} not found at path {subject_subcategory}/difficulty_levels/{difficulty_level}")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error fetching question {question_id}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    return None
+            
+            # Process correct questions
+            for question_id in submission.correct_question_ids:
+                # Fetch full question data
+                question_data = fetch_question_data(question_id)
+                
+                if question_data:
+                    # Options are stored as an array with 4 values
+                    options = question_data.get('options', ['', '', '', ''])
+                    
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': question_data.get('question_text', ''),
+                        'option_a': options[0] if len(options) > 0 else '',
+                        'option_b': options[1] if len(options) > 1 else '',
+                        'option_c': options[2] if len(options) > 2 else '',
+                        'option_d': options[3] if len(options) > 3 else '',
+                        'correct_answer': question_data.get('correct_answer', ''),
+                        'is_answered_correctly': True,
+                        'difficulty_level': submission.difficulty_level,
+                        'tags': all_tags,
+                        'sub_category': submission.sub_category,
+                        'timestamp': submission.timestamp.isoformat() if submission.timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+                else:
+                    # If question not found, store basic info
+                    logger.warning(f"Question {question_id} not found in database, storing basic info")
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': '',
+                        'option_a': '',
+                        'option_b': '',
+                        'option_c': '',
+                        'option_d': '',
+                        'correct_answer': '',
+                        'is_answered_correctly': True,
+                        'difficulty_level': submission.difficulty_level,
+                        'tags': all_tags,
+                        'sub_category': submission.sub_category,
+                        'timestamp': submission.timestamp.isoformat() if submission.timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+            
+            # Process incorrect questions
+            for question_id in submission.incorrect_question_ids:
+                # Fetch full question data
+                question_data = fetch_question_data(question_id)
+                
+                if question_data:
+                    # Options are stored as an array with 4 values
+                    options = question_data.get('options', ['', '', '', ''])
+                    
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': question_data.get('question_text', ''),
+                        'option_a': options[0] if len(options) > 0 else '',
+                        'option_b': options[1] if len(options) > 1 else '',
+                        'option_c': options[2] if len(options) > 2 else '',
+                        'option_d': options[3] if len(options) > 3 else '',
+                        'correct_answer': question_data.get('correct_answer', ''),
+                        'is_answered_correctly': False,
+                        'difficulty_level': submission.difficulty_level,
+                        'tags': all_tags,
+                        'sub_category': submission.sub_category,
+                        'timestamp': submission.timestamp.isoformat() if submission.timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+                else:
+                    # If question not found, store basic info
+                    logger.warning(f"Question {question_id} not found in database, storing basic info")
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': '',
+                        'option_a': '',
+                        'option_b': '',
+                        'option_c': '',
+                        'option_d': '',
+                        'correct_answer': '',
+                        'is_answered_correctly': False,
+                        'difficulty_level': submission.difficulty_level,
+                        'tags': all_tags,
+                        'sub_category': submission.sub_category,
+                        'timestamp': submission.timestamp.isoformat() if submission.timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+            
+            # Add new questions to the front of the list (most recent first)
+            questions_list = new_questions + questions_list
+            
+            # Keep only the last 15 questions
+            questions_list = questions_list[:15]
+            
+            # Update the document
+            last_15_data['questions'] = questions_list
+            last_15_data['last_updated'] = datetime.now(timezone.utc).isoformat()
+            
+            last_15_ref.set(last_15_data)
+            
+            logger.info(f"Updated last 15 math questions for student {submission.student_id}, now tracking {len(questions_list)} questions")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating last 15 math questions: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -609,6 +812,53 @@ class AnalyticsDatabase:
             
         except Exception as e:
             logger.error(f"Error getting daily progress for {student_id}: {str(e)}")
+            return None
+    
+    def get_last_15_math_questions(self, student_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get the last 15 math questions attempted by a student
+        
+        Args:
+            student_id: The student's user ID
+            
+        Returns:
+            Dictionary with last 15 math questions data or None if not found
+            Format:
+            {
+                'student_id': 'user123',
+                'questions': [
+                    {
+                        'question_id': 'q123',
+                        'is_correct': True,
+                        'difficulty_level': 3,
+                        'tags': ['linear-equations', 'algebra'],
+                        'sub_category': 'algebra',
+                        'timestamp': '2025-11-07T...'
+                    },
+                    ...
+                ],
+                'last_updated': '2025-11-07T...'
+            }
+        """
+        try:
+            if not self._check_connection():
+                return None
+            
+            last_15_ref = (self.db.collection('users')
+                          .document(student_id)
+                          .collection('analytics')
+                          .document('last_15_math_questions'))
+            
+            last_15_doc = last_15_ref.get()
+            
+            if last_15_doc.exists:
+                return last_15_doc.to_dict()
+            
+            logger.info(f"No last 15 math questions found for student {student_id}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting last 15 math questions for {student_id}: {str(e)}")
             return None
 
 

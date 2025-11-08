@@ -1467,3 +1467,116 @@ def get_my_performance_analytics():
             'error': 'Failed to get performance analytics',
             'message': str(e)
         }), 500
+
+
+@analytics_bp.route('/last-15-math-questions/<student_id>', methods=['GET'])
+@authenticate_request
+def get_last_15_math_questions(student_id: str):
+    """
+    Get the last 15 math questions attempted by a student
+    
+    This endpoint returns the most recent 15 math questions the student has attempted,
+    including full question data (text, options) and whether they answered correctly
+    
+    URL Parameters:
+        student_id: The student's user ID
+    
+    Response:
+    {
+        "success": true,
+        "data": {
+            "student_id": "user123",
+            "questions": [
+                {
+                    "question_id": "q123",
+                    "question_text": "Solve for x: 2x + 5 = 15",
+                    "options": {
+                        "A": "x = 5",
+                        "B": "x = 10",
+                        "C": "x = 15",
+                        "D": "x = 20"
+                    },
+                    "correct_answer": "A",
+                    "is_answered_correctly": true,
+                    "difficulty_level": 3,
+                    "tags": ["linear-equations", "algebra"],
+                    "sub_category": "algebra",
+                    "timestamp": "2025-11-07T12:34:56.789Z"
+                },
+                ...
+            ],
+            "count": 15,
+            "last_updated": "2025-11-07T12:34:56.789Z"
+        }
+    }
+    
+    Returns empty list if no data available
+    """
+    try:
+        # Verify user exists
+        user_db = get_user_db()
+        if not user_db.user_exists(student_id):
+            return jsonify({
+                'error': 'User not found',
+                'message': f"Student with ID {student_id} does not exist"
+            }), 404
+        
+        # Get last 15 math questions
+        analytics_db = get_analytics_db()
+        last_15_data = analytics_db.get_last_15_math_questions(student_id)
+        
+        if not last_15_data:
+            # Return empty structure if no data found
+            return jsonify({
+                'success': True,
+                'message': 'No math questions found for this student',
+                'data': {
+                    'student_id': student_id,
+                    'questions': [],
+                    'count': 0,
+                    'last_updated': None
+                }
+            }), 200
+        
+        # Get questions and format them
+        questions = last_15_data.get('questions', [])
+        
+        # Format each question with proper structure
+        formatted_questions = []
+        for q in questions:
+            formatted_q = {
+                'question_id': q.get('question_id'),
+                'question_text': q.get('question_text', ''),
+                'options': {
+                    'A': q.get('option_a', ''),
+                    'B': q.get('option_b', ''),
+                    'C': q.get('option_c', ''),
+                    'D': q.get('option_d', '')
+                },
+                'correct_answer': q.get('correct_answer', ''),
+                'is_answered_correctly': q.get('is_answered_correctly', False),
+                'difficulty_level': q.get('difficulty_level'),
+                'tags': q.get('tags', []),
+                'sub_category': q.get('sub_category'),
+                'timestamp': q.get('timestamp')
+            }
+            formatted_questions.append(formatted_q)
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'student_id': last_15_data.get('student_id', student_id),
+                'questions': formatted_questions,
+                'count': len(formatted_questions),
+                'last_updated': last_15_data.get('last_updated')
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error getting last 15 math questions for {student_id}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'error': 'Failed to get last 15 math questions',
+            'message': str(e)
+        }), 500
