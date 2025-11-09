@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List, Union
 
 from database.firebase_client import get_firestore_client
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
+import google.cloud.firestore as firestore
 
 logger = logging.getLogger(__name__)
 
@@ -129,16 +130,16 @@ class LeaderboardDatabase:
             query = self.db.collection('leaderboard')
             
             # Apply regional filters
-            if country:
-                query = query.where('region.country', '==', country)
+            if country and country.strip():
+                query = query.where(filter=firestore.FieldFilter('region.country', '==', country.strip()))
                 logger.debug(f"Applied country filter: {country}")
             
-            if state and country:
-                query = query.where('region.state', '==', state)
+            if state and state.strip():
+                query = query.where(filter=firestore.FieldFilter('region.state', '==', state.strip()))
                 logger.debug(f"Applied state filter: {state}")
             
-            if city and state and country:
-                query = query.where('region.city', '==', city)
+            if city and city.strip():
+                query = query.where(filter=firestore.FieldFilter('region.city', '==', city.strip()))
                 logger.debug(f"Applied city filter: {city}")
             
             # Map sort_by to field path
@@ -150,7 +151,7 @@ class LeaderboardDatabase:
                 'total_questions': 'performance_metric.total_questions'
             }
             
-            field_name = field_map.get(sort_by, 'performance_metric.rating')
+            field_name = field_map.get(sort_by, 'performance_metric.score')
             
             # Apply sorting
             direction = 'DESCENDING' if sort_order.lower() == 'desc' else 'ASCENDING'

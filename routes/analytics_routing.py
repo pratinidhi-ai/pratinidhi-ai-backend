@@ -15,6 +15,7 @@ from database.user_db import get_user_db
 from models.analytics_schema import QuizSubmission, TagDetail
 from database.leaderboard_db import get_leaderboard_db
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
+from routes.leaderboard_routing import update_leaderboard_db
 
 logger = logging.getLogger(__name__)
 
