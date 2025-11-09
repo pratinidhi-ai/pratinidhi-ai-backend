@@ -15,7 +15,7 @@ from math_tutor.process_video import (
 import os
 import time
 
-TEST_PROBLEM = "Solve: Explain multiple definitions of Economics given by different economists and their time periods."
+TEST_PROBLEM = "Solve: If 5x - 2y = 8 and 3x + y = 10, what is the value of y?"
 
 def demo_video_only():
     """
