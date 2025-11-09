@@ -190,3 +190,25 @@ def get_leaderboard_generic(user_id: str):
 
 # TODO: Add route to get leaderboard within the user's friend group
 # @leaderboard_bp.route('/get_leaderboard_friends/<user_id>', methods=['GET'])
+
+def update_leaderboard_db(submission_data: dict, request_id: str):
+    leaderboard_db = get_leaderboard_db()
+    userId = submission_data['student_id']
+    current_user_metrics = leaderboard_db.get_leaderboard_entity(userId)
+    if not current_user_metrics:
+        logger.error(f"[{request_id}] No leaderboard entry found for student {userId}")
+        return
+    # Update performance metrics
+    current_user_metrics.performance_metric.update_from_quiz(
+        correct=submission_data.get('number_of_correct_answers', 0),
+        total=submission_data.get('number_of_questions', 0),
+        points=sum(tag.get('score', 0) for tag in submission_data.get('tag_wise_details', []))
+    )
+    
+    # Save updated metrics back to DB
+    success = leaderboard_db.create_or_update_entity(current_user_metrics)
+    if success:
+        logger.info(f"[{request_id}] Successfully updated leaderboard for student {userId}")
+    else:
+        logger.error(f"[{request_id}] Failed to update leaderboard for student {userId}")
+    return
