@@ -13,7 +13,7 @@ from helper.middleware import authenticate_request
 
 logger = logging.getLogger(__name__)
 
-leaderboard_bp = Blueprint('leaderboard', __name__, url_prefix='/leaderboard')
+leaderboard_bp = Blueprint('leaderboard', __name__, url_prefix='/api/leaderboard')
 
 @leaderboard_bp.route('/get_leaderboard_generic/<user_id>', methods=['GET'])
 @authenticate_request

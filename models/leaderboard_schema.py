@@ -32,6 +32,7 @@ class PerformanceMetric:
     score: int = 0
     total_questions: int = 0
     total_quiz: int = 0
+    accuracy: float = 0.0  # Percentage
     
     def to_dict(self):
         return {
@@ -39,7 +40,8 @@ class PerformanceMetric:
             'correct_questions': self.correct_questions,
             'score': self.score,
             'total_questions': self.total_questions,
-            'total_quiz': self.total_quiz
+            'total_quiz': self.total_quiz,
+            'accuracy': self.calculate_accuracy()
         }
     
     @classmethod
@@ -49,7 +51,8 @@ class PerformanceMetric:
             correct_questions=data.get('correct_questions', 0),
             score=data.get('score', 0),
             total_questions=data.get('total_questions', 0),
-            total_quiz=data.get('total_quiz', 0)
+            total_quiz=data.get('total_quiz', 0),
+            accuracy=data.get('accuracy', 0.0)
         )
     
     def calculate_accuracy(self) -> float:
@@ -71,6 +74,7 @@ class PerformanceMetric:
         self.total_questions += total
         self.score += points
         self.total_quiz += 1
+        self.accuracy = self.calculate_accuracy()
 
 @dataclass
 class LeaderboardEntity:

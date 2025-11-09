@@ -90,7 +90,7 @@ def create_user():
 				performance_metric=PerformanceMetric()  # ✅ Uses dataclass defaults
 			)
 			leaderboard_db = get_leaderboard_db()
-			lb_success = leaderboard_db.add_leaderboard_entry(leaderboard_entity)
+			lb_success = leaderboard_db.create_or_update_entity(leaderboard_entity)
 			if not lb_success:
 				logger.error(f"Failed to create leaderboard entry for user {data['id']}")
 		except Exception as lb_error:

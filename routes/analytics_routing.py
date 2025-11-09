@@ -167,23 +167,24 @@ SUBJECT_TAG_TAXONOMY = {
 
 def update_leaderboard_db(submission_data: dict, request_id: str):
     leaderboard_db = get_leaderboard_db()
-    current_user_metrics = leaderboard_db.get_leaderboard_entity(submission_data['student_id'])
+    userId = submission_data['student_id']
+    current_user_metrics = leaderboard_db.get_leaderboard_entity(userId)
     if not current_user_metrics:
-        logger.error(f"[{request_id}] No leaderboard entry found for student {submission_data['student_id']}")
+        logger.error(f"[{request_id}] No leaderboard entry found for student {userId}")
         return
     # Update performance metrics
     current_user_metrics.performance_metric.update_from_quiz(
-        correct=submission_data['number_of_correct_answers'],
-        total=submission_data['number_of_questions'],
-        points=sum(tag['score'] for tag in submission_data['tag_wise_details'])
+        correct=submission_data.get('number_of_correct_answers', 0),
+        total=submission_data.get('number_of_questions', 0),
+        points=sum(tag.get('score', 0) for tag in submission_data.get('tag_wise_details', []))
     )
     
     # Save updated metrics back to DB
-    success = leaderboard_db.update_leaderboard_entity(current_user_metrics)
+    success = leaderboard_db.create_or_update_entity(current_user_metrics)
     if success:
-        logger.info(f"[{request_id}] Successfully updated leaderboard for student {submission_data['student_id']}")
+        logger.info(f"[{request_id}] Successfully updated leaderboard for student {userId}")
     else:
-        logger.error(f"[{request_id}] Failed to update leaderboard for student {submission_data['student_id']}")
+        logger.error(f"[{request_id}] Failed to update leaderboard for student {userId}")
     return
 
 def process_quiz_submission_background(submission_data: dict, request_id: str):
