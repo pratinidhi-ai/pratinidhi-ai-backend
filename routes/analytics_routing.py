@@ -13,6 +13,9 @@ from helper.middleware import authenticate_request
 from database.analytics_db import get_analytics_db
 from database.user_db import get_user_db
 from models.analytics_schema import QuizSubmission, TagDetail
+from database.leaderboard_db import get_leaderboard_db
+from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
+from routes.leaderboard_routing import update_leaderboard_db
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +166,6 @@ SUBJECT_TAG_TAXONOMY = {
     }
 }
 
-
 def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
     Background task to process quiz submission and store analytics
@@ -228,6 +230,8 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
         else:
             logger.error(f"[{request_id}] Failed to submit analytics for student {submission_data['student_id']}")
             
+        # Update leaderboard metrics
+        update_leaderboard_db(submission_data, request_id)
     except Exception as e:
         logger.error(f"[{request_id}] Error in background processing: {str(e)}")
         import traceback

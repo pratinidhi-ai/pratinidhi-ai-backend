@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from models.users_schema import User
 from typing import Dict, Any
 from database.user_db import getUserbyId, createUser, checkUserExists , _update_user_tags_quiz , get_user_db
+from database.leaderboard_db import get_leaderboard_db
+from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
 import time
 from helper.middleware import authenticate_request
 from datetime import datetime, timezone
@@ -76,6 +78,24 @@ def create_user():
 				'error': 'Internal server error',
 				'message': 'Failed to create user in database'
 			}), 500
+		try: 
+			# Add leaderboard entry for new user
+			leaderboard_entity = LeaderboardEntity(
+				user_id=data['id'],
+				region=Region(
+					country=data.get('country', ''),
+					state=data.get('state', ''),
+					city=data.get('city', '')
+				),
+				performance_metric=PerformanceMetric()  # ✅ Uses dataclass defaults
+			)
+			leaderboard_db = get_leaderboard_db()
+			lb_success = leaderboard_db.create_or_update_entity(leaderboard_entity)
+			if not lb_success:
+				logger.error(f"Failed to create leaderboard entry for user {data['id']}")
+		except Exception as lb_error:
+			# Log leaderboard creation error but continue
+			logger.error(f"Error creating leaderboard entry for user {data['id']}: {str(lb_error)}")
 		
 		# Initialize tasks for the new user
 		try:
