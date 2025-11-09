@@ -25,8 +25,9 @@ app.register_blueprint(tutor_bp)
 app.register_blueprint(task_bp, url_prefix='/api/tasks')
 app.register_blueprint(question_bp, url_prefix='/api/questions')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
-app.register_blueprint(math_tutor_bp)
+app.register_blueprint(math_tutor_bp, url_prefix='/api/math_tutor')
 app.register_blueprint(leaderboard_bp)
+
 
 # Health check endpoint
 @app.route('/', methods=['GET'])

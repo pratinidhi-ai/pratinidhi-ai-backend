@@ -15,7 +15,7 @@ from math_tutor.process_video import (
 import os
 import time
 
-TEST_PROBLEM = "Solve: The graph of the equation y = -2x + 5 has a slope of -2 and a y-intercept of 5. If a line is parallel to this graph and passes through the point (3, -1), what is the equation of the new line?"
+TEST_PROBLEM = "Solve: Explain multiple definitions of Economics given by different economists and their time periods."
 
 def demo_video_only():
     """

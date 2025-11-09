@@ -39,11 +39,13 @@ class RedisSessionManager:
         else:
             self.redis_client = redis.Redis(**connection_kwargs)
         
+        # Test connection but don't crash if Redis is unavailable
         try:
             self.redis_client.ping()
             logger.info(f"Successfully connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
-        except redis.ConnectionError as e:
-            logger.error(f"Redis connection failed: {e}")
+        except (redis.ConnectionError, TimeoutError, Exception) as e:
+            logger.warning(f"Redis connection failed (app will continue without Redis): {e}")
+            # Redis is not available, but app can still run with degraded functionality
 
     
     def _test_connection(self):
@@ -106,5 +108,13 @@ class RedisSessionManager:
         except Exception as e:
             logger.error(f"Failed to delete session {session_id} from Redis: {e}")
             return False
-        
-redis_session_manager = RedisSessionManager()
+
+# Lazy initialization - only create when first used, not on import
+redis_session_manager = None
+
+def get_redis_session_manager():
+    """Get or create the Redis session manager instance"""
+    global redis_session_manager
+    if redis_session_manager is None:
+        redis_session_manager = RedisSessionManager()
+    return redis_session_manager

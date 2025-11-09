@@ -8,7 +8,7 @@ from helper.middleware import authenticate_request
 from database.user_db import userStartSession
 from database.session_db import saveSessionSummary, _getUserSessions
 from helper.prompt_builder import PromptBuilder
-from helper.redis_sessions import redis_session_manager ,REDIS_HOST, REDIS_PORT
+from helper.redis_sessions import get_redis_session_manager, REDIS_HOST, REDIS_PORT
 
 
 sessions = {}
@@ -71,7 +71,7 @@ def start_session():
 			lecture_chapter=lecture_chapter,
 			session_system_prompt=system_prompt
 		)
-		redis_session_manager.save_session(session_id, session)
+		get_redis_session_manager().save_session(session_id, session)
 		# sessions[session_id] = session
 		return jsonify({
 			"session_id": session_id,
@@ -91,7 +91,7 @@ def session_message(session_id):
 			return jsonify({"error": "No JSON data provided"}), 400
 		
 		logger.info(f"Step 1: Getting session {session_id}")
-		session = redis_session_manager.get_session(session_id)
+		session = get_redis_session_manager().get_session(session_id)
 		
 		if not session or not session.is_active:
 			return jsonify({"error": "Session not found or ended"}), 404
@@ -125,9 +125,9 @@ def session_message(session_id):
 			session.ended_at = time.time()
 			session.summary = generate_summary(session.messages)
 			saveSessionSummary(session=session)
-			redis_session_manager.delete_session(session_id)
+			get_redis_session_manager().delete_session(session_id)
 		else:
-			redis_session_manager.save_session(session_id, session)
+			get_redis_session_manager().save_session(session_id, session)
 
 		return jsonify({
 			"ai_response": ai_response, 
@@ -144,7 +144,7 @@ def session_message(session_id):
 @authenticate_request
 def end_session(session_id):
 	try:
-		session = redis_session_manager.get_session(session_id)
+		session = get_redis_session_manager().get_session(session_id)
 		# session = sessions.get(session_id)
 		if not session:
 			return jsonify({"error": "Session not found"}), 404
@@ -164,7 +164,7 @@ def end_session(session_id):
 		if not saveSessionSummary(session=session):
 			logger.warning("Error in storing user session summary.")
 		# del sessions[session_id]
-		redis_session_manager.delete_session(session_id)
+		get_redis_session_manager().delete_session(session_id)
 		return jsonify(response_data), 200
 		
 	except Exception as e:
@@ -200,7 +200,7 @@ import time
 def redis_health():
     try:
         start_time = time.time()
-        result = redis_session_manager.redis_client.ping()
+        result = get_redis_session_manager().redis_client.ping()
         latency = (time.time() - start_time) * 1000
         
         return jsonify({
