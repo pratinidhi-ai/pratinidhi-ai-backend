@@ -82,6 +82,7 @@ def create_user():
 			# Add leaderboard entry for new user
 			leaderboard_entity = LeaderboardEntity(
 				user_id=data['id'],
+				username=data.get('name',''),
 				region=Region(
 					country=data.get('country', ''),
 					state=data.get('state', ''),

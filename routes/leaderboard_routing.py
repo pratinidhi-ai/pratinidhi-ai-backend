@@ -10,6 +10,7 @@ from typing import Dict, Any
 from database.leaderboard_db import get_leaderboard_db
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
 from helper.middleware import authenticate_request
+from database.user_db import get_user_db
 
 leaderboard_bp = Blueprint('leaderboard', __name__, url_prefix='/api/leaderboard')
 logger = logging.getLogger(__name__)
@@ -203,14 +204,49 @@ def get_leaderboard_generic(user_id: str):
 # TODO: Add route to get leaderboard within the user's friend group
 # @leaderboard_bp.route('/get_leaderboard_friends/<user_id>', methods=['GET'])
 
+def fetch_user(user_id: str) -> Dict[str, Any]:
+    user_db = get_user_db()
+    user_entity = user_db.get_user_by_id(user_id)
+    if not user_entity:
+        logger.error(f"No user found with ID {user_id}")
+        raise Exception(f"No user found with ID {user_id}")
+    return user_entity
+
+def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, Any]:
+    # create new leaderboard entry if not exists
+        logger.info(f"[{request_id}] No existing leaderboard entry for student {user_id}, creating new entry")
+        # fetch user info from user db
+        user_entity = fetch_user(user_id)
+        region = Region(
+            country=user_entity.get('country',''),
+            state=user_entity.get('state',''),
+            city=user_entity.get('city','')
+        )
+        
+        return LeaderboardEntity(
+            username=user_entity.get('name',''),
+            user_id=user_id,
+            region=region,
+            performance_metric=PerformanceMetric()
+        )
+
 def update_leaderboard_db(submission_data: dict, request_id: str):
     logger.info(f"[{request_id}] Updating leaderboard for quiz submission by student {submission_data['student_id']}")
     leaderboard_db = get_leaderboard_db()
-    userId = submission_data['student_id']
-    current_user_metrics = leaderboard_db.get_leaderboard_entity(userId)
-    if not current_user_metrics:
-        logger.error(f"[{request_id}] No leaderboard entry found for student {userId}")
+    user_id = submission_data['student_id'] 
+    current_user_metrics = leaderboard_db.get_leaderboard_entity(user_id)
+    try:
+        if not current_user_metrics:
+            current_user_metrics = add_current_user_metrics(user_id, request_id)
+    
+        if not current_user_metrics.username:
+            user_entity = fetch_user(user_id)
+            current_user_metrics.username = user_entity.get('name','')
+            
+    except Exception as e:
+        logger.error(f"[{request_id}] Error creating leaderboard entry for student {user_entity}: {str(e)}")
         return
+        
     # Update performance metrics
     current_user_metrics.performance_metric.update_from_quiz(
         correct=submission_data.get('number_of_correct_answers', 0),
@@ -221,8 +257,8 @@ def update_leaderboard_db(submission_data: dict, request_id: str):
     # Save updated metrics back to DB
     success = leaderboard_db.create_or_update_entity(current_user_metrics)
     if success:
-        logger.info(f"[{request_id}] Successfully updated leaderboard for student {userId}")
+        logger.info(f"[{request_id}] Successfully updated leaderboard for student {user_id}")
     else:
-        logger.error(f"[{request_id}] Failed to update leaderboard for student {userId}")
+        logger.error(f"[{request_id}] Failed to update leaderboard for student {user_id}")
     return
 
