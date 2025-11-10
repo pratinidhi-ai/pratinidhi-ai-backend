@@ -80,6 +80,7 @@ class PerformanceMetric:
 class LeaderboardEntity:
     """Leaderboard entry for a user"""
     user_id: str
+    username: str
     region: Region
     performance_metric: PerformanceMetric
     created_at: Optional[datetime] = None
@@ -88,6 +89,7 @@ class LeaderboardEntity:
     def to_dict(self):
         return {
             'user_id': self.user_id,
+            'username': self.username,
             'region': self.region.to_dict(),
             'performance_metric': self.performance_metric.to_dict(),
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -98,6 +100,7 @@ class LeaderboardEntity:
     def from_dict(cls, data: dict):
         return cls(
             user_id=data.get('user_id', ''),
+            username=data.get('username', ''),
             region=Region.from_dict(data.get('region', {})),
             performance_metric=PerformanceMetric.from_dict(data.get('performance_metric', {})),
             created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else None,
@@ -107,6 +110,7 @@ class LeaderboardEntity:
     def __repr__(self):
         accuracy = self.performance_metric.calculate_accuracy()
         return (f"LeaderboardEntity(user_id='{self.user_id}', "
+                f"username='{self.username}', "
                 f"region={self.region.city}, {self.region.state}, {self.region.country}, "
                 f"rating={self.performance_metric.rating}, "
                 f"score={self.performance_metric.score}, "
