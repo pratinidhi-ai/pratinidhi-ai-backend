@@ -177,7 +177,7 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
     try:
         logger.info(f"[{request_id}] Starting background processing for student {submission_data['student_id']}")
-        
+        logger.info(f"[{request_id}] Submission data: {submission_data}")
         # Convert tag_wise_details to TagDetail objects with score calculation
         tag_details = []
         difficulty_level = submission_data['difficulty_level']

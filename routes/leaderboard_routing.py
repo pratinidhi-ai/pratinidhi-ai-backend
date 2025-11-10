@@ -246,12 +246,12 @@ def update_leaderboard_db(submission_data: dict, request_id: str):
     except Exception as e:
         logger.error(f"[{request_id}] Error creating leaderboard entry for student {user_entity}: {str(e)}")
         return
-        
+    
     # Update performance metrics
     current_user_metrics.performance_metric.update_from_quiz(
         correct=submission_data.get('number_of_correct_answers', 0),
         total=submission_data.get('number_of_questions', 0),
-        points=sum(tag.get('score', 0) for tag in submission_data.get('tag_wise_details', []))
+        points=submission_data.get('number_of_correct_answers', 0) * submission_data.get('difficulty_level', 1)
     )
     
     # Save updated metrics back to DB
