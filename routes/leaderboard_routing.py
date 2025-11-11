@@ -27,9 +27,7 @@ def get_leaderboard_generic(user_id: str):
         limit: Maximum number of entries to return (default: 100, max: 500)
         sort_by: Sort by metric - 'rating', 'score', 'correct_questions', 'total_quiz' (default: 'rating')
         sort_order: Sort order - 'desc' or 'asc' (default: 'desc')
-        country: Filter by country (optional)
-        state: Filter by state (optional, requires country)
-        city: Filter by city (optional, requires state and country)
+        filter_by: Filter scope - 'city', 'state', 'country', 'none' (default: 'none')
     
     Response:
         {
@@ -58,9 +56,7 @@ def get_leaderboard_generic(user_id: str):
             ],
             "count": 100,
             "filters": {
-                "country": "India",
-                "state": "Maharashtra",
-                "city": null
+                "filter_by": "city",
             },
             "sort": {
                 "by": "correct_questions",
@@ -87,9 +83,8 @@ def get_leaderboard_generic(user_id: str):
         limit = request.args.get('limit', default=100, type=int)
         sort_by = request.args.get('sort_by', default='correct_questions', type=str)
         sort_order = request.args.get('sort_order', default='desc', type=str)
-        country = request.args.get('country', default=None, type=str)
-        state = request.args.get('state', default=None, type=str)
-        city = request.args.get('city', default=None, type=str)
+        filter_by = request.args.get('filter_by', default='none', type=str)
+
         
         # Validate limit
         if limit <= 0 or limit > 500:
@@ -113,6 +108,13 @@ def get_leaderboard_generic(user_id: str):
                 'message': 'sort_order must be either "asc" or "desc"'
             }), 400
         
+        # Validate filter_by
+        valid_filters = ['city', 'state', 'country','none']
+        if filter_by.lower() not in valid_filters:
+            return jsonify({
+                'error': 'Invalid parameter',
+                'message': f'filter_by must be one of: {", ".join(valid_filters)}'
+            }), 400
         
         # Get leaderboard from database
         leaderboard_db = get_leaderboard_db()
@@ -124,26 +126,17 @@ def get_leaderboard_generic(user_id: str):
                 'message': f'No leaderboard entity found for user {user_id}'
             }), 404
             
-        # check filter options
-        if city and user_leaderboard_entity.region.city.lower() != city.strip().lower():
-            logger.error(f"User {user_id} city '{user_leaderboard_entity.region.city}' does not match filter city '{city}'")
-            return jsonify({
-                'success': False,
-                'message': f'User city does not match filter city'
-            }), 400
-        if state and user_leaderboard_entity.region.state.lower() != state.strip().lower():
-            logger.error(f"User {user_id} state '{user_leaderboard_entity.region.state}' does not match filter state '{state}'")
-            return jsonify({
-                'success': False,
-                'message': f'User state does not match filter state'
-            }), 400
-        if country and user_leaderboard_entity.region.country.lower() != country.strip().lower():
-            logger.error(f"User {user_id} country '{user_leaderboard_entity.region.country}' does not match filter country '{country}'")
-            return jsonify({
-                'success': False,
-                'message': f'User country does not match filter country'
-            }), 400
-            
+        # Determine filter values based on filter_by parameter
+        country = None
+        state = None
+        city = None
+        
+        if filter_by.lower() == 'city':
+            city = user_leaderboard_entity.region.city
+        elif filter_by.lower() == 'state':
+            state = user_leaderboard_entity.region.state
+        elif filter_by.lower() == 'country':
+            country = user_leaderboard_entity.region.country   
         
         leaderboard_list = leaderboard_db.get_leaderboard_entity(
             limit=limit, 
@@ -181,11 +174,6 @@ def get_leaderboard_generic(user_id: str):
             'leaderboard': leaderboard_list,
             'count': len(leaderboard_list),
             'scope': scope,
-            'filters': {
-                'country': country,
-                'state': state,
-                'city': city
-            },
             'sort': {
                 'by': sort_by,
                 'order': sort_order
