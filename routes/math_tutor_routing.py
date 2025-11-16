@@ -18,10 +18,18 @@ math_tutor_bp = Blueprint('math_tutor', __name__)
 def solve_math_problem():
     """
     Solve a math problem with step-by-step solution.
+    Supports both text and image inputs.
     
-    Expected JSON body:
+    Expected JSON body (for text):
     {
         "problem": "Solve for x: 2x + 5 = 15",
+        "max_tokens": 4000 (optional),
+        "temperature": 0.3 (optional)
+    }
+    
+    Expected JSON body (for image):
+    {
+        "image": "base64_encoded_image_or_data_uri",
         "max_tokens": 4000 (optional),
         "temperature": 0.3 (optional)
     }
@@ -34,29 +42,47 @@ def solve_math_problem():
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
         
-        # Extract math problem
+        # Extract inputs - either text problem or image
         math_problem = data.get("problem")
-        if not math_problem:
-            return jsonify({"error": "Problem field is required"}), 400
+        image_data = data.get("image")
+        
+        # Validate that exactly one input type is provided
+        if not math_problem and not image_data:
+            return jsonify({
+                "error": "Either 'problem' (text) or 'image' (base64) field is required"
+            }), 400
+        
+        if math_problem and image_data:
+            return jsonify({
+                "error": "Provide either 'problem' OR 'image', not both"
+            }), 400
         
         # Extract optional parameters with defaults
         max_tokens = data.get("max_tokens", 4000)
         temperature = data.get("temperature", 0.3)
         
-        logger.info(f"Solving math problem")
+        input_type = "text" if math_problem else "image"
+        logger.info(f"Solving math problem from {input_type} input")
         
-        # Generate solution
+        # Generate solution (function handles both text and image)
         solution = generate_math_tutor_response(
             math_problem=math_problem,
+            image_data=image_data,
             max_tokens=max_tokens,
             temperature=temperature
         )
         
-        return jsonify({
+        response_data = {
             "success": True,
-            "problem": math_problem,
-            "solution": solution
-        }), 200
+            "solution": solution,
+            "input_type": input_type
+        }
+        
+        # Include the problem text in response if provided
+        if math_problem:
+            response_data["problem"] = math_problem
+        
+        return jsonify(response_data), 200
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
