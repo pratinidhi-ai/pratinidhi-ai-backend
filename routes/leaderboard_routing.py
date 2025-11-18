@@ -200,7 +200,7 @@ async def get_leaderboard_generic(
 # TODO: Add route to get leaderboard within the user's friend group
 # @router.get('/get_leaderboard_friends/{user_id}')
 
-async def fetch_user(user_id: str) -> Dict[str, Any]:
+def fetch_user(user_id: str) -> Dict[str, Any]:
     user_db = get_user_db()
     user_entity = user_db.get_user_by_id(user_id)
     if not user_entity:
@@ -208,11 +208,11 @@ async def fetch_user(user_id: str) -> Dict[str, Any]:
         raise Exception(f"No user found with ID {user_id}")
     return user_entity
 
-async def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, Any]:
+def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, Any]:
     # create new leaderboard entry if not exists
     logger.info(f"[{request_id}] No existing leaderboard entry for student {user_id}, creating new entry")
     # fetch user info from user db
-    user_entity = await fetch_user(user_id)
+    user_entity = fetch_user(user_id)
     region = Region(
         country=user_entity.get('country',''),
         state=user_entity.get('state',''),
@@ -226,17 +226,17 @@ async def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, A
         performance_metric=PerformanceMetric()
     )
 
-async def update_leaderboard_db(submission_data: dict, request_id: str):
+def update_leaderboard_db(submission_data: dict, request_id: str):
     logger.info(f"[{request_id}] Updating leaderboard for quiz submission by student {submission_data['student_id']}")
     leaderboard_db = get_leaderboard_db()
     user_id = submission_data['student_id'] 
     current_user_metrics = leaderboard_db.get_leaderboard_entity(user_id)
     try:
         if not current_user_metrics:
-            current_user_metrics = await add_current_user_metrics(user_id, request_id)
+            current_user_metrics = add_current_user_metrics(user_id, request_id)
     
         if not current_user_metrics.username:
-            user_entity = await fetch_user(user_id)
+            user_entity = fetch_user(user_id)
             current_user_metrics.username = user_entity.get('name','')
             
     except Exception as e:
