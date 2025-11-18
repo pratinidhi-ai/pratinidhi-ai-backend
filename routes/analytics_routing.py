@@ -19,7 +19,7 @@ from routes.leaderboard_routing import update_leaderboard_db
 
 logger = logging.getLogger(__name__)
 
-analytics_router = APIRouter(prefix="/analytics", tags=["analytics"])
+analytics_router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 # Complete taxonomy of all available tags organized by subject and sub_category
 # This ensures we consider tags that haven't been attempted yet

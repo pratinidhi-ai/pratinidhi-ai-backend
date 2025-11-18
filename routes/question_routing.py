@@ -13,7 +13,7 @@ import random
 
 logger = logging.getLogger(__name__)
 
-question_router = APIRouter(prefix="/question", tags=["question"])
+question_router = APIRouter(prefix="/api/question", tags=["question"])
 
 
 # Pydantic models for request validation

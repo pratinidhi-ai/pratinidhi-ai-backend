@@ -3,7 +3,7 @@ Leaderboard API Routes
 Handles all leaderboard related endpoints
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 import logging
 from typing import Dict, Any
 
@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.get('/get_leaderboard_generic/{user_id}')
-@authenticate_request
 async def get_leaderboard_generic(
     user_id: str,
+    current_user: dict = Depends(authenticate_request),  # Remove () from authenticate_request
     limit: int = Query(default=100, ge=1, le=500),
     sort_by: str = Query(default='correct_questions'),
     sort_order: str = Query(default='desc'),

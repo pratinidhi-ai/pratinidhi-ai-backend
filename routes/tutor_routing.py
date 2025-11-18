@@ -13,7 +13,7 @@ from helper.prompt_builder import PromptBuilder
 from helper.redis_sessions import get_redis_session_manager, REDIS_HOST, REDIS_PORT
 
 logger = logging.getLogger(__name__)
-tutor_router = APIRouter(prefix="/tutor", tags=["tutor"])
+tutor_router = APIRouter(prefix="/api/tutor", tags=["tutor"])
 
 
 # Pydantic models for request validation

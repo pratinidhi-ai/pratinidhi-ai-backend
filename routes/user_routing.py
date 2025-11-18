@@ -10,7 +10,7 @@ from helper.middleware import authenticate_request
 from datetime import datetime, timezone
 import logging
 
-user_router = APIRouter(prefix="/users", tags=["users"])
+user_router = APIRouter(prefix="/api/users", tags=["users"])
 logger = logging.getLogger(__name__)
 
 
