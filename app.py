@@ -53,10 +53,10 @@ try:
 
     app.include_router(user_router)
     app.include_router(tutor_router)
-    app.include_router(task_router, prefix='/api/tasks')
-    app.include_router(question_router, prefix='/api/questions')
-    app.include_router(analytics_router, prefix='/api/analytics')
-    app.include_router(math_tutor_router, prefix='/api/math_tutor')
+    app.include_router(task_router)
+    app.include_router(question_router)
+    app.include_router(analytics_router)
+    app.include_router(math_tutor_router)
     app.include_router(leaderboard_router)
     logger.info("Routers loaded successfully")
 except Exception as e:
