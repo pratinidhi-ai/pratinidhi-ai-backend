@@ -3,21 +3,38 @@ Question Bank API Routes
 Handles all question bank related endpoints
 """
 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, HTTPException, Depends, status
+from pydantic import BaseModel, Field, validator
+from typing import Dict, Any, Optional, List
 import logging
-from typing import Dict, Any
 from database.firebase_client import get_question_db_client
 from helper.middleware import authenticate_request
 import random
 
 logger = logging.getLogger(__name__)
 
-question_bp = Blueprint('question', __name__)
+question_router = APIRouter(prefix="/question", tags=["question"])
 
 
-@question_bp.route('/metadata', methods=['GET'])
-@authenticate_request
-def get_metadata():
+# Pydantic models for request validation
+class FetchQuizRequest(BaseModel):
+    subject_name: str
+    sub_category: str
+    selected_difficulty_level: int = Field(..., ge=1, le=5)
+    number_of_questions: int = Field(..., gt=0)
+    theme: Optional[str] = None
+    tags: Optional[List[str]] = Field(None, max_items=10)
+    tag: Optional[str] = None
+    
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v is not None and not isinstance(v, list):
+            raise ValueError('tags must be an array')
+        return v
+
+
+@question_router.get('/metadata')
+async def get_metadata(user: dict = Depends(authenticate_request)):
     """
     Get all question bank metadata
     Returns all documents from 'question_bank' collection with their statistics
@@ -41,10 +58,13 @@ def get_metadata():
         
         if db is None:
             logger.error("Firestore client is not initialized")
-            return jsonify({
-                'error': 'Database connection failed',
-                'message': 'Unable to connect to question bank database'
-            }), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Database connection failed',
+                    'message': 'Unable to connect to question bank database'
+                }
+            )
         
         # Fetch all documents from question_bank collection
         docs = db.collection('question_bank').stream()
@@ -68,23 +88,30 @@ def get_metadata():
         
         logger.info(f"Retrieved metadata for {doc_count} question bank categories")
         
-        return jsonify({
+        return {
             'success': True,
             'metadata': metadata,
             'total_categories': doc_count
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching question bank metadata: {str(e)}")
-        return jsonify({
-            'error': 'Failed to fetch metadata',
-            'message': str(e)
-        }), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Failed to fetch metadata',
+                'message': str(e)
+            }
+        )
 
 
-@question_bp.route('/fetch-quiz', methods=['POST'])
-@authenticate_request
-def fetch_quiz():
+@question_router.post('/fetch-quiz')
+async def fetch_quiz(
+    request_data: FetchQuizRequest,
+    user: dict = Depends(authenticate_request)
+):
     """
     Fetch quiz questions based on criteria
     
@@ -109,64 +136,27 @@ def fetch_quiz():
     }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required parameters
-        required_params = ['subject_name', 'sub_category', 'selected_difficulty_level', 'number_of_questions']
-        missing_params = [param for param in required_params if param not in data]
-        
-        if missing_params:
-            return jsonify({
-                'error': 'Missing required parameters',
-                'missing': missing_params
-            }), 400
-        
-        # Extract parameters
-        subject_name = data['subject_name']
-        sub_category = data['sub_category']
-        difficulty_level = data['selected_difficulty_level']
-        num_questions = data['number_of_questions']
-        theme = data.get('theme')  # Optional
-        tags = data.get('tags')  # Optional - array of tags
-        tag = data.get('tag')  # Optional - single tag
-        
-        # Validate number_of_questions
-        try:
-            num_questions = int(num_questions)
-            if num_questions <= 0:
-                raise ValueError("Must be positive")
-        except (ValueError, TypeError):
-            return jsonify({
-                'error': 'Invalid number_of_questions',
-                'message': 'Must be a positive integer'
-            }), 400
-        
-        # Validate difficulty_level
-        try:
-            difficulty_level = int(difficulty_level)
-            if difficulty_level not in [1, 2, 3, 4, 5]:
-                raise ValueError("Must be between 1 and 5")
-        except (ValueError, TypeError):
-            return jsonify({
-                'error': 'Invalid difficulty level',
-                'message': 'Must be an integer between 1 and 5'
-            }), 400
+        # Extract parameters from validated model
+        subject_name = request_data.subject_name
+        sub_category = request_data.sub_category
+        difficulty_level = request_data.selected_difficulty_level
+        num_questions = request_data.number_of_questions
+        theme = request_data.theme
+        tags = request_data.tags
+        tag = request_data.tag
         
         # Get database client
         db = get_question_db_client()
         
         if db is None:
             logger.error("Firestore client is not initialized")
-            return jsonify({
-                'error': 'Database connection failed',
-                'message': 'Unable to connect to question bank database'
-            }), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Database connection failed',
+                    'message': 'Unable to connect to question bank database'
+                }
+            )
         
         # Build the query path
         doc_path = f"{subject_name}|{sub_category}"
@@ -183,21 +173,7 @@ def fetch_quiz():
             questions_ref = questions_ref.where('theme', '==', theme)
         
         # Apply tag filters if provided
-        # Note: Cannot use both 'tags' array and 'tag' single value simultaneously
         if tags:
-            # Validate tags is a list and has max 10 items
-            if not isinstance(tags, list):
-                return jsonify({
-                    'error': 'Invalid tags parameter',
-                    'message': 'tags must be an array'
-                }), 400
-            
-            if len(tags) > 10:
-                return jsonify({
-                    'error': 'Invalid tags parameter',
-                    'message': 'Maximum 10 tags allowed'
-                }), 400
-            
             # Use array-contains-any to match ANY of the provided tags
             questions_ref = questions_ref.where('tags', 'array_contains_any', tags)
         elif tag:
@@ -205,7 +181,6 @@ def fetch_quiz():
             questions_ref = questions_ref.where('tags', 'array_contains', tag)
 
         # Fetch questions using random_value for randomization
-        # Use a two-pass approach to ensure we get enough questions
         rand_value = random.random()
         
         # First pass: Get questions with random_value >= rand_value
@@ -271,26 +246,34 @@ def fetch_quiz():
         logger.info(f"Fetched {len(questions)} questions for {subject_name}|{sub_category} (difficulty: {difficulty_level})")
         
         if len(questions) == 0:
-            return jsonify({
-                'success': False,
-                'message': 'No questions found matching the criteria',
-                'questions': [],
-                'count': 0,
-                'filters': filters_applied
-            }), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'success': False,
+                    'message': 'No questions found matching the criteria',
+                    'questions': [],
+                    'count': 0,
+                    'filters': filters_applied
+                }
+            )
         
-        return jsonify({
+        return {
             'success': True,
             'questions': questions,
             'count': len(questions),
             'filters': filters_applied
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching quiz questions: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to fetch questions',
-            'message': str(e)
-        }), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Failed to fetch questions',
+                'message': str(e)
+            }
+        )
