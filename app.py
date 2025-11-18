@@ -1,17 +1,19 @@
-from flask import Flask , jsonify , json , request
+from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
 import os
 
-from database.user_db import getUsers, checkUserExists , getUserbyId
+from database.user_db import getUsers, checkUserExists, getUserbyId
 from helper.middleware import authenticate_request
-from routes.user_routing import user_bp
-from routes.tutor_routing import tutor_bp
-from routes.task_routing import task_bp
-from routes.question_routing import question_bp
-from routes.analytics_routing import analytics_bp
-from routes.math_tutor_routing import math_tutor_bp
-from routes.leaderboard_routing import leaderboard_bp
+from routes.user_routing import user_router
+from routes.tutor_routing import tutor_router
+from routes.task_routing import task_router
+from routes.question_routing import question_router
+from routes.analytics_routing import analytics_router
+from routes.math_tutor_routing import math_tutor_router
+from routes.leaderboard_routing import leaderboard_router
 
 # Configure logging for the entire application
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -28,60 +30,71 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.info(f"Application starting with log level: {log_level}")
 
-app = Flask(__name__)
+app = FastAPI(title="User API", version="1.0.0")
 
-# Also configure Flask's built-in logger
-app.logger.setLevel(getattr(logging, log_level, logging.INFO))
-app.logger.info("Flask app initialized")
+# Add CORS middleware
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
+)
 
-@app.errorhandler(404)
-def not_found(error):
-	logger.warning(f"404 Not Found: {request.path}")
-	return {'error': 'Not found', 'message': 'The requested resource was not found'}, 404
+logger.info("FastAPI app initialized")
 
-@app.errorhandler(500)
-def internal_error(error):
-	logger.error(f"500 Internal Server Error: {request.path}", exc_info=True)
-	return {'error': 'Internal server error', 'message': 'Something went wrong'}, 500
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: HTTPException):
+	logger.warning(f"404 Not Found: {request.url.path}")
+	return JSONResponse(
+		status_code=404,
+		content={'error': 'Not found', 'message': 'The requested resource was not found'}
+	)
 
-app.register_blueprint(user_bp)
-app.register_blueprint(tutor_bp)
-app.register_blueprint(task_bp, url_prefix='/api/tasks')
-app.register_blueprint(question_bp, url_prefix='/api/questions')
-app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
-app.register_blueprint(math_tutor_bp, url_prefix='/api/math_tutor')
-app.register_blueprint(leaderboard_bp)
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+	logger.error(f"500 Internal Server Error: {request.url.path}", exc_info=True)
+	return JSONResponse(
+		status_code=500,
+		content={'error': 'Internal server error', 'message': 'Something went wrong'}
+	)
+
+# Include routers
+app.include_router(user_router)
+app.include_router(tutor_router)
+app.include_router(task_router, prefix='/api/tasks')
+app.include_router(question_router, prefix='/api/questions')
+app.include_router(analytics_router, prefix='/api/analytics')
+app.include_router(math_tutor_router, prefix='/api/math_tutor')
+app.include_router(leaderboard_router)
 
 
 # Health check endpoint
-@app.route('/', methods=['GET'])
-def health_check():
+@app.get('/')
+async def health_check():
 	logger.info("Health check endpoint called")
-	return {'status': 'healthy', 'service': 'user-api'}, 200
+	return {'status': 'healthy', 'service': 'user-api'}
 
 
-@app.route('/check-user-exists' , methods = ['GET'])
-@authenticate_request
-def check_user_exists():
-	arguments = request.args
-	_uid = arguments.get('uid')
-	logger.info(f"Checking user existence for uid: {_uid}")
-	if _uid is None:
+@app.get('/check-user-exists')
+async def check_user_exists(uid: str = Query(None, description="User ID to check")):
+	logger.info(f"Checking user existence for uid: {uid}")
+	if uid is None:
 		logger.warning("check-user-exists called without uid parameter")
-		return jsonify({'error': 'uid parameter is required'}), 400
-	exists = checkUserExists(user_id=_uid)
-	logger.info(f"User {_uid} exists: {exists}")
-	return jsonify({'exists': exists}), 200
+		raise HTTPException(status_code=400, detail='uid parameter is required')
+	exists = checkUserExists(user_id=uid)
+	logger.info(f"User {uid} exists: {exists}")
+	return {'exists': exists}
 
 
-@app.route('/users' , methods = ['GET'])
-@authenticate_request
-def users():
+@app.get('/users')
+async def users():
 	logger.info("Fetching all users")
 	user_list = getUsers()
 	logger.info(f"Retrieved {len(user_list)} users")
-	return jsonify(user_list)
+	return user_list
 
 if __name__ == "__main__":
-	logger.info("Starting Flask application on 0.0.0.0:8080")
-	app.run(host='0.0.0.0',port=8080)	
+	import uvicorn
+	logger.info("Starting FastAPI application on 0.0.0.0:8080")
+	uvicorn.run(app, host='0.0.0.0', port=8080)
