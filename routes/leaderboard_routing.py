@@ -3,7 +3,7 @@ Leaderboard API Routes
 Handles all leaderboard related endpoints
 """
 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, HTTPException, Query
 import logging
 from typing import Dict, Any
 
@@ -12,13 +12,19 @@ from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Regi
 from helper.middleware import authenticate_request
 from database.user_db import get_user_db
 
-leaderboard_bp = Blueprint('leaderboard', __name__, url_prefix='/api/leaderboard')
+router = APIRouter(prefix='/api/leaderboard', tags=['Leaderboard'])
 logger = logging.getLogger(__name__)
 
 
-@leaderboard_bp.route('/get_leaderboard_generic/<user_id>', methods=['GET'])
+@router.get('/get_leaderboard_generic/{user_id}')
 @authenticate_request
-def get_leaderboard_generic(user_id: str):
+async def get_leaderboard_generic(
+    user_id: str,
+    limit: int = Query(default=100, ge=1, le=500),
+    sort_by: str = Query(default='correct_questions'),
+    sort_order: str = Query(default='desc'),
+    filter_by: str = Query(default='none')
+):
     """
     Get leaderboard entities with filtering and sorting, and accomodate current user 
     If user is not in top N, then remove N-1 and add them at the end of the list.
@@ -74,57 +80,58 @@ def get_leaderboard_generic(user_id: str):
         logger.info(f"Getting leaderboard for user {user_id} with filters and sorting")
         # Validate user_id
         if not user_id or user_id.strip() == '':
-            return jsonify({
-                'error': 'Invalid parameter',
-                'message': 'user_id cannot be empty'
-            }), 400
-        
-        # Get query parameters
-        limit = request.args.get('limit', default=100, type=int)
-        sort_by = request.args.get('sort_by', default='correct_questions', type=str)
-        sort_order = request.args.get('sort_order', default='desc', type=str)
-        filter_by = request.args.get('filter_by', default='none', type=str)
-
-        
-        # Validate limit
-        if limit <= 0 or limit > 500:
-            return jsonify({
-                'error': 'Invalid parameter',
-                'message': 'limit must be between 1 and 500'
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    'error': 'Invalid parameter',
+                    'message': 'user_id cannot be empty'
+                }
+            )
         
         # Validate sort_by
         valid_sort_fields = ['rating', 'score', 'correct_questions', 'total_quiz', 'total_questions']
         if sort_by not in valid_sort_fields:
-            return jsonify({
-                'error': 'Invalid parameter',
-                'message': f'sort_by must be one of: {", ".join(valid_sort_fields)}'
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    'error': 'Invalid parameter',
+                    'message': f'sort_by must be one of: {", ".join(valid_sort_fields)}'
+                }
+            )
         
         # Validate sort_order
         if sort_order.lower() not in ['asc', 'desc']:
-            return jsonify({
-                'error': 'Invalid parameter',
-                'message': 'sort_order must be either "asc" or "desc"'
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    'error': 'Invalid parameter',
+                    'message': 'sort_order must be either "asc" or "desc"'
+                }
+            )
         
         # Validate filter_by
         valid_filters = ['city', 'state', 'country','none']
         if filter_by.lower() not in valid_filters:
-            return jsonify({
-                'error': 'Invalid parameter',
-                'message': f'filter_by must be one of: {", ".join(valid_filters)}'
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    'error': 'Invalid parameter',
+                    'message': f'filter_by must be one of: {", ".join(valid_filters)}'
+                }
+            )
         
         # Get leaderboard from database
         leaderboard_db = get_leaderboard_db()
         user_leaderboard_entity = leaderboard_db.get_leaderboard_entity(user_id=user_id)
         if not user_leaderboard_entity:
             logger.error(f"No leaderboard entity found for user {user_id}")
-            return jsonify({
-                'success': False,
-                'message': f'No leaderboard entity found for user {user_id}'
-            }), 404
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    'success': False,
+                    'message': f'No leaderboard entity found for user {user_id}'
+                }
+            )
             
         # Determine filter values based on filter_by parameter
         country = None
@@ -139,12 +146,8 @@ def get_leaderboard_generic(user_id: str):
             country = user_leaderboard_entity.region.country   
         
         leaderboard_list = leaderboard_db.get_leaderboard_entity(
-            limit=limit, 
-            country=country,
-            state=state,
-            city=city,
-            sort_by=sort_by,
-            sort_order=sort_order
+            limit=limit, country=country, state=state, city=city,
+            sort_by=sort_by, sort_order=sort_order
         )
         
         logger.info(f"Leaderboard entries retrieved: {leaderboard_list}")
@@ -169,7 +172,7 @@ def get_leaderboard_generic(user_id: str):
             leaderboard_list = leaderboard_list[:limit-1]  # Keep only top N-1
             leaderboard_list.append(user_leaderboard_entity)  # Add current user at the end
 
-        return jsonify({
+        return {
             'success': True,
             'leaderboard': leaderboard_list,
             'count': len(leaderboard_list),
@@ -178,21 +181,26 @@ def get_leaderboard_generic(user_id: str):
                 'by': sort_by,
                 'order': sort_order
             }
-        }), 200
+        }
  
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting leaderboard entities: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get leaderboard',
-            'message': str(e)
-        }), 500
+        raise HTTPException(
+            status_code=500,
+            detail={
+                'error': 'Failed to get leaderboard',
+                'message': str(e)
+            }
+        )
 
 # TODO: Add route to get leaderboard within the user's friend group
-# @leaderboard_bp.route('/get_leaderboard_friends/<user_id>', methods=['GET'])
+# @router.get('/get_leaderboard_friends/{user_id}')
 
-def fetch_user(user_id: str) -> Dict[str, Any]:
+async def fetch_user(user_id: str) -> Dict[str, Any]:
     user_db = get_user_db()
     user_entity = user_db.get_user_by_id(user_id)
     if not user_entity:
@@ -200,39 +208,39 @@ def fetch_user(user_id: str) -> Dict[str, Any]:
         raise Exception(f"No user found with ID {user_id}")
     return user_entity
 
-def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, Any]:
+async def add_current_user_metrics(user_id: str, request_id: str) -> Dict[str, Any]:
     # create new leaderboard entry if not exists
-        logger.info(f"[{request_id}] No existing leaderboard entry for student {user_id}, creating new entry")
-        # fetch user info from user db
-        user_entity = fetch_user(user_id)
-        region = Region(
-            country=user_entity.get('country',''),
-            state=user_entity.get('state',''),
-            city=user_entity.get('city','')
-        )
-        
-        return LeaderboardEntity(
-            username=user_entity.get('name',''),
-            user_id=user_id,
-            region=region,
-            performance_metric=PerformanceMetric()
-        )
+    logger.info(f"[{request_id}] No existing leaderboard entry for student {user_id}, creating new entry")
+    # fetch user info from user db
+    user_entity = await fetch_user(user_id)
+    region = Region(
+        country=user_entity.get('country',''),
+        state=user_entity.get('state',''),
+        city=user_entity.get('city','')
+    )
+    
+    return LeaderboardEntity(
+        username=user_entity.get('name',''),
+        user_id=user_id,
+        region=region,
+        performance_metric=PerformanceMetric()
+    )
 
-def update_leaderboard_db(submission_data: dict, request_id: str):
+async def update_leaderboard_db(submission_data: dict, request_id: str):
     logger.info(f"[{request_id}] Updating leaderboard for quiz submission by student {submission_data['student_id']}")
     leaderboard_db = get_leaderboard_db()
     user_id = submission_data['student_id'] 
     current_user_metrics = leaderboard_db.get_leaderboard_entity(user_id)
     try:
         if not current_user_metrics:
-            current_user_metrics = add_current_user_metrics(user_id, request_id)
+            current_user_metrics = await add_current_user_metrics(user_id, request_id)
     
         if not current_user_metrics.username:
-            user_entity = fetch_user(user_id)
+            user_entity = await fetch_user(user_id)
             current_user_metrics.username = user_entity.get('name','')
             
     except Exception as e:
-        logger.error(f"[{request_id}] Error creating leaderboard entry for student {user_entity}: {str(e)}")
+        logger.error(f"[{request_id}] Error creating leaderboard entry for student {user_id}: {str(e)}")
         return
     
     # Update performance metrics
