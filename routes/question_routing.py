@@ -14,7 +14,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-question_router = APIRouter(prefix="/api/question", tags=["question"])
+question_router = APIRouter(prefix="/api/questions", tags=["questions"])
 
 
 # Pydantic models for request validation

@@ -14,7 +14,7 @@ from math_tutor.process_video import process_knolify_video
 
 logger = logging.getLogger(__name__)
 
-math_tutor_router = APIRouter(prefix="/api/math-tutor", tags=["math-tutor"])
+math_tutor_router = APIRouter(prefix="/api/math_tutor", tags=["math_tutor"])
 
 
 # Pydantic models for request/response

@@ -7,7 +7,7 @@ backlog = 2048
 
 # Worker processes
 workers = int(os.getenv("GUNICORN_WORKERS", "2"))
-worker_class = "sync"
+worker_class = "uvicorn.workers.UvicornWorker"  # Required for FastAPI
 worker_connections = 1000
 timeout = 120
 keepalive = 5
