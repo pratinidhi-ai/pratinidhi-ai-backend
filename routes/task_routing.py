@@ -3,10 +3,11 @@ Task Management API Routes
 Handles all task-related endpoints for SAT preparation
 """
 
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, HTTPException, Depends, status, Header
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
 from datetime import datetime, timezone
-from typing import Dict, Any
-from database.user_db import get_user_db # Need user_db functions
+from database.user_db import get_user_db
 from database.task_db import get_task_db
 from helper.task_assignment import assign_weekly_tasks, should_assign_new_tasks
 import traceback
@@ -28,26 +29,40 @@ from database.firebase_client import get_firestore_client
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-task_bp = Blueprint('task', __name__)
+task_router = APIRouter(prefix="/api/task", tags=["tasks"])
 
 
+# Pydantic models for request validation
+class CompleteTaskRequest(BaseModel):
+    score: Optional[float] = None
+    attempt_data: Dict[str, Any] = Field(default_factory=dict)
 
-@task_bp.route('/admin/assign-weekly', methods=['POST'])
-async def assign_all_weekly_tasks():
+
+class UpdateTaskAttemptRequest(BaseModel):
+    score: Optional[float] = None
+    # Additional fields will be captured in the endpoint
+
+
+@task_router.post('/admin/assign-weekly', status_code=status.HTTP_200_OK)
+def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
     """
     ADMIN Endpoint: Triggers weekly task assignment for all active users
     Requires a valid X-Admin-API-Key header.
     """
-    # 1. Authenticate the request using the Admin API Key
-    provided_key = request.headers.get('X-Admin-API-Key')
     expected_key = os.environ.get('ADMIN_API_KEY')
 
     if not expected_key:
         logger.info("ADMIN_API_KEY environment variable is not set!")
-        return jsonify({'error': 'Configuration error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Configuration error'}
+        )
 
-    if not provided_key or provided_key != expected_key:
-        return jsonify({'error': 'Unauthorized'}), 403 
+    if not x_admin_api_key or x_admin_api_key != expected_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={'error': 'Unauthorized'}
+        )
 
     logger.info("Admin: Starting weekly task assignment process...")
     processed_count = 0
@@ -58,13 +73,11 @@ async def assign_all_weekly_tasks():
     try:
         user_db = get_user_db()
         task_db = get_task_db()
-        task_service = TaskService() # No firestore_client needed if using DB classes
+        task_service = TaskService()
 
-        # 2. Get all active users
         all_users_data = user_db.get_users(active_only=True)
         logger.info(f"Admin: Found {len(all_users_data)} active users.")
 
-        # 3. Loop through each user
         for user_data in all_users_data:
             user_id = user_data.get('id')
             if not user_id:
@@ -75,161 +88,151 @@ async def assign_all_weekly_tasks():
             try:
                 user = User.from_dict(user_data)
 
-                # 4. Check if tasks should be assigned for this user
                 if should_assign_new_tasks(user):
                     logger.info(f"Admin: Assigning tasks for user {user.id}...")
-                    # 5. Assign tasks (This modifies user.current_week_start in memory)
-                    new_tasks = assign_weekly_tasks(user) # Use the core logic
+                    new_tasks = assign_weekly_tasks(user)
 
                     if new_tasks:
-                        # 6. Save new tasks to DB
                         save_success = task_db.create_tasks_batch(new_tasks)
                         if not save_success:
-                             raise Exception(f"Failed to save tasks batch for user {user.id}")
+                            raise Exception(f"Failed to save tasks batch for user {user.id}")
 
-                        # 7. Update user's week start in DB
                         update_success = user_db.update_user(user.id, {
                             'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
                         })
                         if not update_success:
-                             raise Exception(f"Failed to update current_week_start for user {user.id}")
+                            raise Exception(f"Failed to update current_week_start for user {user.id}")
 
                         logger.info(f"Admin: Successfully assigned {len(new_tasks)} tasks to user {user.id}.")
                         processed_count += 1
                     else:
-                        logger.info(f"Admin: No new tasks generated for user {user.id} (assign_weekly_tasks returned empty list).")
-                        # Still update week start if it changed, even if no tasks
-                        update_success = user_db.update_user(user.id, {
+                        logger.info(f"Admin: No new tasks generated for user {user.id}.")
+                        user_db.update_user(user.id, {
                             'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
                         })
-                        skipped_count += 1 # Count as skipped if no tasks generated
-
+                        skipped_count += 1
                 else:
-                    # logger.info(f"Admin: Skipping user {user.id} (tasks already assigned for this week).")
                     skipped_count += 1
 
             except Exception as user_error:
                 logger.info(f"Admin: Error processing user {user_id}: {str(user_error)}")
                 error_count += 1
                 errors_list.append({'user_id': user_id, 'error': str(user_error)})
-                # Continue to the next user
 
-        # 8. Return summary response
         summary_message = f"Weekly task assignment finished. Processed: {processed_count}, Skipped: {skipped_count}, Errors: {error_count}."
         logger.info(f"Admin: {summary_message}")
-        return jsonify({
+        return {
             'success': True,
             'message': summary_message,
             'processed_users': processed_count,
             'skipped_users': skipped_count,
             'users_with_errors': error_count,
             'error_details': errors_list
-        }), 200
+        }
 
     except Exception as e:
         logger.error(f"Admin: Critical error during weekly task assignment: {e}")
         logger.error(traceback.format_exc())
-        return jsonify({'error': 'Internal server error during task assignment'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error during task assignment'}
+        )
 
 
-@task_bp.route('/user/<user_id>/tasks', methods=['GET'])
-@authenticate_request
-def get_user_tasks(user_id: str):
+@task_router.get('/user/{user_id}/tasks', status_code=status.HTTP_200_OK)
+def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
     """Get all current tasks for a user"""
     try:
         firestore_client = get_firestore_client()
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
+        user_obj = User.from_dict(user_doc.to_dict())
         
-        # Get task service and fetch tasks
         task_service = TaskService(firestore_client)
-        tasks =  task_service.fetch_current_tasks(user)
+        tasks = task_service.fetch_current_tasks(user_obj)
         
-        return jsonify({
+        return {
             'success': True,
             'tasks': [task.to_dict() for task in tasks],
             'count': len(tasks)
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting user tasks: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/tasks/current', methods=['GET'])
-@authenticate_request
-def get_current_task(user_id: str):
+
+@task_router.get('/user/{user_id}/tasks/current', status_code=status.HTTP_200_OK)
+def get_current_task(user_id: str, user: dict = Depends(authenticate_request)):
     """Get the current (next) task for a user"""
     try:
         firestore_client = get_firestore_client()
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
-        
-        # Fetch current task
-        current_task =  fetch_current_task_for_user(user, firestore_client)
+        user_obj = User.from_dict(user_doc.to_dict())
+        current_task = fetch_current_task_for_user(user_obj, firestore_client)
         
         if not current_task:
-            return jsonify({
+            return {
                 'success': True,
                 'current_task': None,
                 'message': 'No tasks available'
-            }), 200
+            }
         
-        return jsonify({
+        return {
             'success': True,
             'current_task': current_task.to_dict()
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error getting current task: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/tasks/<task_id>/complete', methods=['POST'])
-@authenticate_request
-def mark_task_completed(user_id: str, task_id: str):
+
+@task_router.post('/user/{user_id}/tasks/{task_id}/complete', status_code=status.HTTP_200_OK)
+def mark_task_completed(
+    user_id: str,
+    task_id: str,
+    request_data: CompleteTaskRequest,
+    user: dict = Depends(authenticate_request)
+):
     """Mark a task as completed"""
     try:
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
         
-        # Get additional data from request
-        data = request.get_json()
+        score = request_data.score
+        attempt_data = request_data.attempt_data
         
-        if not isinstance(data, dict):
-            return jsonify({'error': 'Invalid request', 'message': 'Request body must be a JSON object.'}), 400
-
-        score = data.get('score')
-        attempt_data = data.get('attempt_data', {})
-
-        # New: Validate data types if fields are present
-        if score is not None and not isinstance(score, (int, float)):
-            return jsonify({'error': 'Invalid data type', 'message': 'Field "score" must be a number.'}), 400
-        
-        if 'attempt_data' in data and not isinstance(attempt_data, dict):
-            return jsonify({'error': 'Invalid data type', 'message': 'Field "attempt_data" must be an object.'}), 400
-
-        score = data.get('score')
-        attempt_data = data.get('attempt_data', {})
-        
-        # Update task attempt info if provided
         if score is not None or attempt_data:
-             task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
+            task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
         
-        # Mark task as completed
-        success =  task_service.mark_task_completed(user_id, task_id)
+        success = task_service.mark_task_completed(user_id, task_id)
         
         if success:
-            # Check if this was an AI tutorial task and mark chapter as completed
             task_ref = (firestore_client.collection('users')
                        .document(user_id)
                        .collection('tasks')
@@ -238,225 +241,266 @@ def mark_task_completed(user_id: str, task_id: str):
             task_doc = task_ref.get()
             if task_doc.exists:
                 task_data = task_doc.to_dict()
-                task = Task.from_dict(task_data)
+                task_obj = Task.from_dict(task_data)
                 
-                if task.type_of_task == TaskType.AI_TUTORIAL:
-                    chapter_id = task.ai_tutorial_related_attributes.get('chapter_id')
+                if task_obj.type_of_task == TaskType.AI_TUTORIAL:
+                    chapter_id = task_obj.ai_tutorial_related_attributes.get('chapter_id')
                     if chapter_id:
-                        # Fetch user and mark chapter completed
                         user_doc = firestore_client.collection('users').document(user_id).get()
                         if user_doc.exists:
-                            user = User.from_dict(user_doc.to_dict())
-                            task_service.mark_chapter_completed(user, chapter_id)
+                            user_obj = User.from_dict(user_doc.to_dict())
+                            task_service.mark_chapter_completed(user_obj, chapter_id)
             
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'Task marked as completed'
-            }), 200
+            }
         else:
-            return jsonify({'error': 'Failed to mark task as completed'}), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={'error': 'Failed to mark task as completed'}
+            )
             
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error marking task completed: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/tasks/<task_id>/attempt', methods=['POST'])
-@authenticate_request
-def update_task_attempt(user_id: str, task_id: str):
+
+@task_router.post('/user/{user_id}/tasks/{task_id}/attempt', status_code=status.HTTP_200_OK)
+def update_task_attempt(
+    user_id: str,
+    task_id: str,
+    request_data: Dict[str, Any],
+    user: dict = Depends(authenticate_request)
+):
     """Update task attempt information"""
     try:
-        data = request.get_json()
-        if not isinstance(data, dict):
-            return jsonify({'error': 'Invalid request', 'message': 'Request body must be a JSON object.'}), 400
-
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
         
-        score = data.get('score')
-        attempt_data = {k: v for k, v in data.items() if k != 'score'}
+        score = request_data.get('score')
+        attempt_data = {k: v for k, v in request_data.items() if k != 'score'}
 
-        # New: Validate score data type
         if score is not None and not isinstance(score, (int, float)):
-            return jsonify({'error': 'Invalid data type', 'message': 'Field "score" must be a number.'}), 400
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={'error': 'Invalid data type', 'message': 'Field "score" must be a number.'}
+            )
         
-        
-        firestore_client = get_firestore_client()
-        task_service = TaskService(firestore_client)
-        
-        success =  task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
+        success = task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
         
         if success:
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'Task attempt updated'
-            }), 200
+            }
         else:
-            return jsonify({'error': 'Failed to update task attempt'}), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={'error': 'Failed to update task attempt'}
+            )
             
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error updating task attempt: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/dashboard', methods=['GET'])
-@authenticate_request
-def get_user_dashboard(user_id: str):
+
+@task_router.get('/user/{user_id}/dashboard', status_code=status.HTTP_200_OK)
+def get_user_dashboard(user_id: str, user: dict = Depends(authenticate_request)):
     """Get comprehensive dashboard data for a user"""
     try:
         firestore_client = get_firestore_client()
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
+        user_obj = User.from_dict(user_doc.to_dict())
+        dashboard_data = get_user_dashboard_data(user_obj, firestore_client)
         
-        # Get dashboard data
-        dashboard_data =  get_user_dashboard_data(user, firestore_client)
-        
-        return jsonify({
+        return {
             'success': True,
             'dashboard': dashboard_data
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error getting user dashboard: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/tasks/initialize', methods=['POST'])
-@authenticate_request
-def initialize_tasks(user_id: str):
-    """Initialize tasks for a user (useful for new users or manual initialization)"""
+
+@task_router.post('/user/{user_id}/tasks/initialize', status_code=status.HTTP_200_OK)
+def initialize_tasks(user_id: str, user: dict = Depends(authenticate_request)):
+    """Initialize tasks for a user"""
     try:
         firestore_client = get_firestore_client()
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
+        user_obj = User.from_dict(user_doc.to_dict())
+        tasks = initialize_user_tasks(user_obj, firestore_client)
         
-        # Initialize tasks
-        tasks =  initialize_user_tasks(user, firestore_client)
-        
-        return jsonify({
+        return {
             'success': True,
             'message': f'Initialized {len(tasks)} tasks for user',
             'tasks': [task.to_dict() for task in tasks]
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error initializing tasks: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/chapters/<chapter_id>/complete', methods=['POST'])
-@authenticate_request
-def mark_chapter_completed(user_id: str, chapter_id: str):
+
+@task_router.post('/user/{user_id}/chapters/{chapter_id}/complete', status_code=status.HTTP_200_OK)
+def mark_chapter_completed(user_id: str, chapter_id: str, user: dict = Depends(authenticate_request)):
     """Mark a chapter as completed for a user"""
     try:
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
-        
-        # Mark chapter as completed
-        success =  task_service.mark_chapter_completed(user, chapter_id)
+        user_obj = User.from_dict(user_doc.to_dict())
+        success = task_service.mark_chapter_completed(user_obj, chapter_id)
         
         if success:
-            return jsonify({
+            return {
                 'success': True,
                 'message': f'Chapter {chapter_id} marked as completed'
-            }), 200
+            }
         else:
-            return jsonify({'error': 'Failed to mark chapter as completed'}), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={'error': 'Failed to mark chapter as completed'}
+            )
             
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error marking chapter completed: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-@task_bp.route('/user/<user_id>/progress', methods=['GET'])
-@authenticate_request
-def get_user_progress(user_id: str):
-    """Get user's overall progress including completed chapters and task analytics"""
+
+@task_router.get('/user/{user_id}/progress', status_code=status.HTTP_200_OK)
+def get_user_progress(user_id: str, user: dict = Depends(authenticate_request)):
+    """Get user's overall progress"""
     try:
         firestore_client = get_firestore_client()
         
-        # Fetch user from Firestore
         user_doc = firestore_client.collection('users').document(user_id).get()
         if not user_doc.exists:
-            return jsonify({'error': 'User not found'}), 404
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'User not found'}
+            )
         
-        user = User.from_dict(user_doc.to_dict())
+        user_obj = User.from_dict(user_doc.to_dict())
+        dashboard_data = get_user_dashboard_data(user_obj, firestore_client)
         
-        # Get dashboard data which includes analytics
-        dashboard_data =  get_user_dashboard_data(user, firestore_client)
-        
-        # Add chapter progress
-        total_chapters = 7  # Based on lecture_notes.json
-        completed_chapters = len(user.completed_chapters)
+        total_chapters = 7
+        completed_chapters = len(user_obj.completed_chapters)
         chapter_progress = (completed_chapters / total_chapters) * 100 if total_chapters > 0 else 0
         
-        return jsonify({
+        return {
             'success': True,
             'progress': {
                 'chapters': {
                     'completed': completed_chapters,
                     'total': total_chapters,
                     'percentage': round(chapter_progress, 2),
-                    'completed_list': user.completed_chapters,
-                    'next_chapter': user.get_next_chapter()
+                    'completed_list': user_obj.completed_chapters,
+                    'next_chapter': user_obj.get_next_chapter()
                 },
                 'tasks': dashboard_data['analytics'],
-                'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
+                'current_week_start': user_obj.current_week_start.isoformat() if user_obj.current_week_start else None
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error getting user progress: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )
 
-# Helper endpoint for testing/admin purposes
-@task_bp.route('/admin/tasks/test-assignment', methods=['POST'])
-def test_task_assignment():
-    """Test endpoint to see what tasks would be assigned (admin/testing only)"""
+
+@task_router.post('/admin/tasks/test-assignment', status_code=status.HTTP_200_OK)
+def test_task_assignment(request_data: Dict[str, Any]):
+    """Test endpoint to see what tasks would be assigned"""
     try:
-        data = request.get_json()
-        if not data or 'user_id' not in data:
-            return jsonify({'error': 'user_id required'}), 400
+        if 'user_id' not in request_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={'error': 'user_id required'}
+            )
         
-        # Create a mock user for testing
-        user = User(
-            id=data['user_id'],
+        user_obj = User(
+            id=request_data['user_id'],
             email='test@example.com',
             name='Test User',
-            completed_chapters=data.get('completed_chapters', [])
+            completed_chapters=request_data.get('completed_chapters', [])
         )
         
         from helper.task_assignment import assign_weekly_tasks
         
-        # Get what tasks would be assigned
-        mock_tasks = assign_weekly_tasks(user)
+        mock_tasks = assign_weekly_tasks(user_obj)
         
-        return jsonify({
+        return {
             'success': True,
             'message': 'Mock task assignment (not saved)',
             'tasks': [task.to_dict() for task in mock_tasks],
             'count': len(mock_tasks)
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.info(f"Error in test task assignment: {e}")
         logger.info(traceback.format_exc())
-        return jsonify({'error': 'Internal server error'}), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={'error': 'Internal server error'}
+        )

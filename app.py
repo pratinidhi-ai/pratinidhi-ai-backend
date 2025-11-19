@@ -1,87 +1,126 @@
-from flask import Flask , jsonify , json , request
+"""
+Main FastAPI Application Entry Point
+"""
+
+from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import logging
 import sys
 import os
 
-from database.user_db import getUsers, checkUserExists , getUserbyId
-from helper.middleware import authenticate_request
-from routes.user_routing import user_bp
-from routes.tutor_routing import tutor_bp
-from routes.task_routing import task_bp
-from routes.question_routing import question_bp
-from routes.analytics_routing import analytics_bp
-from routes.math_tutor_routing import math_tutor_bp
-from routes.leaderboard_routing import leaderboard_bp
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Configure logging for the entire application
+# Configure logging
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(
-	level=getattr(logging, log_level, logging.INFO),
-	format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-	handlers=[
-		logging.StreamHandler(sys.stdout)  # Ensure logs go to stdout for AWS App Runner
-	],
-	force=True  # Override any existing logging configuration
+    level=getattr(logging, log_level, logging.INFO),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Ensure logs go to stdout for AWS App Runner
+    ],
+    force=True  # Override any existing logging configuration
 )
-
-# Create logger for this module
 logger = logging.getLogger(__name__)
 logger.info(f"Application starting with log level: {log_level}")
 
-app = Flask(__name__)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Starting up Pratinidhi AI Backend...")
+    yield
+    # Shutdown
+    logger.info("Shutting down Pratinidhi AI Backend...")
 
-# Also configure Flask's built-in logger
-app.logger.setLevel(getattr(logging, log_level, logging.INFO))
-app.logger.info("Flask app initialized")
+# Create FastAPI app
+app = FastAPI(
+    title="Pratinidhi AI Backend",
+    description="Backend API for Pratinidhi AI application",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
-@app.errorhandler(404)
-def not_found(error):
-	logger.warning(f"404 Not Found: {request.path}")
-	return {'error': 'Not found', 'message': 'The requested resource was not found'}, 404
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.errorhandler(500)
-def internal_error(error):
-	logger.error(f"500 Internal Server Error: {request.path}", exc_info=True)
-	return {'error': 'Internal server error', 'message': 'Something went wrong'}, 500
+# Import and include routers
+try:
+    from routes.user_routing import user_router
+    from routes.tutor_routing import tutor_router
+    from routes.task_routing import task_router
+    from routes.question_routing import question_router
+    from routes.analytics_routing import analytics_router
+    from routes.math_tutor_routing import math_tutor_router
+    from routes.leaderboard_routing import router as leaderboard_router
 
-app.register_blueprint(user_bp)
-app.register_blueprint(tutor_bp)
-app.register_blueprint(task_bp, url_prefix='/api/tasks')
-app.register_blueprint(question_bp, url_prefix='/api/questions')
-app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
-app.register_blueprint(math_tutor_bp, url_prefix='/api/math_tutor')
-app.register_blueprint(leaderboard_bp)
+    app.include_router(user_router)
+    app.include_router(tutor_router)
+    app.include_router(task_router)
+    app.include_router(question_router)
+    app.include_router(analytics_router)
+    app.include_router(math_tutor_router)
+    app.include_router(leaderboard_router)
+    logger.info("Routers loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load routers: {str(e)}")
 
+@app.get("/")
+def root():
+    return {
+        "message": "Pratinidhi AI Backend API",
+        "status": "running",
+        "version": "1.0.0"
+    }
 
-# Health check endpoint
-@app.route('/', methods=['GET'])
+@app.get("/health")
 def health_check():
-	logger.info("Health check endpoint called")
-	return {'status': 'healthy', 'service': 'user-api'}, 200
+    logger.info("Health check endpoint called")
+    return {"status": "healthy"}
 
+@app.get('/check-user-exists')
+def check_user_exists(uid: str = Query(None, description="User ID to check")):
+    logger.info(f"Checking user existence for uid: {uid}")
+    if uid is None:
+        logger.warning("check-user-exists called without uid parameter")
+        raise HTTPException(status_code=400, detail='uid parameter is required')
+    from database.user_db import checkUserExists
+    exists = checkUserExists(user_id=uid)
+    logger.info(f"User {uid} exists: {exists}")
+    return {'exists': exists}
 
-@app.route('/check-user-exists' , methods = ['GET'])
-@authenticate_request
-def check_user_exists():
-	arguments = request.args
-	_uid = arguments.get('uid')
-	logger.info(f"Checking user existence for uid: {_uid}")
-	if _uid is None:
-		logger.warning("check-user-exists called without uid parameter")
-		return jsonify({'error': 'uid parameter is required'}), 400
-	exists = checkUserExists(user_id=_uid)
-	logger.info(f"User {_uid} exists: {exists}")
-	return jsonify({'exists': exists}), 200
-
-
-@app.route('/users' , methods = ['GET'])
-@authenticate_request
+@app.get('/users')
 def users():
-	logger.info("Fetching all users")
-	user_list = getUsers()
-	logger.info(f"Retrieved {len(user_list)} users")
-	return jsonify(user_list)
+    logger.info("Fetching all users")
+    from database.user_db import getUsers
+    user_list = getUsers()
+    logger.info(f"Retrieved {len(user_list)} users")
+    return user_list
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: HTTPException):
+    logger.warning(f"404 Not Found: {request.url.path}")
+    return JSONResponse(
+        status_code=404,
+        content={'error': 'Not found', 'message': 'The requested resource was not found'}
+    )
+
+@app.exception_handler(500)
+def internal_error_handler(request: Request, exc: Exception):
+    logger.error(f"500 Internal Server Error: {request.url.path}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={'error': 'Internal server error', 'message': 'Something went wrong'}
+    )
 
 if __name__ == "__main__":
-	logger.info("Starting Flask application on 0.0.0.0:8080")
-	app.run(host='0.0.0.0',port=8080)	
+    import uvicorn
+    logger.info("Starting server on http://0.0.0.0:8080")
+    uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)

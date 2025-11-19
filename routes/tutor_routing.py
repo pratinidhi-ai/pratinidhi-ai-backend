@@ -1,5 +1,7 @@
-from flask import Blueprint , request , jsonify
-import uuid , time
+from fastapi import APIRouter, HTTPException, Depends, status
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+import uuid, time
 from collections import defaultdict
 import logging
 from models.tutor_session_schema import TutorSession
@@ -10,211 +12,232 @@ from database.session_db import saveSessionSummary, _getUserSessions
 from helper.prompt_builder import PromptBuilder
 from helper.redis_sessions import get_redis_session_manager, REDIS_HOST, REDIS_PORT
 
-
-sessions = {}
 logger = logging.getLogger(__name__)
-tutor_bp = Blueprint('tutor' , __name__ , url_prefix='/tutor')
-
-@tutor_bp.route('/start-session' , methods = ['POST'])
-@authenticate_request
-def start_session():
-	try:
-		data = request.json
-		if not data:
-			return jsonify({"error": "No JSON data provided"}), 400
-			
-		session_id = str(uuid.uuid4())
-		
-		# Extract session parameters
-		user_id = data.get("user_id")
-		if not user_id:
-			return jsonify({"error": "user_id is required"}), 400
-
-		if not userStartSession(user_id=user_id):
-			return jsonify({"error": "You Have Used up the quota of allotted sessions"}) ,403
-
-		personality = data.get("personality", "albert_einstein")  # Default personality
-		language = data.get("language", "english")
-		subject = data.get("subject")
-		exam = data.get("exam")
-		interests = data.get("interests", [])
-		goals = data.get("goals", [])
-		lecture_notes = data.get("lecture_notes")
-		lecture_subject = data.get("lecture_subject")  # e.g., "SAT"
-		lecture_chapter = data.get("lecture_chapter")  # e.g., "Chapter 1"
-		
-		# Build system prompt
-		prompt_builder = PromptBuilder()
-		system_prompt = prompt_builder.build_system_prompt(
-			personality=personality,
-			subject=subject,
-			exam=exam,
-			interests=interests,
-			goals=goals,
-			lecture_notes=lecture_notes,
-			lecture_subject=lecture_subject,
-			lecture_chapter=lecture_chapter
-		)
-		
-		# Create session with all parameters
-		session = TutorSession(
-			user_id=user_id,
-			personality=personality,
-			language=language,
-			session_id=session_id,
-			subject=subject,
-			exam=exam,
-			interests=interests,
-			goals=goals,
-			lecture_notes=lecture_notes,
-			lecture_subject=lecture_subject,
-			lecture_chapter=lecture_chapter,
-			session_system_prompt=system_prompt
-		)
-		get_redis_session_manager().save_session(session_id, session)
-		# sessions[session_id] = session
-		return jsonify({
-			"session_id": session_id,
-			"system_prompt": system_prompt[:200] + "..." if len(system_prompt) > 200 else system_prompt
-		}), 200
-	except Exception as e:
-		logger.error(f"Error creating session: {str(e)}")
-		return jsonify({"error": "Can't Create Session", "details": str(e)}), 500
-	
-
-@tutor_bp.route('/<session_id>/message', methods=['POST'])
-@authenticate_request
-def session_message(session_id):
-	try:
-		data = request.json
-		if not data:
-			return jsonify({"error": "No JSON data provided"}), 400
-		
-		logger.info(f"Step 1: Getting session {session_id}")
-		session = get_redis_session_manager().get_session(session_id)
-		
-		if not session or not session.is_active:
-			return jsonify({"error": "Session not found or ended"}), 404
-		
-		user_message = data.get("message")
-		if not user_message:
-			return jsonify({"error": "Message content is required"}), 400
-
-		use_rag = data.get("use_rag", False)
-		
-		session.messages.append({"role": "user", "content": user_message})
-		session.messages = session.messages[-20:]
-		
-		logger.info("Step 2: Calling OpenAI API")
-		try:
-			ai_response = call_openai_api(session, use_rag)
-			logger.info(f"OpenAI API call successful, response length: {len(ai_response)}")
-		except Exception as openai_error:
-			logger.exception(f"OpenAI API call failed: {str(openai_error)}")
-			return jsonify({
-				"error": "OpenAI API call failed",
-				"details": str(openai_error),
-				"error_type": type(openai_error).__name__
-			}), 500
-		
-		session.messages.append({"role": "assistant", "content": ai_response})
-		session.length += 2
-		
-		if session.length >= 100:
-			session.is_active = False
-			session.ended_at = time.time()
-			session.summary = generate_summary(session.messages)
-			saveSessionSummary(session=session)
-			get_redis_session_manager().delete_session(session_id)
-		else:
-			get_redis_session_manager().save_session(session_id, session)
-
-		return jsonify({
-			"ai_response": ai_response, 
-			"session_active": session.is_active,
-			"message_count": session.length
-		})
-		
-	except Exception as e:
-		logger.exception(f"Error in session message {session_id}")
-		return jsonify({"error": "Failed to process message", "details": str(e)}), 500
+tutor_router = APIRouter(prefix="/api/tutor", tags=["tutor"])
 
 
-@tutor_bp.route('/<session_id>/end', methods=['POST'])
-@authenticate_request
-def end_session(session_id):
-	try:
-		session = get_redis_session_manager().get_session(session_id)
-		# session = sessions.get(session_id)
-		if not session:
-			return jsonify({"error": "Session not found"}), 404
-		
-		if not session.is_active:
-			return jsonify({"error": "Session already ended"}), 400
-		
-		session.is_active = False
-		session.ended_at = time.time()
-		session.summary = generate_summary(session.messages)
-		
-		response_data = {
-			"success": True,
-			"summary": session.summary,
-			"total_messages": session.length
-		}
-		if not saveSessionSummary(session=session):
-			logger.warning("Error in storing user session summary.")
-		# del sessions[session_id]
-		get_redis_session_manager().delete_session(session_id)
-		return jsonify(response_data), 200
-		
-	except Exception as e:
-		logger.error(f"Error ending session {session_id}: {str(e)}")
-		return jsonify({"error": "Failed to end session"}), 500
+# Pydantic models for request validation
+class StartSessionRequest(BaseModel):
+    user_id: str
+    personality: str = Field(default="albert_einstein")
+    language: str = Field(default="english")
+    subject: Optional[str] = None
+    exam: Optional[str] = None
+    interests: List[str] = Field(default_factory=list)
+    goals: List[str] = Field(default_factory=list)
+    lecture_notes: Optional[str] = None
+    lecture_subject: Optional[str] = None
+    lecture_chapter: Optional[str] = None
 
-@tutor_bp.route('/<user_id>' , methods = ['GET'])
-@authenticate_request
-def getUserSessions(user_id):
-	try:
-		sessions_list = _getUserSessions(user_id)
-		
-		if not sessions_list:
-			return jsonify({
-				"message": "No sessions found",
-				"sessions": []
-			}), 200
-			
-		return jsonify({
-			"message": "Sessions retrieved successfully",
-			"sessions": sessions_list
-		}), 200
-		
-	except Exception as e:
-		logger.error(f"Error fetching sessions for user {user_id}: {str(e)}")
-		return jsonify({
-			"error": "Failed to fetch user sessions"
-		}), 500
 
-import time
+class SessionMessageRequest(BaseModel):
+    message: str
+    use_rag: bool = Field(default=False)
 
-@tutor_bp.route('/redis-health', methods=['GET'])
-def redis_health():
+
+@tutor_router.post('/start-session', status_code=status.HTTP_200_OK)
+async def start_session(request_data: StartSessionRequest, user: dict = Depends(authenticate_request)):
+    try:
+        user_id = request_data.user_id
+        
+        if not await userStartSession(user_id=user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"error": "You Have Used up the quota of allotted sessions"}
+            )
+
+        session_id = str(uuid.uuid4())
+        
+        # Build system prompt
+        prompt_builder = PromptBuilder()
+        system_prompt = prompt_builder.build_system_prompt(
+            personality=request_data.personality,
+            subject=request_data.subject,
+            exam=request_data.exam,
+            interests=request_data.interests,
+            goals=request_data.goals,
+            lecture_notes=request_data.lecture_notes,
+            lecture_subject=request_data.lecture_subject,
+            lecture_chapter=request_data.lecture_chapter
+        )
+        
+        # Create session with all parameters
+        session = TutorSession(
+            user_id=user_id,
+            personality=request_data.personality,
+            language=request_data.language,
+            session_id=session_id,
+            subject=request_data.subject,
+            exam=request_data.exam,
+            interests=request_data.interests,
+            goals=request_data.goals,
+            lecture_notes=request_data.lecture_notes,
+            lecture_subject=request_data.lecture_subject,
+            lecture_chapter=request_data.lecture_chapter,
+            session_system_prompt=system_prompt
+        )
+        await get_redis_session_manager().save_session(session_id, session)
+        
+        return {
+            "session_id": session_id,
+            "system_prompt": system_prompt[:200] + "..." if len(system_prompt) > 200 else system_prompt
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating session: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Can't Create Session", "details": str(e)}
+        )
+
+
+@tutor_router.post('/{session_id}/message', status_code=status.HTTP_200_OK)
+async def session_message(
+    session_id: str,
+    request_data: SessionMessageRequest,
+    user: dict = Depends(authenticate_request)
+):
+    try:
+        logger.info(f"Step 1: Getting session {session_id}")
+        session = await get_redis_session_manager().get_session(session_id)
+        
+        if not session or not session.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "Session not found or ended"}
+            )
+        
+        user_message = request_data.message
+        use_rag = request_data.use_rag
+        
+        session.messages.append({"role": "user", "content": user_message})
+        session.messages = session.messages[-20:]
+        
+        logger.info("Step 2: Calling OpenAI API")
+        try:
+            ai_response = await call_openai_api(session, use_rag)
+            logger.info(f"OpenAI API call successful, response length: {len(ai_response)}")
+        except Exception as openai_error:
+            logger.exception(f"OpenAI API call failed: {str(openai_error)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "error": "OpenAI API call failed",
+                    "details": str(openai_error),
+                    "error_type": type(openai_error).__name__
+                }
+            )
+        
+        session.messages.append({"role": "assistant", "content": ai_response})
+        session.length += 2
+        
+        if session.length >= 100:
+            session.is_active = False
+            session.ended_at = time.time()
+            session.summary = await generate_summary(session.messages)
+            await saveSessionSummary(session=session)
+            await get_redis_session_manager().delete_session(session_id)
+        else:
+            await get_redis_session_manager().save_session(session_id, session)
+
+        return {
+            "ai_response": ai_response, 
+            "session_active": session.is_active,
+            "message_count": session.length
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error in session message {session_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Failed to process message", "details": str(e)}
+        )
+
+
+@tutor_router.post('/{session_id}/end', status_code=status.HTTP_200_OK)
+async def end_session(session_id: str, user: dict = Depends(authenticate_request)):
+    try:
+        session = await get_redis_session_manager().get_session(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "Session not found"}
+            )
+        
+        if not session.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"error": "Session already ended"}
+            )
+        
+        session.is_active = False
+        session.ended_at = time.time()
+        session.summary = await generate_summary(session.messages)
+        
+        response_data = {
+            "success": True,
+            "summary": session.summary,
+            "total_messages": session.length
+        }
+        if not await saveSessionSummary(session=session):
+            logger.warning("Error in storing user session summary.")
+        
+        await get_redis_session_manager().delete_session(session_id)
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error ending session {session_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Failed to end session"}
+        )
+
+
+@tutor_router.get('/{user_id}', status_code=status.HTTP_200_OK)
+async def get_user_sessions(user_id: str, user: dict = Depends(authenticate_request)):
+    try:
+        sessions_list = await _getUserSessions(user_id)
+        
+        return {
+            "message": "Sessions retrieved successfully" if sessions_list else "No sessions found",
+            "sessions": sessions_list or []
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching sessions for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "Failed to fetch user sessions"}
+        )
+
+
+@tutor_router.get('/redis-health', status_code=status.HTTP_200_OK)
+async def redis_health():
     try:
         start_time = time.time()
-        result = get_redis_session_manager().redis_client.ping()
+        result = await get_redis_session_manager().redis_client.ping()
         latency = (time.time() - start_time) * 1000
         
-        return jsonify({
+        return {
             "status": "healthy",
             "redis_host": REDIS_HOST,
             "redis_port": REDIS_PORT,
             "latency_ms": round(latency, 2),
             "ping_result": result
-        }), 200
+        }
     except Exception as e:
-        return jsonify({
-            "status": "unhealthy",
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "redis_host": REDIS_HOST,
-            "redis_port": REDIS_PORT
-        }), 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "status": "unhealthy",
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "redis_host": REDIS_HOST,
+                "redis_port": REDIS_PORT
+            }
+        )
