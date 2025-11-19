@@ -10,6 +10,7 @@ import logging
 from database.firebase_client import get_question_db_client
 from helper.middleware import authenticate_request
 import random
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,21 @@ class FetchQuizRequest(BaseModel):
         if v is not None and not isinstance(v, list):
             raise ValueError('tags must be an array')
         return v
+
+
+class ReportQuestionRequest(BaseModel):
+    user_id: str
+    question_id: str
+    subject_name: str
+    sub_category: str
+    difficulty_level: int = Field(..., ge=1, le=5)
+    comment: str = Field(..., min_length=1)
+    
+    @validator('comment')
+    def validate_comment(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Comment cannot be empty')
+        return v.strip()
 
 
 @question_router.get('/metadata')
@@ -279,9 +295,11 @@ def fetch_quiz(
         )
 
 
-@question_bp.route('/report-question', methods=['POST'])
-@authenticate_request
-def report_question():
+@question_router.post('/report-question')
+def report_question(
+    request_data: ReportQuestionRequest,
+    user: dict = Depends(authenticate_request)
+):
     """
     Report a question as incorrect or problematic
     
@@ -303,69 +321,27 @@ def report_question():
     }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required parameters
-        required_params = ['user_id', 'question_id', 'subject_name', 'sub_category', 'difficulty_level', 'comment']
-        missing_params = [param for param in required_params if param not in data]
-        
-        if missing_params:
-            return jsonify({
-                'error': 'Missing required parameters',
-                'missing': missing_params
-            }), 400
-        
-        # Extract parameters
-        user_id = data['user_id']
-        question_id = data['question_id']
-        subject_name = data['subject_name']
-        sub_category = data['sub_category']
-        difficulty_level = data['difficulty_level']
-        comment = data['comment']
-        
-        # Validate difficulty_level
-        try:
-            difficulty_level = int(difficulty_level)
-            if difficulty_level not in [1, 2, 3, 4, 5]:
-                raise ValueError("Must be between 1 and 5")
-        except (ValueError, TypeError):
-            return jsonify({
-                'error': 'Invalid difficulty level',
-                'message': 'Must be an integer between 1 and 5'
-            }), 400
-        
-        # Validate comment is not empty
-        if not comment or not comment.strip():
-            return jsonify({
-                'error': 'Invalid comment',
-                'message': 'Comment cannot be empty'
-            }), 400
-        
         # Get database client
         db = get_question_db_client()
         
         if db is None:
             logger.error("Firestore client is not initialized")
-            return jsonify({
-                'error': 'Database connection failed',
-                'message': 'Unable to connect to question bank database'
-            }), 500
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Database connection failed',
+                    'message': 'Unable to connect to question bank database'
+                }
+            )
         
         # Prepare report data
-        from datetime import datetime
         report_data = {
-            'question_id': question_id,
-            'subject_name': subject_name,
-            'sub_category': sub_category,
-            'difficulty_level': difficulty_level,
-            'comment': comment.strip(),
-            'reported_by': user_id,
+            'question_id': request_data.question_id,
+            'subject_name': request_data.subject_name,
+            'sub_category': request_data.sub_category,
+            'difficulty_level': request_data.difficulty_level,
+            'comment': request_data.comment,
+            'reported_by': request_data.user_id,
             'status': 'pending',  # Status: pending, reviewed, resolved
             'bounty_awarded': False,  # Will be set to True when verified and bounty given
             'created_at': datetime.utcnow(),
@@ -376,14 +352,16 @@ def report_question():
         doc_ref = db.collection('question_reports').add(report_data)
         report_id = doc_ref[1].id
         
-        logger.info(f"Question report submitted: {report_id} for question {question_id} by user {user_id}")
+        logger.info(f"Question report submitted: {report_id} for question {request_data.question_id} by user {request_data.user_id}")
         
-        return jsonify({
+        return {
             'success': True,
             'report_id': report_id,
             'message': 'Question report submitted successfully'
-        }), 201
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error submitting question report: {str(e)}")
         import traceback
@@ -391,122 +369,7 @@ def report_question():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                'error': 'Failed to fetch questions',
+                'error': 'Failed to submit question report',
                 'message': str(e)
             }
         )
-
-
-@question_bp.route('/report-question', methods=['POST'])
-@authenticate_request
-def report_question():
-    """
-    Report a question as incorrect or problematic
-    
-    Request Body (JSON):
-    {
-        "user_id": "user123",                      # Required - ID of the reporting user
-        "question_id": "abc123",                   # Required - ID of the question
-        "subject_name": "math",                    # Required
-        "sub_category": "algebra",                 # Required
-        "difficulty_level": 3,                     # Required (1-5)
-        "comment": "The answer is incorrect..."    # Required - User's comment about the issue
-    }
-    
-    Response:
-    {
-        "success": true,
-        "report_id": "generated_report_id",
-        "message": "Question report submitted successfully"
-    }
-    """
-    try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required parameters
-        required_params = ['user_id', 'question_id', 'subject_name', 'sub_category', 'difficulty_level', 'comment']
-        missing_params = [param for param in required_params if param not in data]
-        
-        if missing_params:
-            return jsonify({
-                'error': 'Missing required parameters',
-                'missing': missing_params
-            }), 400
-        
-        # Extract parameters
-        user_id = data['user_id']
-        question_id = data['question_id']
-        subject_name = data['subject_name']
-        sub_category = data['sub_category']
-        difficulty_level = data['difficulty_level']
-        comment = data['comment']
-        
-        # Validate difficulty_level
-        try:
-            difficulty_level = int(difficulty_level)
-            if difficulty_level not in [1, 2, 3, 4, 5]:
-                raise ValueError("Must be between 1 and 5")
-        except (ValueError, TypeError):
-            return jsonify({
-                'error': 'Invalid difficulty level',
-                'message': 'Must be an integer between 1 and 5'
-            }), 400
-        
-        # Validate comment is not empty
-        if not comment or not comment.strip():
-            return jsonify({
-                'error': 'Invalid comment',
-                'message': 'Comment cannot be empty'
-            }), 400
-        
-        # Get database client
-        db = get_question_db_client()
-        
-        if db is None:
-            logger.error("Firestore client is not initialized")
-            return jsonify({
-                'error': 'Database connection failed',
-                'message': 'Unable to connect to question bank database'
-            }), 500
-        
-        # Prepare report data
-        from datetime import datetime
-        report_data = {
-            'question_id': question_id,
-            'subject_name': subject_name,
-            'sub_category': sub_category,
-            'difficulty_level': difficulty_level,
-            'comment': comment.strip(),
-            'reported_by': user_id,
-            'status': 'pending',  # Status: pending, reviewed, resolved
-            'bounty_awarded': False,  # Will be set to True when verified and bounty given
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        
-        # Store the report in question_reports collection
-        doc_ref = db.collection('question_reports').add(report_data)
-        report_id = doc_ref[1].id
-        
-        logger.info(f"Question report submitted: {report_id} for question {question_id} by user {user_id}")
-        
-        return jsonify({
-            'success': True,
-            'report_id': report_id,
-            'message': 'Question report submitted successfully'
-        }), 201
-        
-    except Exception as e:
-        logger.error(f"Error submitting question report: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to submit question report',
-            'message': str(e)
-        }), 500

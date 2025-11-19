@@ -189,6 +189,7 @@ class QuizSubmitRequest(BaseModel):
 class PerformanceRequest(BaseModel):
     user_id: str
     subject: str
+    sub_category: Optional[str] = None  # Make it optional since some endpoints don't need it
 
 def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
@@ -1217,126 +1218,67 @@ def get_last_15_math_questions(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-comprehensive-performance-analytics', methods=['POST'])
-@authenticate_request
-def get_my_comprehensive_performance_analytics():
+@analytics_router.post('/get-my-comprehensive-performance-analytics')
+def get_my_comprehensive_performance_analytics(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get comprehensive performance analytics for a user in a specific sub_category
     Categorizes all tags in the sub_category into three buckets: strength, weakness, and unexplored
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing"),
-        "sub_category": "string" (e.g., "algebra", "craft-and-structure")
-    }
     
     Categorization Logic:
     - Unexplored: Tags where user has not solved any question OR attempted questions < 50% of mean
     - Strength: Tags with accuracy >= 75% AND not in unexplored
     - Weakness: Tags with accuracy < 75% AND not in unexplored
-    
-    Response:
-    {
-        "success": true,
-        "analytics": {
-            "subject": "math",
-            "sub_category": "algebra",
-            "total_tags": 15,
-            "mean_questions_attempted": 12.5,
-            "unexplored_threshold": 6.25,
-            "strength": [
-                {
-                    "tag": "linear-equations",
-                    "total_score": 120,
-                    "score_percentage": 95.5,
-                    "total_questions_attempted": 25,
-                    "accuracy": 96.0
-                },
-                ...
-            ],
-            "weakness": [
-                {
-                    "tag": "systems-of-equations",
-                    "total_score": 45,
-                    "score_percentage": 60.0,
-                    "total_questions_attempted": 15,
-                    "accuracy": 65.0
-                },
-                ...
-            ],
-            "unexplored": [
-                {
-                    "tag": "mixture-problems",
-                    "total_score": 0,
-                    "score_percentage": 0,
-                    "total_questions_attempted": 0,
-                    "accuracy": 0
-                },
-                ...
-            ]
-        }
-    }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
         # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        sub_category = data.get('sub_category')
-        
-        if not user_id or not subject or not sub_category:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id, subject, and sub_category are required'
-            }), 400
+        if not data.sub_category:
+            raise HTTPException(
+                status_code=400,
+                detail="sub_category is required"
+            )
         
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Verify subject is valid
-        if subject not in SUBJECT_TAG_TAXONOMY:
-            return jsonify({
-                'error': 'Invalid subject',
-                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
-            }), 400
+        if data.subject not in SUBJECT_TAG_TAXONOMY:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Subject '{data.subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            )
         
         # Verify sub_category is valid for the subject
-        if sub_category not in SUBJECT_TAG_TAXONOMY[subject]:
-            return jsonify({
-                'error': 'Invalid sub_category',
-                'message': f"Sub-category '{sub_category}' is not valid for subject '{subject}'. Must be one of: {list(SUBJECT_TAG_TAXONOMY[subject].keys())}"
-            }), 400
+        if data.sub_category not in SUBJECT_TAG_TAXONOMY[data.subject]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Sub-category '{data.sub_category}' is not valid for subject '{data.subject}'. Must be one of: {list(SUBJECT_TAG_TAXONOMY[data.subject].keys())}"
+            )
         
         # Get all tags for this sub_category from taxonomy
-        all_tags = SUBJECT_TAG_TAXONOMY[subject][sub_category]
+        all_tags = SUBJECT_TAG_TAXONOMY[data.subject][data.sub_category]
         total_tags = len(all_tags)
         
         # Get performance summary
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         # Build a map of tag data from user's performance
         tag_data_map = {}
         if summary and 'subjects' in summary:
             subjects_data = summary.get('subjects', {})
-            if subject in subjects_data:
-                subject_data = subjects_data[subject]
+            if data.subject in subjects_data:
+                subject_data = subjects_data[data.subject]
                 sub_categories = subject_data.get('sub_categories', {})
-                if sub_category in sub_categories:
-                    sub_cat_data = sub_categories[sub_category]
+                if data.sub_category in sub_categories:
+                    sub_cat_data = sub_categories[data.sub_category]
                     tags = sub_cat_data.get('tags', {})
                     tag_data_map = tags
         
@@ -1389,7 +1331,7 @@ def get_my_comprehensive_performance_analytics():
                 }
             
             # Categorization logic
-            # Unexplored: no questions OR questions < 70% of mean
+            # Unexplored: no questions OR questions < 50% of mean
             if total_questions == 0 or total_questions < unexplored_threshold:
                 unexplored.append(tag_info)
             # Strength: accuracy >= 75%
@@ -1407,11 +1349,11 @@ def get_my_comprehensive_performance_analytics():
         # Unexplored: sorted by questions attempted ascending (least attempted first)
         unexplored.sort(key=lambda x: x['total_questions_attempted'])
         
-        return jsonify({
+        return {
             'success': True,
             'analytics': {
-                'subject': subject,
-                'sub_category': sub_category,
+                'subject': data.subject,
+                'sub_category': data.sub_category,
                 'total_tags': total_tags,
                 'mean_questions_attempted': round(mean_questions_attempted, 2),
                 'unexplored_threshold': round(unexplored_threshold, 2),
@@ -1424,13 +1366,12 @@ def get_my_comprehensive_performance_analytics():
                     'unexplored_count': len(unexplored)
                 }
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting comprehensive performance analytics for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get comprehensive performance analytics',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))

@@ -19,7 +19,8 @@ math_tutor_router = APIRouter(prefix="/api/math-tutor", tags=["math-tutor"])
 
 # Pydantic models for request/response
 class MathProblemRequest(BaseModel):
-    problem: str = Field(..., description="The math problem to solve")
+    problem: Optional[str] = Field(None, description="The math problem to solve (text)")
+    image: Optional[str] = Field(None, description="Base64 encoded image or data URI")
     max_tokens: Optional[int] = Field(4000, description="Maximum tokens for solution")
     temperature: Optional[float] = Field(0.3, description="Temperature for AI response")
 
@@ -59,38 +60,33 @@ async def solve_math_problem(
         JSON response with step-by-step solution in LaTeX format
     """
     try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        
         # Extract inputs - either text problem or image
-        math_problem = data.get("problem")
-        image_data = data.get("image")
+        math_problem = data.problem
+        image_data = data.image
         
         # Validate that exactly one input type is provided
         if not math_problem and not image_data:
-            return jsonify({
-                "error": "Either 'problem' (text) or 'image' (base64) field is required"
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail="Either 'problem' (text) or 'image' (base64) field is required"
+            )
         
         if math_problem and image_data:
-            return jsonify({
-                "error": "Provide either 'problem' OR 'image', not both"
-            }), 400
-        
-        # Extract optional parameters with defaults
-        max_tokens = data.get("max_tokens", 4000)
-        temperature = data.get("temperature", 0.3)
+            raise HTTPException(
+                status_code=400,
+                detail="Provide either 'problem' OR 'image', not both"
+            )
         
         input_type = "text" if math_problem else "image"
         logger.info(f"Solving math problem from {input_type} input")
         
         # Generate solution (function handles both text and image)
-        solution = generate_math_tutor_response(
+        solution = await asyncio.to_thread(
+            generate_math_tutor_response,
             math_problem=math_problem,
             image_data=image_data,
-            max_tokens=max_tokens,
-            temperature=temperature
+            max_tokens=data.max_tokens,
+            temperature=data.temperature
         )
         
         response_data = {
@@ -103,7 +99,7 @@ async def solve_math_problem(
         if math_problem:
             response_data["problem"] = math_problem
         
-        return jsonify(response_data), 200
+        return response_data
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
