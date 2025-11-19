@@ -33,6 +33,15 @@ class MathProblemWithVideoRequest(BaseModel):
     remove_watermark: Optional[bool] = Field(False, description="Whether to remove watermark from video")
 
 
+class ReviewSolutionRequest(BaseModel):
+    problem: Optional[str] = Field(None, description="The math problem text")
+    problem_image: Optional[str] = Field(None, description="Base64 encoded image of the problem")
+    solution: Optional[str] = Field(None, description="The student's solution text")
+    solution_image: Optional[str] = Field(None, description="Base64 encoded image of the solution")
+    max_tokens: Optional[int] = Field(4000, description="Maximum tokens for feedback")
+    temperature: Optional[float] = Field(0.3, description="Temperature for AI response")
+
+
 @math_tutor_router.post('/solve')
 async def solve_math_problem(
     data: MathProblemRequest,
@@ -100,8 +109,8 @@ async def solve_math_problem(
             generate_math_tutor_response,
             math_problem=math_problem,
             image_data=image_data,
-            max_tokens=data.max_tokens,
-            temperature=data.temperature
+            max_tokens=data.max_tokens or 4000,
+            temperature=data.temperature or 0.3
         )
         
         response_data = {
@@ -154,8 +163,8 @@ async def solve_math_problem_with_video(
         solution = await asyncio.to_thread(
             generate_math_tutor_response,
             math_problem=data.problem,
-            max_tokens=data.max_tokens,
-            temperature=data.temperature
+            max_tokens=data.max_tokens or 4000,
+            temperature=data.temperature or 0.3
         )
         
         response_data = {
@@ -231,9 +240,11 @@ async def solve_math_problem_with_video(
         raise HTTPException(status_code=500, detail=f"Failed to solve math problem: {str(e)}")
 
 
-@math_tutor_bp.route('/find-issues-in-solution', methods=['POST'])
-@authenticate_request
-def find_issues_in_solution():
+@math_tutor_router.post('/find-issues-in-solution')
+async def find_issues_in_solution(
+    data: ReviewSolutionRequest,
+    user=Depends(authenticate_request)
+):
     """
     Review a student's solution and identify mistakes.
     Supports text, image, or both combined for problem and solution.
@@ -283,33 +294,27 @@ def find_issues_in_solution():
         JSON response with detailed feedback on mistakes and corrections
     """
     try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        
         # Extract problem inputs
-        problem_text = data.get("problem")
-        problem_image = data.get("problem_image")
+        problem_text = data.problem
+        problem_image = data.problem_image
         
         # Extract solution inputs
-        solution_text = data.get("solution")
-        solution_image = data.get("solution_image")
+        solution_text = data.solution
+        solution_image = data.solution_image
         
         # Validate that at least one problem input is provided
         if not problem_text and not problem_image:
-            return jsonify({
-                "error": "At least one of 'problem' (text) or 'problem_image' (base64) is required"
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail="At least one of 'problem' (text) or 'problem_image' (base64) is required"
+            )
         
         # Validate that at least one solution input is provided
         if not solution_text and not solution_image:
-            return jsonify({
-                "error": "At least one of 'solution' (text) or 'solution_image' (base64) is required"
-            }), 400
-        
-        # Extract optional parameters
-        max_tokens = data.get("max_tokens", 4000)
-        temperature = data.get("temperature", 0.3)
+            raise HTTPException(
+                status_code=400,
+                detail="At least one of 'solution' (text) or 'solution_image' (base64) is required"
+            )
         
         # Determine input types for logging and response
         if problem_image and problem_text:
@@ -328,14 +333,15 @@ def find_issues_in_solution():
         
         logger.info(f"Reviewing solution - Problem: {problem_type}, Solution: {solution_type}")
         
-        # Review the solution
-        feedback = review_student_solution(
+        # Review the solution (run in thread pool to avoid blocking)
+        feedback = await asyncio.to_thread(
+            review_student_solution,
             problem_text=problem_text,
             problem_image=problem_image,
             solution_text=solution_text,
             solution_image=solution_image,
-            max_tokens=max_tokens,
-            temperature=temperature
+            max_tokens=data.max_tokens or 4000,
+            temperature=data.temperature or 0.3
         )
         
         response_data = {
@@ -353,18 +359,12 @@ def find_issues_in_solution():
         if solution_text:
             response_data["solution"] = solution_text
         
-        return jsonify(response_data), 200
+        return response_data
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
-        return jsonify({
-            "error": "Validation error",
-            "details": str(ve)
-        }), 400
+        raise HTTPException(status_code=400, detail=f"Validation error: {str(ve)}")
         
     except Exception as e:
         logger.error(f"Error reviewing solution: {str(e)}")
-        return jsonify({
-            "error": "Failed to review solution",
-            "details": str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=f"Failed to review solution: {str(e)}")

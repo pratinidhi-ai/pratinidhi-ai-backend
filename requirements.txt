@@ -3,7 +3,7 @@ aiohttp==3.12.15
 aiosignal==1.4.0
 annotated-types==0.7.0
 anthropic==0.69.0
-anyio==4.10.0
+anyio==3.7.1
 asgiref==3.10.0
 attrs==25.3.0
 blinker==1.9.0
@@ -76,9 +76,9 @@ protobuf==5.29.5
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
-pydantic==2.5.0
+pydantic==2.10.6
 pydantic-settings==2.11.0
-pydantic_core==2.33.2
+pydantic_core==2.27.2
 PyJWT==2.10.1
 pyparsing==3.2.5
 pypdf==6.1.1
