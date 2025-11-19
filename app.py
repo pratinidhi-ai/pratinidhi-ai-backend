@@ -5,6 +5,7 @@ Main FastAPI Application Entry Point
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import logging
 import sys
 import os
@@ -25,11 +26,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.info(f"Application starting with log level: {log_level}")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Starting up Pratinidhi AI Backend...")
+    yield
+    # Shutdown
+    logger.info("Shutting down Pratinidhi AI Backend...")
+
 # Create FastAPI app
 app = FastAPI(
     title="Pratinidhi AI Backend",
     description="Backend API for Pratinidhi AI application",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS
@@ -63,7 +73,7 @@ except Exception as e:
     logger.error(f"Failed to load routers: {str(e)}")
 
 @app.get("/")
-async def root():
+def root():
     return {
         "message": "Pratinidhi AI Backend API",
         "status": "running",
@@ -71,12 +81,12 @@ async def root():
     }
 
 @app.get("/health")
-async def health_check():
+def health_check():
     logger.info("Health check endpoint called")
     return {"status": "healthy"}
 
 @app.get('/check-user-exists')
-async def check_user_exists(uid: str = Query(None, description="User ID to check")):
+def check_user_exists(uid: str = Query(None, description="User ID to check")):
     logger.info(f"Checking user existence for uid: {uid}")
     if uid is None:
         logger.warning("check-user-exists called without uid parameter")
@@ -87,7 +97,7 @@ async def check_user_exists(uid: str = Query(None, description="User ID to check
     return {'exists': exists}
 
 @app.get('/users')
-async def users():
+def users():
     logger.info("Fetching all users")
     from database.user_db import getUsers
     user_list = getUsers()
@@ -103,22 +113,14 @@ async def not_found_handler(request: Request, exc: HTTPException):
     )
 
 @app.exception_handler(500)
-async def internal_error_handler(request: Request, exc: Exception):
+def internal_error_handler(request: Request, exc: Exception):
     logger.error(f"500 Internal Server Error: {request.url.path}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={'error': 'Internal server error', 'message': 'Something went wrong'}
     )
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Starting up Pratinidhi AI Backend...")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Shutting down Pratinidhi AI Backend...")
-
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Starting server on http://0.0.0.0:8000")
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    logger.info("Starting server on http://0.0.0.0:8080")
+    uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)
