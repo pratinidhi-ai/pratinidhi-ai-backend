@@ -39,26 +39,71 @@ async def solve_math_problem(
 ):
     """
     Solve a math problem with step-by-step solution.
+    Supports both text and image inputs.
+    
+    Expected JSON body (for text):
+    {
+        "problem": "Solve for x: 2x + 5 = 15",
+        "max_tokens": 4000 (optional),
+        "temperature": 0.3 (optional)
+    }
+    
+    Expected JSON body (for image):
+    {
+        "image": "base64_encoded_image_or_data_uri",
+        "max_tokens": 4000 (optional),
+        "temperature": 0.3 (optional)
+    }
     
     Returns:
         JSON response with step-by-step solution in LaTeX format
     """
     try:
-        logger.info(f"Solving math problem")
+        data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
         
-        # Generate solution (run in thread pool to avoid blocking)
-        solution = await asyncio.to_thread(
-            generate_math_tutor_response,
-            math_problem=data.problem,
-            max_tokens=data.max_tokens,
-            temperature=data.temperature
+        # Extract inputs - either text problem or image
+        math_problem = data.get("problem")
+        image_data = data.get("image")
+        
+        # Validate that exactly one input type is provided
+        if not math_problem and not image_data:
+            return jsonify({
+                "error": "Either 'problem' (text) or 'image' (base64) field is required"
+            }), 400
+        
+        if math_problem and image_data:
+            return jsonify({
+                "error": "Provide either 'problem' OR 'image', not both"
+            }), 400
+        
+        # Extract optional parameters with defaults
+        max_tokens = data.get("max_tokens", 4000)
+        temperature = data.get("temperature", 0.3)
+        
+        input_type = "text" if math_problem else "image"
+        logger.info(f"Solving math problem from {input_type} input")
+        
+        # Generate solution (function handles both text and image)
+        solution = generate_math_tutor_response(
+            math_problem=math_problem,
+            image_data=image_data,
+            max_tokens=max_tokens,
+            temperature=temperature
         )
         
-        return {
+        response_data = {
             "success": True,
-            "problem": data.problem,
-            "solution": solution
+            "solution": solution,
+            "input_type": input_type
         }
+        
+        # Include the problem text in response if provided
+        if math_problem:
+            response_data["problem"] = math_problem
+        
+        return jsonify(response_data), 200
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")

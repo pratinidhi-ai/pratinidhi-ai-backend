@@ -219,6 +219,110 @@ def update_task_num(request_data: UpdateTaskNumRequest, user: dict = Depends(aut
         raise
     except Exception as e:
         logger.error(f"Error updating number of tasks: {str(e)}")
+		return jsonify({
+			'error': 'Internal server error',
+			'message': 'Failed to update number of tasks'
+		}), 500
+
+@user_bp.route('/<user_id>/update', methods=['PUT', 'PATCH'])
+@authenticate_request
+def update_user(user_id: str):
+	"""
+	Update user data with any fields provided in the request.
+	Only the fields present in the request will be updated.
+	"""
+	try:
+		data = request.get_json()
+		if not data:
+			return jsonify({
+				'error': 'Bad request',
+				'message': 'No data provided'
+			}), 400
+		
+		# Check if user exists
+		user_db = get_user_db()
+		existing_user = user_db.get_user_by_id(user_id)
+		if not existing_user:
+			return jsonify({
+				'error': 'Not found',
+				'message': 'User not found'
+			}), 404
+		
+		# Fields that cannot be updated via this endpoint
+		protected_fields = ['id', 'created_at']
+		update_data = {}
+		
+		# Filter out protected fields and None values
+		for key, value in data.items():
+			if key not in protected_fields:
+				update_data[key] = value
+		
+		if not update_data:
+			return jsonify({
+				'error': 'Bad request',
+				'message': 'No valid fields to update'
+			}), 400
+		
+		# Validate enum fields if provided
+		try:
+			if 'grade' in update_data and update_data['grade'] is not None:
+				from models.users_schema import Grade
+				Grade(update_data['grade'])
+			
+			if 'board' in update_data and update_data['board'] is not None:
+				from models.users_schema import Board
+				Board(update_data['board'])
+			
+			if 'preferences' in update_data:
+				prefs = update_data['preferences']
+				if 'language' in prefs:
+					from models.users_schema import Language
+					Language(prefs['language'])
+				if 'accessibility' in prefs:
+					acc = prefs['accessibility']
+					if 'font_size' in acc:
+						from models.users_schema import FontSize
+						FontSize(acc['font_size'])
+		except ValueError as e:
+			return jsonify({
+				'error': 'Bad request',
+				'message': f'Invalid enum value: {str(e)}'
+			}), 400
+		
+		# Perform the update
+		success = user_db.update_user(user_id, update_data)
+		
+		if not success:
+			return jsonify({
+				'error': 'Internal server error',
+				'message': 'Failed to update user'
+			}), 500
+		
+		# Retrieve and return updated user data
+		updated_user = user_db.get_user_by_id(user_id)
+		if not updated_user:
+			return jsonify({
+				'error': 'Internal server error',
+				'message': 'User updated but could not retrieve updated data'
+			}), 500
+		
+		user_obj = User.from_dict(updated_user)
+		
+		logger.info(f"Successfully updated user {user_id} with fields: {list(update_data.keys())}")
+		
+		return jsonify({
+			'success': True,
+			'message': 'User updated successfully',
+			'data': user_obj.to_dict(),
+			'updated_fields': list(update_data.keys())
+		}), 200
+		
+	except Exception as e:
+		logger.error(f"Error updating user {user_id}: {str(e)}")
+		return jsonify({
+			'error': 'Internal server error',
+			'message': 'Failed to update user'
+		}), 500
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={

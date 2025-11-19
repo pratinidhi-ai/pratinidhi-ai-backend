@@ -60,7 +60,17 @@ def generate_anthropic_response(messages, model="claude-3-haiku-20240307", max_t
         raise Exception(f"Error generating Anthropic response: {e}")
 
 def generate_openai_response(messages, model, max_tokens=350, temperature=0.7, response_format=None):
-    """Generate a response using OpenAI models."""
+    """Generate a response using OpenAI models.
+    
+    Args:
+        messages: List of message dicts. For vision, user message can contain:
+                 {"role": "user", "content": [{"type": "text", "text": "..."}, 
+                                                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}]}
+        model: Model name
+        max_tokens: Maximum tokens for response
+        temperature: Temperature for response generation
+        response_format: Response format specification
+    """
     if response_format is None:
         response_format = {"type": "text"}
     if not model or model not in openai_available_models:

@@ -15,7 +15,7 @@ from math_tutor.process_video import (
 import os
 import time
 
-TEST_PROBLEM = "Solve: If 5x - 2y = 8 and 3x + y = 10, what is the value of y?"
+TEST_PROBLEM = "Solve: What is the equation of a circle with radius 7 centered at (5, -2)?"
 
 def demo_video_only():
     """
