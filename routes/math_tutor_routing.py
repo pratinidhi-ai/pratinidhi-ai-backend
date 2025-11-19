@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 import logging
+import asyncio
 from helper.middleware import authenticate_request
 from math_tutor.math_tutor_response import generate_math_tutor_response
 from math_tutor.math_ai_video_generator import generate_math_ai_video
@@ -32,7 +33,7 @@ class MathProblemWithVideoRequest(BaseModel):
 
 
 @math_tutor_router.post('/solve')
-def solve_math_problem(
+async def solve_math_problem(
     data: MathProblemRequest,
     user=Depends(authenticate_request)
 ):
@@ -45,8 +46,9 @@ def solve_math_problem(
     try:
         logger.info(f"Solving math problem")
         
-        # Generate solution
-        solution = generate_math_tutor_response(
+        # Generate solution (run in thread pool to avoid blocking)
+        solution = await asyncio.to_thread(
+            generate_math_tutor_response,
             math_problem=data.problem,
             max_tokens=data.max_tokens,
             temperature=data.temperature
@@ -79,7 +81,7 @@ def health_check():
 
 
 @math_tutor_router.post('/solve-with-video')
-def solve_math_problem_with_video(
+async def solve_math_problem_with_video(
     data: MathProblemWithVideoRequest,
     user=Depends(authenticate_request)
 ):
@@ -92,8 +94,9 @@ def solve_math_problem_with_video(
     try:
         logger.info(f"Solving math problem with video generation: {data.generate_video}")
         
-        # Generate solution
-        solution = generate_math_tutor_response(
+        # Generate solution (run in thread pool to avoid blocking)
+        solution = await asyncio.to_thread(
+            generate_math_tutor_response,
             math_problem=data.problem,
             max_tokens=data.max_tokens,
             temperature=data.temperature
@@ -109,7 +112,8 @@ def solve_math_problem_with_video(
         if data.generate_video:
             try:
                 logger.info("Generating AI video explanation...")
-                video_result = generate_math_ai_video(
+                video_result = await asyncio.to_thread(
+                    generate_math_ai_video,
                     math_problem=data.problem
                 )
                 
@@ -120,7 +124,10 @@ def solve_math_problem_with_video(
                 if data.remove_watermark and video_link:
                     try:
                         logger.info("Removing watermark from video...")
-                        processed_video_path = process_knolify_video(video_link)
+                        processed_video_path = await asyncio.to_thread(
+                            process_knolify_video,
+                            video_link
+                        )
                         
                         # TODO: Upload processed video to your own storage
                         # For now, return the local path

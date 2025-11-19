@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get('/get_leaderboard_generic/{user_id}')
-async def get_leaderboard_generic(
+def get_leaderboard_generic(  
     user_id: str,
     current_user: dict = Depends(authenticate_request),  # Remove () from authenticate_request
     limit: int = Query(default=100, ge=1, le=500),

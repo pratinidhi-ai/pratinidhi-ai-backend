@@ -35,7 +35,7 @@ class UpdateTaskNumRequest(BaseModel):
 
 
 @user_router.get('/{user_id}', status_code=status.HTTP_200_OK)
-async def get_user(user_id: str, user: dict = Depends(authenticate_request)):
+def get_user(user_id: str, user: dict = Depends(authenticate_request)):
     try:
         item = getUserbyId(user_id=user_id)
         if not item:
@@ -66,7 +66,7 @@ async def get_user(user_id: str, user: dict = Depends(authenticate_request)):
 
 
 @user_router.post('/', status_code=status.HTTP_201_CREATED)
-async def create_user(request_data: CreateUserRequest, user: dict = Depends(authenticate_request)):
+def create_user(request_data: CreateUserRequest, user: dict = Depends(authenticate_request)):
     try:
         data = request_data.dict()
         
@@ -167,7 +167,7 @@ async def create_user(request_data: CreateUserRequest, user: dict = Depends(auth
 
 
 @user_router.post('/update-tags', status_code=status.HTTP_200_OK)
-async def update_tags(request_data: UpdateTagsRequest, user: dict = Depends(authenticate_request)):
+def update_tags(request_data: UpdateTagsRequest, user: dict = Depends(authenticate_request)):
     try:
         if _update_user_tags_quiz(request_data.user_id, request_data.tags):
             logger.info("Updated User Tags")
@@ -198,7 +198,7 @@ async def update_tags(request_data: UpdateTagsRequest, user: dict = Depends(auth
 
 
 @user_router.post('/update-task-num', status_code=status.HTTP_200_OK)
-async def update_task_num(request_data: UpdateTaskNumRequest, user: dict = Depends(authenticate_request)):
+def update_task_num(request_data: UpdateTaskNumRequest, user: dict = Depends(authenticate_request)):
     try:
         user_db = get_user_db()
         success = user_db.update_num_tasks_per_week(request_data.user_id, request_data.num_tasks)

@@ -34,7 +34,7 @@ class FetchQuizRequest(BaseModel):
 
 
 @question_router.get('/metadata')
-async def get_metadata(user: dict = Depends(authenticate_request)):
+def get_metadata(user: dict = Depends(authenticate_request)):
     """
     Get all question bank metadata
     Returns all documents from 'question_bank' collection with their statistics
@@ -108,7 +108,7 @@ async def get_metadata(user: dict = Depends(authenticate_request)):
 
 
 @question_router.post('/fetch-quiz')
-async def fetch_quiz(
+def fetch_quiz(
     request_data: FetchQuizRequest,
     user: dict = Depends(authenticate_request)
 ):

@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 security = HTTPBearer()
 
-async def authenticate_request(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def authenticate_request(credentials: HTTPAuthorizationCredentials = Depends(security)):
 	"""
 	FastAPI dependency for authenticating requests using Firebase ID tokens.
 	Usage: Add as a dependency to your route: async def my_route(user = Depends(authenticate_request))

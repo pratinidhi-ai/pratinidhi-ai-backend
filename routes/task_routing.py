@@ -44,7 +44,7 @@ class UpdateTaskAttemptRequest(BaseModel):
 
 
 @task_router.post('/admin/assign-weekly', status_code=status.HTTP_200_OK)
-async def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
+def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
     """
     ADMIN Endpoint: Triggers weekly task assignment for all active users
     Requires a valid X-Admin-API-Key header.
@@ -140,7 +140,7 @@ async def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
 
 
 @task_router.get('/user/{user_id}/tasks', status_code=status.HTTP_200_OK)
-async def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
+def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
     """Get all current tasks for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -174,7 +174,7 @@ async def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request
 
 
 @task_router.get('/user/{user_id}/tasks/current', status_code=status.HTTP_200_OK)
-async def get_current_task(user_id: str, user: dict = Depends(authenticate_request)):
+def get_current_task(user_id: str, user: dict = Depends(authenticate_request)):
     """Get the current (next) task for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -213,7 +213,7 @@ async def get_current_task(user_id: str, user: dict = Depends(authenticate_reque
 
 
 @task_router.post('/user/{user_id}/tasks/{task_id}/complete', status_code=status.HTTP_200_OK)
-async def mark_task_completed(
+def mark_task_completed(
     user_id: str,
     task_id: str,
     request_data: CompleteTaskRequest,
@@ -273,7 +273,7 @@ async def mark_task_completed(
 
 
 @task_router.post('/user/{user_id}/tasks/{task_id}/attempt', status_code=status.HTTP_200_OK)
-async def update_task_attempt(
+def update_task_attempt(
     user_id: str,
     task_id: str,
     request_data: Dict[str, Any],
@@ -318,7 +318,7 @@ async def update_task_attempt(
 
 
 @task_router.get('/user/{user_id}/dashboard', status_code=status.HTTP_200_OK)
-async def get_user_dashboard(user_id: str, user: dict = Depends(authenticate_request)):
+def get_user_dashboard(user_id: str, user: dict = Depends(authenticate_request)):
     """Get comprehensive dashboard data for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -350,7 +350,7 @@ async def get_user_dashboard(user_id: str, user: dict = Depends(authenticate_req
 
 
 @task_router.post('/user/{user_id}/tasks/initialize', status_code=status.HTTP_200_OK)
-async def initialize_tasks(user_id: str, user: dict = Depends(authenticate_request)):
+def initialize_tasks(user_id: str, user: dict = Depends(authenticate_request)):
     """Initialize tasks for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -383,7 +383,7 @@ async def initialize_tasks(user_id: str, user: dict = Depends(authenticate_reque
 
 
 @task_router.post('/user/{user_id}/chapters/{chapter_id}/complete', status_code=status.HTTP_200_OK)
-async def mark_chapter_completed(user_id: str, chapter_id: str, user: dict = Depends(authenticate_request)):
+def mark_chapter_completed(user_id: str, chapter_id: str, user: dict = Depends(authenticate_request)):
     """Mark a chapter as completed for a user"""
     try:
         firestore_client = get_firestore_client()
@@ -422,7 +422,7 @@ async def mark_chapter_completed(user_id: str, chapter_id: str, user: dict = Dep
 
 
 @task_router.get('/user/{user_id}/progress', status_code=status.HTTP_200_OK)
-async def get_user_progress(user_id: str, user: dict = Depends(authenticate_request)):
+def get_user_progress(user_id: str, user: dict = Depends(authenticate_request)):
     """Get user's overall progress"""
     try:
         firestore_client = get_firestore_client()
@@ -468,7 +468,7 @@ async def get_user_progress(user_id: str, user: dict = Depends(authenticate_requ
 
 
 @task_router.post('/admin/tasks/test-assignment', status_code=status.HTTP_200_OK)
-async def test_task_assignment(request_data: Dict[str, Any]):
+def test_task_assignment(request_data: Dict[str, Any]):
     """Test endpoint to see what tasks would be assigned"""
     try:
         if 'user_id' not in request_data:
