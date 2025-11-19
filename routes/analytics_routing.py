@@ -3,11 +3,11 @@ Analytics API Routes
 Handles all analytics-related endpoints for student performance tracking
 """
 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional
 import logging
-import threading
 import uuid
-from typing import Dict, Any
 
 from helper.middleware import authenticate_request
 from database.analytics_db import get_analytics_db
@@ -19,7 +19,7 @@ from routes.leaderboard_routing import update_leaderboard_db
 
 logger = logging.getLogger(__name__)
 
-analytics_bp = Blueprint('analytics', __name__)
+analytics_router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 # Complete taxonomy of all available tags organized by subject and sub_category
 # This ensures we consider tags that haven't been attempted yet
@@ -166,6 +166,31 @@ SUBJECT_TAG_TAXONOMY = {
     }
 }
 
+# Pydantic models for request/response
+class TagWiseDetail(BaseModel):
+    tag: str
+    total_questions: int
+    correct_answers: int
+    score: Optional[int] = None
+    total_possible_score: Optional[int] = None
+
+class QuizSubmitRequest(BaseModel):
+    student_id: str
+    time_spent: int = Field(..., description="Time spent in seconds")
+    number_of_questions: int
+    number_of_correct_answers: int
+    subject: str
+    sub_category: str
+    difficulty_level: int = Field(..., ge=1, le=5)
+    tag_wise_details: List[TagWiseDetail]
+    correct_question_ids: List[str]
+    incorrect_question_ids: List[str]
+
+class PerformanceRequest(BaseModel):
+    user_id: str
+    subject: str
+    sub_category: Optional[str] = None  # Make it optional since some endpoints don't need it
+
 def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
     Background task to process quiz submission and store analytics
@@ -238,313 +263,200 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
         traceback.print_exc()
 
 
-@analytics_bp.route('/submit-quiz', methods=['POST'])
-@authenticate_request
-def submit_quiz():
+@analytics_router.post('/submit-quiz', status_code=202)
+def submit_quiz(
+    data: QuizSubmitRequest,
+    background_tasks: BackgroundTasks,
+    user=Depends(authenticate_request)
+):
     """
     Submit quiz results and update analytics (ASYNC)
     
     This endpoint accepts the quiz data, validates it, and immediately returns a response
     with a request_id. The actual processing and storage happens asynchronously in the background.
-    
-    Request Body (JSON):
-    {
-        "student_id": "string",
-        "time_spent": integer (seconds),
-        "number_of_questions": integer,
-        "number_of_correct_answers": integer,
-        "subject": "string" (e.g., "math", "reading-and-writing"),
-        "sub_category": "string" (e.g., "algebra", "craft-and-structure"),
-        "difficulty_level": integer (1-5),
-        "tag_wise_details": [
-            {
-                "tag": "string",
-                "total_questions": integer,
-                "correct_answers": integer,
-                "score": integer (optional, will be calculated),
-                "total_possible_score": integer (optional, will be calculated)
-            }
-        ],
-        "correct_question_ids": ["string"],
-        "incorrect_question_ids": ["string"]
-    }
-    
-    Response:
-    {
-        "success": true,
-        "message": "Quiz submission received and is being processed",
-        "request_id": "uuid-string",
-        "estimated_score": integer,
-        "estimated_accuracy": float
-    }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required fields
-        required_fields = [
-            'student_id', 'time_spent', 'number_of_questions',
-            'number_of_correct_answers', 'subject', 'sub_category',
-            'difficulty_level', 'tag_wise_details',
-            'correct_question_ids', 'incorrect_question_ids'
-        ]
-        
-        missing_fields = [field for field in required_fields if field not in data]
-        
-        if missing_fields:
-            return jsonify({
-                'error': 'Missing required fields',
-                'missing': missing_fields
-            }), 400
-        
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(data['student_id']):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {data['student_id']} does not exist"
-            }), 404
+        if not user_db.user_exists(data.student_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.student_id} does not exist"
+            )
         
-        # Basic validation of data structure
-        try:
-            difficulty_level = data['difficulty_level']
-            
-            # Quick calculation for immediate feedback (estimated)
-            estimated_score = 0
-            estimated_total_possible = 0
-            
-            for tag_data in data['tag_wise_details']:
-                if 'tag' not in tag_data or 'total_questions' not in tag_data or 'correct_answers' not in tag_data:
-                    return jsonify({
-                        'error': 'Invalid tag_wise_details',
-                        'message': 'Each tag detail must have tag, total_questions, and correct_answers'
-                    }), 400
-                
-                correct = tag_data['correct_answers']
-                total = tag_data['total_questions']
-                estimated_score += correct * difficulty_level
-                estimated_total_possible += total * difficulty_level
-            
-            estimated_accuracy = round((data['number_of_correct_answers'] / data['number_of_questions'] * 100), 2) if data['number_of_questions'] > 0 else 0
-            
-        except (ValueError, KeyError, TypeError) as ve:
-            return jsonify({
-                'error': 'Invalid data',
-                'message': str(ve)
-            }), 400
+        # Quick calculation for immediate feedback (estimated)
+        estimated_score = 0
+        estimated_total_possible = 0
+        
+        for tag_data in data.tag_wise_details:
+            correct = tag_data.correct_answers
+            total = tag_data.total_questions
+            estimated_score += correct * data.difficulty_level
+            estimated_total_possible += total * data.difficulty_level
+        
+        estimated_accuracy = round((data.number_of_correct_answers / data.number_of_questions * 100), 2) if data.number_of_questions > 0 else 0
         
         # Generate unique request ID for tracking
         request_id = str(uuid.uuid4())
         
-        # Start background processing in a separate thread
-        background_thread = threading.Thread(
-            target=process_quiz_submission_background,
-            args=(data, request_id),
-            daemon=True  # Daemon thread won't prevent app shutdown
+        # Add background task
+        background_tasks.add_task(
+            process_quiz_submission_background,
+            data.dict(),
+            request_id
         )
-        background_thread.start()
         
-        logger.info(f"[{request_id}] Quiz submission accepted for student {data['student_id']}, processing in background")
+        logger.info(f"[{request_id}] Quiz submission accepted for student {data.student_id}, processing in background")
         
         # Return immediate response
-        return jsonify({
+        return {
             'success': True,
             'message': 'Quiz submission received and is being processed',
             'request_id': request_id,
             'estimated_score': estimated_score,
             'estimated_total_possible_score': estimated_total_possible,
             'estimated_accuracy': estimated_accuracy,
-            'subject': data['subject'],
-            'sub_category': data['sub_category'],
-            'difficulty_level': data['difficulty_level']
-        }), 202  # 202 Accepted - indicates async processing
+            'subject': data.subject,
+            'sub_category': data.sub_category,
+            'difficulty_level': data.difficulty_level
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error accepting quiz submission: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to accept quiz submission',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/performance-summary/<student_id>', methods=['GET'])
-@authenticate_request
-def get_performance_summary(student_id: str):
+@analytics_router.get('/performance-summary/{student_id}')
+def get_performance_summary(
+    student_id: str,
+    subject: Optional[str] = Query(None),
+    sub_category: Optional[str] = Query(None),
+    user=Depends(authenticate_request)
+):
     """
     Get overall performance summary for a student
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Query Parameters:
-        subject: Optional - filter by subject
-        sub_category: Optional - filter by sub_category (requires subject)
-    
-    Response:
-    {
-        "success": true,
-        "summary": {performance data with hierarchical structure}
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get performance summary
         analytics_db = get_analytics_db()
         summary = analytics_db.get_performance_summary(student_id)
         
         if not summary:
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'No analytics data found for this student',
                 'summary': None
-            }), 200
+            }
         
         # Filter if subject/sub_category specified
-        subject_filter = request.args.get('subject')
-        sub_category_filter = request.args.get('sub_category')
-        
-        if subject_filter:
+        if subject:
             subjects_data = summary.get('subjects', {})
-            if subject_filter in subjects_data:
-                filtered_subject = subjects_data[subject_filter]
+            if subject in subjects_data:
+                filtered_subject = subjects_data[subject]
                 
-                if sub_category_filter:
+                if sub_category:
                     sub_cats = filtered_subject.get('sub_categories', {})
-                    if sub_category_filter in sub_cats:
+                    if sub_category in sub_cats:
                         summary = {
                             'student_id': summary['student_id'],
-                            'subject': subject_filter,
-                            'sub_category': sub_category_filter,
-                            'data': sub_cats[sub_category_filter]
+                            'subject': subject,
+                            'sub_category': sub_category,
+                            'data': sub_cats[sub_category]
                         }
                     else:
-                        return jsonify({
-                            'success': False,
-                            'message': f'No data found for sub_category: {sub_category_filter}'
-                        }), 404
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f'No data found for sub_category: {sub_category}'
+                        )
                 else:
                     summary = {
                         'student_id': summary['student_id'],
-                        'subject': subject_filter,
+                        'subject': subject,
                         'data': filtered_subject
                     }
             else:
-                return jsonify({
-                    'success': False,
-                    'message': f'No data found for subject: {subject_filter}'
-                }), 404
+                raise HTTPException(
+                    status_code=404,
+                    detail=f'No data found for subject: {subject}'
+                )
         
-        return jsonify({
+        return {
             'success': True,
             'summary': summary
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting performance summary for {student_id}: {str(e)}")
-        return jsonify({
-            'error': 'Failed to get performance summary',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/activity-logs/<student_id>', methods=['GET'])
-@authenticate_request
-def get_activity_logs(student_id: str):
+@analytics_router.get('/activity-logs/{student_id}')
+def get_activity_logs(
+    student_id: str,
+    limit: int = Query(50, le=100),
+    user=Depends(authenticate_request)
+):
     """
     Get activity logs (quiz history) for a student
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Query Parameters:
-        limit: Optional - maximum number of logs to return (default 50, max 100)
-    
-    Response:
-    {
-        "success": true,
-        "logs": [array of quiz sessions],
-        "count": integer
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
-        
-        # Get limit parameter
-        limit = request.args.get('limit', 50, type=int)
-        limit = min(limit, 100)  # Cap at 100
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get activity logs
         analytics_db = get_analytics_db()
         logs = analytics_db.get_activity_logs(student_id, limit=limit)
         
-        return jsonify({
+        return {
             'success': True,
             'logs': logs,
             'count': len(logs)
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting activity logs for {student_id}: {str(e)}")
-        return jsonify({
-            'error': 'Failed to get activity logs',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/correct-questions/<student_id>', methods=['GET'])
-@authenticate_request
-def get_correct_questions(student_id: str):
+@analytics_router.get('/correct-questions/{student_id}')
+def get_correct_questions(
+    student_id: str,
+    subject: Optional[str] = Query(None),
+    sub_category: Optional[str] = Query(None),
+    user=Depends(authenticate_request)
+):
     """
     Get list of correctly answered question IDs for a student
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Query Parameters:
-        subject: Optional - filter by subject
-        sub_category: Optional - filter by sub_category (requires subject)
-    
-    Response:
-    {
-        "success": true,
-        "correct_questions": {
-            "subject|sub_category": ["question_id1", "question_id2", ...]
-        }
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
-        
-        # Get filters
-        subject = request.args.get('subject')
-        sub_category = request.args.get('sub_category')
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get correct questions
         analytics_db = get_analytics_db()
@@ -554,52 +466,36 @@ def get_correct_questions(student_id: str):
             sub_category=sub_category
         )
         
-        return jsonify({
+        return {
             'success': True,
             'correct_questions': correct_questions
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting correct questions for {student_id}: {str(e)}")
-        return jsonify({
-            'error': 'Failed to get correct questions',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/incorrect-questions/<student_id>', methods=['GET'])
-@authenticate_request
-def get_incorrect_questions(student_id: str):
+@analytics_router.get('/incorrect-questions/{student_id}')
+def get_incorrect_questions(
+    student_id: str,
+    subject: Optional[str] = Query(None),
+    sub_category: Optional[str] = Query(None),
+    user=Depends(authenticate_request)
+):
     """
     Get list of incorrectly answered question IDs for a student
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Query Parameters:
-        subject: Optional - filter by subject
-        sub_category: Optional - filter by sub_category (requires subject)
-    
-    Response:
-    {
-        "success": true,
-        "incorrect_questions": {
-            "subject|sub_category": ["question_id1", "question_id2", ...]
-        }
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
-        
-        # Get filters
-        subject = request.args.get('subject')
-        sub_category = request.args.get('sub_category')
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get incorrect questions
         analytics_db = get_analytics_db()
@@ -609,63 +505,45 @@ def get_incorrect_questions(student_id: str):
             sub_category=sub_category
         )
         
-        return jsonify({
+        return {
             'success': True,
             'incorrect_questions': incorrect_questions
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting incorrect questions for {student_id}: {str(e)}")
-        return jsonify({
-            'error': 'Failed to get incorrect questions',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/stats/<student_id>', methods=['GET'])
-@authenticate_request
-def get_quick_stats(student_id: str):
+@analytics_router.get('/stats/{student_id}')
+def get_quick_stats(
+    student_id: str,
+    user=Depends(authenticate_request)
+):
     """
     Get quick stats overview for a student
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Response:
-    {
-        "success": true,
-        "stats": {
-            "total_quizzes": integer,
-            "total_time_spent_hours": float,
-            "overall_accuracy": float,
-            "subjects": {
-                "subject_name": {
-                    "accuracy": float,
-                    "quizzes_taken": integer
-                }
-            }
-        }
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get performance summary
         analytics_db = get_analytics_db()
         summary = analytics_db.get_performance_summary(student_id)
         
         if not summary:
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'No analytics data found for this student',
                 'stats': None
-            }), 200
+            }
         
         # Calculate quick stats
         stats = {
@@ -696,100 +574,61 @@ def get_quick_stats(student_id: str):
         
         stats['overall_accuracy'] = round((total_correct / total_attempted * 100), 2) if total_attempted > 0 else 0
         
-        return jsonify({
+        return {
             'success': True,
             'stats': stats
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting quick stats for {student_id}: {str(e)}")
-        return jsonify({
-            'error': 'Failed to get quick stats',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-strength', methods=['POST'])
-@authenticate_request
-def get_my_strength():
+@analytics_router.post('/get-my-strength')
+def get_my_strength(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get the user's strongest tag in a subject
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing")
-    }
-    
-    Response:
-    {
-        "success": true,
-        "strength": {
-            "subject": "math",
-            "sub_category": "algebra",
-            "tag": "linear-equations",
-            "total_score": 120,
-            "score_percentage": 95.5,
-            "total_questions_attempted": 25,
-            "accuracy": 96.0
-        }
-    }
-    
-    Returns empty string if no data available
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        
-        if not user_id or not subject:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id and subject are required'
-            }), 400
-        
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Get performance summary
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         if not summary or 'subjects' not in summary:
-            return jsonify({
+            return {
                 'success': True,
                 'strength': ""
-            }), 200
+            }
         
         # Check if subject exists
         subjects_data = summary.get('subjects', {})
-        if subject not in subjects_data:
-            return jsonify({
+        if data.subject not in subjects_data:
+            return {
                 'success': True,
                 'strength': ""
-            }), 200
+            }
         
-        subject_data = subjects_data[subject]
+        subject_data = subjects_data[data.subject]
         sub_categories = subject_data.get('sub_categories', {})
         
         if not sub_categories:
-            return jsonify({
+            return {
                 'success': True,
                 'strength': ""
-            }), 200
+            }
         
         # Find the strongest tag
         best_tag = None
@@ -823,16 +662,16 @@ def get_my_strength():
         
         # If no tag found (all zeros)
         if best_tag is None:
-            return jsonify({
+            return {
                 'success': True,
                 'strength': ""
-            }), 200
+            }
         
         # Return the strongest tag
-        return jsonify({
+        return {
             'success': True,
             'strength': {
-                'subject': subject,
+                'subject': data.subject,
                 'sub_category': best_sub_category,
                 'tag': best_tag,
                 'total_score': best_tag_data.get('total_score', 0),
@@ -840,99 +679,60 @@ def get_my_strength():
                 'total_questions_attempted': best_tag_data.get('total_questions_attempted', 0),
                 'accuracy': best_tag_data.get('accuracy', 0)
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting strength for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get strength',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-weakness', methods=['POST'])
-@authenticate_request
-def get_my_weakness():
+@analytics_router.post('/get-my-weakness')
+def get_my_weakness(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get the user's weakest tag in a subject
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing")
-    }
-    
-    Response:
-    {
-        "success": true,
-        "weakness": {
-            "subject": "math",
-            "sub_category": "algebra",
-            "tag": "systems-of-equations",
-            "total_score": 30,
-            "score_percentage": 45.5,
-            "total_questions_attempted": 20,
-            "accuracy": 50.0
-        }
-    }
-    
-    Returns empty string if no data available
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        
-        if not user_id or not subject:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id and subject are required'
-            }), 400
-        
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Get performance summary
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         if not summary or 'subjects' not in summary:
-            return jsonify({
+            return {
                 'success': True,
                 'weakness': ""
-            }), 200
+            }
         
         # Check if subject exists
         subjects_data = summary.get('subjects', {})
-        if subject not in subjects_data:
-            return jsonify({
+        if data.subject not in subjects_data:
+            return {
                 'success': True,
                 'weakness': ""
-            }), 200
+            }
         
-        subject_data = subjects_data[subject]
+        subject_data = subjects_data[data.subject]
         sub_categories = subject_data.get('sub_categories', {})
         
         if not sub_categories:
-            return jsonify({
+            return {
                 'success': True,
                 'weakness': ""
-            }), 200
+            }
         
         # Find the weakest tag
         worst_tag = None
@@ -965,16 +765,16 @@ def get_my_weakness():
         
         # If no tag found (all zeros)
         if worst_tag is None:
-            return jsonify({
+            return {
                 'success': True,
                 'weakness': ""
-            }), 200
+            }
         
         # Return the weakest tag
-        return jsonify({
+        return {
             'success': True,
             'weakness': {
-                'subject': subject,
+                'subject': data.subject,
                 'sub_category': worst_sub_category,
                 'tag': worst_tag,
                 'total_score': worst_tag_data.get('total_score', 0),
@@ -982,91 +782,51 @@ def get_my_weakness():
                 'total_questions_attempted': worst_tag_data.get('total_questions_attempted', 0),
                 'accuracy': worst_tag_data.get('accuracy', 0)
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting weakness for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get weakness',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-least-attempted', methods=['POST'])
-@authenticate_request
-def get_my_least_attempted():
+@analytics_router.post('/get-my-least-attempted')
+def get_my_least_attempted(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get the tag with least number of questions attempted by the user in a subject
-    Considers ALL tags from the taxonomy, including tags with zero attempts
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing")
-    }
-    
-    Response:
-    {
-        "success": true,
-        "least_attempted": {
-            "subject": "math",
-            "sub_category": "algebra",
-            "tag": "mixture-problems",
-            "total_score": 0,
-            "score_percentage": 0,
-            "total_questions_attempted": 0,
-            "accuracy": 0
-        }
-    }
-    
-    Returns empty string if subject is invalid
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        
-        if not user_id or not subject:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id and subject are required'
-            }), 400
-        
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Verify subject is valid
-        if subject not in SUBJECT_TAG_TAXONOMY:
-            return jsonify({
-                'error': 'Invalid subject',
-                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
-            }), 400
+        if data.subject not in SUBJECT_TAG_TAXONOMY:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Subject '{data.subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            )
         
         # Get performance summary
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         # Build a map of attempted tags with their data
         attempted_tags = {}
         if summary and 'subjects' in summary:
             subjects_data = summary.get('subjects', {})
-            if subject in subjects_data:
-                subject_data = subjects_data[subject]
+            if data.subject in subjects_data:
+                subject_data = subjects_data[data.subject]
                 sub_categories = subject_data.get('sub_categories', {})
                 
                 for sub_cat_name, sub_cat_data in sub_categories.items():
@@ -1086,7 +846,7 @@ def get_my_least_attempted():
         }
         
         # Iterate through all tags in the taxonomy for this subject
-        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[subject].items():
+        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[data.subject].items():
             for tag_name in tag_list:
                 tag_key = f"{sub_cat_name}|{tag_name}"
                 
@@ -1112,10 +872,10 @@ def get_my_least_attempted():
                     least_attempted_tag_data = tag_data
         
         # Return the least attempted tag
-        return jsonify({
+        return {
             'success': True,
             'least_attempted': {
-                'subject': subject,
+                'subject': data.subject,
                 'sub_category': least_attempted_sub_category,
                 'tag': least_attempted_tag,
                 'total_score': least_attempted_tag_data.get('total_score', 0),
@@ -1123,66 +883,33 @@ def get_my_least_attempted():
                 'total_questions_attempted': least_attempted_tag_data.get('total_questions_attempted', 0),
                 'accuracy': least_attempted_tag_data.get('accuracy', 0)
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting least attempted for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get least attempted',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/daily-progress/<student_id>', methods=['GET'])
-@authenticate_request
-def get_daily_progress(student_id: str):
+@analytics_router.get('/daily-progress/{student_id}')
+def get_daily_progress(
+    student_id: str,
+    user=Depends(authenticate_request)
+):
     """
     Get daily progress statistics for a student (IST timezone)
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Response:
-    {
-        "success": true,
-        "daily_progress": {
-            "today": {
-                "date": "2025-11-04",
-                "total_time_spent": 1200 (seconds),
-                "total_quizzes": 5,
-                "total_questions": 50,
-                "total_correct": 42,
-                "accuracy": 84.0,
-                "hot_topic": "linear-equations",
-                "hot_topic_count": 15,
-                "tags": {"linear-equations": 15, "quadratic-equations": 10, ...}
-            },
-            "yesterday": {
-                "date": "2025-11-03",
-                "total_time_spent": 900,
-                "total_quizzes": 3,
-                "total_questions": 30,
-                "total_correct": 25,
-                "accuracy": 83.33,
-                "hot_topic": "systems-of-equations",
-                "hot_topic_count": 12,
-                "tags": {...}
-            },
-            "streak": 5,
-            "last_activity_date": "2025-11-04"
-        }
-    }
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get daily progress
         analytics_db = get_analytics_db()
@@ -1190,7 +917,7 @@ def get_daily_progress(student_id: str):
         
         if not daily_progress:
             # Return empty structure if no data found
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'No daily progress data found for this student',
                 'daily_progress': {
@@ -1209,111 +936,53 @@ def get_daily_progress(student_id: str):
                     'streak': 0,
                     'last_activity_date': None
                 }
-            }), 200
+            }
         
-        return jsonify({
+        return {
             'success': True,
             'daily_progress': daily_progress
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting daily progress for {student_id}: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get daily progress',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-performance-analytics', methods=['POST'])
-@authenticate_request
-def get_my_performance_analytics():
+@analytics_router.post('/get-my-performance-analytics')
+def get_my_performance_analytics(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get comprehensive performance analytics for a user in a subject
-    Combines strength, weakness, and least attempted tag in a single API call
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing")
-    }
-    
-    Response:
-    {
-        "success": true,
-        "analytics": {
-            "subject": "math",
-            "strength": {
-                "sub_category": "algebra",
-                "tag": "linear-equations",
-                "total_score": 120,
-                "score_percentage": 95.5,
-                "total_questions_attempted": 25,
-                "accuracy": 96.0
-            },
-            "weakness": {
-                "sub_category": "geometry-and-trigonometry",
-                "tag": "circle-equations",
-                "total_score": 30,
-                "score_percentage": 45.5,
-                "total_questions_attempted": 20,
-                "accuracy": 50.0
-            },
-            "least_attempted": {
-                "sub_category": "algebra",
-                "tag": "mixture-problems",
-                "total_score": 0,
-                "score_percentage": 0,
-                "total_questions_attempted": 0,
-                "accuracy": 0
-            }
-        }
-    }
-    
-    Note: Any of strength, weakness, or least_attempted can be empty string if no data available
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
-        # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        
-        if not user_id or not subject:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id and subject are required'
-            }), 400
-        
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Verify subject is valid
-        if subject not in SUBJECT_TAG_TAXONOMY:
-            return jsonify({
-                'error': 'Invalid subject',
-                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
-            }), 400
+        if data.subject not in SUBJECT_TAG_TAXONOMY:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Subject '{data.subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            )
         
         # Get performance summary once for all calculations
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         # Initialize response structure
         analytics_response = {
-            'subject': subject,
+            'subject': data.subject,
             'strength': "",
             'weakness': "",
             'least_attempted': ""
@@ -1321,19 +990,19 @@ def get_my_performance_analytics():
         
         # Check if we have any data
         if not summary or 'subjects' not in summary:
-            return jsonify({
+            return {
                 'success': True,
                 'analytics': analytics_response
-            }), 200
+            }
         
         subjects_data = summary.get('subjects', {})
-        if subject not in subjects_data:
-            return jsonify({
+        if data.subject not in subjects_data:
+            return {
                 'success': True,
                 'analytics': analytics_response
-            }), 200
+            }
         
-        subject_data = subjects_data[subject]
+        subject_data = subjects_data[data.subject]
         sub_categories = subject_data.get('sub_categories', {})
         
         # Calculate Strength (highest combined score)
@@ -1426,7 +1095,7 @@ def get_my_performance_analytics():
             'accuracy': 0
         }
         
-        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[subject].items():
+        for sub_cat_name, tag_list in SUBJECT_TAG_TAXONOMY[data.subject].items():
             for tag_name in tag_list:
                 tag_key = f"{sub_cat_name}|{tag_name}"
                 
@@ -1458,72 +1127,36 @@ def get_my_performance_analytics():
                 'accuracy': least_attempted_tag_data.get('accuracy', 0)
             }
         
-        return jsonify({
+        return {
             'success': True,
             'analytics': analytics_response
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting performance analytics for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get performance analytics',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/last-15-math-questions/<student_id>', methods=['GET'])
-@authenticate_request
-def get_last_15_math_questions(student_id: str):
+@analytics_router.get('/last-15-math-questions/{student_id}')
+def get_last_15_math_questions(
+    student_id: str,
+    user=Depends(authenticate_request)
+):
     """
     Get the last 15 math questions attempted by a student
-    
-    This endpoint returns the most recent 15 math questions the student has attempted,
-    including full question data (text, options) and whether they answered correctly
-    
-    URL Parameters:
-        student_id: The student's user ID
-    
-    Response:
-    {
-        "success": true,
-        "data": {
-            "student_id": "user123",
-            "questions": [
-                {
-                    "question_id": "q123",
-                    "question_text": "Solve for x: 2x + 5 = 15",
-                    "options": {
-                        "A": "x = 5",
-                        "B": "x = 10",
-                        "C": "x = 15",
-                        "D": "x = 20"
-                    },
-                    "correct_answer": "A",
-                    "is_answered_correctly": true,
-                    "difficulty_level": 3,
-                    "tags": ["linear-equations", "algebra"],
-                    "sub_category": "algebra",
-                    "timestamp": "2025-11-07T12:34:56.789Z"
-                },
-                ...
-            ],
-            "count": 15,
-            "last_updated": "2025-11-07T12:34:56.789Z"
-        }
-    }
-    
-    Returns empty list if no data available
     """
     try:
         # Verify user exists
         user_db = get_user_db()
         if not user_db.user_exists(student_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {student_id} does not exist"
-            }), 404
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
         
         # Get last 15 math questions
         analytics_db = get_analytics_db()
@@ -1531,7 +1164,7 @@ def get_last_15_math_questions(student_id: str):
         
         if not last_15_data:
             # Return empty structure if no data found
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'No math questions found for this student',
                 'data': {
@@ -1540,7 +1173,7 @@ def get_last_15_math_questions(student_id: str):
                     'count': 0,
                     'last_updated': None
                 }
-            }), 200
+            }
         
         # Get questions and format them
         questions = last_15_data.get('questions', [])
@@ -1566,7 +1199,7 @@ def get_last_15_math_questions(student_id: str):
             }
             formatted_questions.append(formatted_q)
         
-        return jsonify({
+        return {
             'success': True,
             'data': {
                 'student_id': last_15_data.get('student_id', student_id),
@@ -1574,138 +1207,78 @@ def get_last_15_math_questions(student_id: str):
                 'count': len(formatted_questions),
                 'last_updated': last_15_data.get('last_updated')
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting last 15 math questions for {student_id}: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get last 15 math questions',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_bp.route('/get-my-comprehensive-performance-analytics', methods=['POST'])
-@authenticate_request
-def get_my_comprehensive_performance_analytics():
+@analytics_router.post('/get-my-comprehensive-performance-analytics')
+def get_my_comprehensive_performance_analytics(
+    data: PerformanceRequest,
+    user=Depends(authenticate_request)
+):
     """
     Get comprehensive performance analytics for a user in a specific sub_category
     Categorizes all tags in the sub_category into three buckets: strength, weakness, and unexplored
-    
-    Request Body (JSON):
-    {
-        "user_id": "string",
-        "subject": "string" (e.g., "math", "reading-and-writing"),
-        "sub_category": "string" (e.g., "algebra", "craft-and-structure")
-    }
     
     Categorization Logic:
     - Unexplored: Tags where user has not solved any question OR attempted questions < 50% of mean
     - Strength: Tags with accuracy >= 75% AND not in unexplored
     - Weakness: Tags with accuracy < 75% AND not in unexplored
-    
-    Response:
-    {
-        "success": true,
-        "analytics": {
-            "subject": "math",
-            "sub_category": "algebra",
-            "total_tags": 15,
-            "mean_questions_attempted": 12.5,
-            "unexplored_threshold": 6.25,
-            "strength": [
-                {
-                    "tag": "linear-equations",
-                    "total_score": 120,
-                    "score_percentage": 95.5,
-                    "total_questions_attempted": 25,
-                    "accuracy": 96.0
-                },
-                ...
-            ],
-            "weakness": [
-                {
-                    "tag": "systems-of-equations",
-                    "total_score": 45,
-                    "score_percentage": 60.0,
-                    "total_questions_attempted": 15,
-                    "accuracy": 65.0
-                },
-                ...
-            ],
-            "unexplored": [
-                {
-                    "tag": "mixture-problems",
-                    "total_score": 0,
-                    "score_percentage": 0,
-                    "total_questions_attempted": 0,
-                    "accuracy": 0
-                },
-                ...
-            ]
-        }
-    }
     """
     try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'error': 'Invalid request',
-                'message': 'Request body must be JSON'
-            }), 400
-        
         # Validate required fields
-        user_id = data.get('user_id')
-        subject = data.get('subject')
-        sub_category = data.get('sub_category')
-        
-        if not user_id or not subject or not sub_category:
-            return jsonify({
-                'error': 'Missing required fields',
-                'message': 'user_id, subject, and sub_category are required'
-            }), 400
+        if not data.sub_category:
+            raise HTTPException(
+                status_code=400,
+                detail="sub_category is required"
+            )
         
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(user_id):
-            return jsonify({
-                'error': 'User not found',
-                'message': f"Student with ID {user_id} does not exist"
-            }), 404
+        if not user_db.user_exists(data.user_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.user_id} does not exist"
+            )
         
         # Verify subject is valid
-        if subject not in SUBJECT_TAG_TAXONOMY:
-            return jsonify({
-                'error': 'Invalid subject',
-                'message': f"Subject '{subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
-            }), 400
+        if data.subject not in SUBJECT_TAG_TAXONOMY:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Subject '{data.subject}' is not valid. Must be one of: {list(SUBJECT_TAG_TAXONOMY.keys())}"
+            )
         
         # Verify sub_category is valid for the subject
-        if sub_category not in SUBJECT_TAG_TAXONOMY[subject]:
-            return jsonify({
-                'error': 'Invalid sub_category',
-                'message': f"Sub-category '{sub_category}' is not valid for subject '{subject}'. Must be one of: {list(SUBJECT_TAG_TAXONOMY[subject].keys())}"
-            }), 400
+        if data.sub_category not in SUBJECT_TAG_TAXONOMY[data.subject]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Sub-category '{data.sub_category}' is not valid for subject '{data.subject}'. Must be one of: {list(SUBJECT_TAG_TAXONOMY[data.subject].keys())}"
+            )
         
         # Get all tags for this sub_category from taxonomy
-        all_tags = SUBJECT_TAG_TAXONOMY[subject][sub_category]
+        all_tags = SUBJECT_TAG_TAXONOMY[data.subject][data.sub_category]
         total_tags = len(all_tags)
         
         # Get performance summary
         analytics_db = get_analytics_db()
-        summary = analytics_db.get_performance_summary(user_id)
+        summary = analytics_db.get_performance_summary(data.user_id)
         
         # Build a map of tag data from user's performance
         tag_data_map = {}
         if summary and 'subjects' in summary:
             subjects_data = summary.get('subjects', {})
-            if subject in subjects_data:
-                subject_data = subjects_data[subject]
+            if data.subject in subjects_data:
+                subject_data = subjects_data[data.subject]
                 sub_categories = subject_data.get('sub_categories', {})
-                if sub_category in sub_categories:
-                    sub_cat_data = sub_categories[sub_category]
+                if data.sub_category in sub_categories:
+                    sub_cat_data = sub_categories[data.sub_category]
                     tags = sub_cat_data.get('tags', {})
                     tag_data_map = tags
         
@@ -1758,7 +1331,7 @@ def get_my_comprehensive_performance_analytics():
                 }
             
             # Categorization logic
-            # Unexplored: no questions OR questions < 70% of mean
+            # Unexplored: no questions OR questions < 50% of mean
             if total_questions == 0 or total_questions < unexplored_threshold:
                 unexplored.append(tag_info)
             # Strength: accuracy >= 75%
@@ -1776,11 +1349,11 @@ def get_my_comprehensive_performance_analytics():
         # Unexplored: sorted by questions attempted ascending (least attempted first)
         unexplored.sort(key=lambda x: x['total_questions_attempted'])
         
-        return jsonify({
+        return {
             'success': True,
             'analytics': {
-                'subject': subject,
-                'sub_category': sub_category,
+                'subject': data.subject,
+                'sub_category': data.sub_category,
                 'total_tags': total_tags,
                 'mean_questions_attempted': round(mean_questions_attempted, 2),
                 'unexplored_threshold': round(unexplored_threshold, 2),
@@ -1793,13 +1366,12 @@ def get_my_comprehensive_performance_analytics():
                     'unexplored_count': len(unexplored)
                 }
             }
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting comprehensive performance analytics for user: {str(e)}")
         import traceback
         traceback.print_exc()
-        return jsonify({
-            'error': 'Failed to get comprehensive performance analytics',
-            'message': str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=str(e))

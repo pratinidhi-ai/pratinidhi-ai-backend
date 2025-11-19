@@ -2,20 +2,42 @@
 Math Tutor Routing Module
 This module handles API endpoints for the math tutor feature.
 """
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
 import logging
+import asyncio
 from helper.middleware import authenticate_request
 from math_tutor.math_tutor_response import generate_math_tutor_response, review_student_solution
 from math_tutor.math_ai_video_generator import generate_math_ai_video
 from math_tutor.process_video import process_knolify_video
 
 logger = logging.getLogger(__name__)
-math_tutor_bp = Blueprint('math_tutor', __name__)
+
+math_tutor_router = APIRouter(prefix="/api/math-tutor", tags=["math-tutor"])
 
 
-@math_tutor_bp.route('/solve', methods=['POST'])
-@authenticate_request
-def solve_math_problem():
+# Pydantic models for request/response
+class MathProblemRequest(BaseModel):
+    problem: Optional[str] = Field(None, description="The math problem to solve (text)")
+    image: Optional[str] = Field(None, description="Base64 encoded image or data URI")
+    max_tokens: Optional[int] = Field(4000, description="Maximum tokens for solution")
+    temperature: Optional[float] = Field(0.3, description="Temperature for AI response")
+
+
+class MathProblemWithVideoRequest(BaseModel):
+    problem: str = Field(..., description="The math problem to solve")
+    max_tokens: Optional[int] = Field(4000, description="Maximum tokens for solution")
+    temperature: Optional[float] = Field(0.3, description="Temperature for AI response")
+    generate_video: Optional[bool] = Field(True, description="Whether to generate video explanation")
+    remove_watermark: Optional[bool] = Field(False, description="Whether to remove watermark from video")
+
+
+@math_tutor_router.post('/solve')
+async def solve_math_problem(
+    data: MathProblemRequest,
+    user=Depends(authenticate_request)
+):
     """
     Solve a math problem with step-by-step solution.
     Supports text, image, or both combined (text provides additional context with image).
@@ -46,23 +68,22 @@ def solve_math_problem():
         JSON response with step-by-step solution in LaTeX format
     """
     try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
-        
-        # Extract inputs - text problem and/or image
-        math_problem = data.get("problem")
-        image_data = data.get("image")
+        # Extract inputs - either text problem or image
+        math_problem = data.problem
+        image_data = data.image
         
         # Validate that at least one input type is provided
         if not math_problem and not image_data:
-            return jsonify({
-                "error": "At least one of 'problem' (text) or 'image' (base64) is required"
-            }), 400
+            raise HTTPException(
+                status_code=400,
+                detail="Either 'problem' (text) or 'image' (base64) field is required"
+            )
         
-        # Extract optional parameters with defaults
-        max_tokens = data.get("max_tokens", 4000)
-        temperature = data.get("temperature", 0.3)
+        if math_problem and image_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Provide either 'problem' OR 'image', not both"
+            )
         
         # Determine input type for response
         if image_data and math_problem:
@@ -74,12 +95,13 @@ def solve_math_problem():
         
         logger.info(f"Solving math problem from {input_type} input")
         
-        # Generate solution (function handles text, image, or both)
-        solution = generate_math_tutor_response(
+        # Generate solution (function handles both text and image)
+        solution = await asyncio.to_thread(
+            generate_math_tutor_response,
             math_problem=math_problem,
             image_data=image_data,
-            max_tokens=max_tokens,
-            temperature=temperature
+            max_tokens=data.max_tokens,
+            temperature=data.temperature
         )
         
         response_data = {
@@ -92,98 +114,76 @@ def solve_math_problem():
         if math_problem:
             response_data["problem"] = math_problem
         
-        return jsonify(response_data), 200
+        return response_data
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
-        return jsonify({
-            "error": "Validation error",
-            "details": str(ve)
-        }), 400
+        raise HTTPException(status_code=400, detail=f"Validation error: {str(ve)}")
         
     except Exception as e:
         logger.error(f"Error solving math problem: {str(e)}")
-        return jsonify({
-            "error": "Failed to solve math problem",
-            "details": str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=f"Failed to solve math problem: {str(e)}")
 
 
-@math_tutor_bp.route('/health', methods=['GET'])
+@math_tutor_router.get('/health')
 def health_check():
     """
     Health check endpoint for the math tutor service.
     """
-    return jsonify({
+    return {
         "status": "healthy",
         "service": "math-tutor"
-    }), 200
+    }
 
 
-@math_tutor_bp.route('/solve-with-video', methods=['POST'])
-@authenticate_request
-def solve_math_problem_with_video():
+@math_tutor_router.post('/solve-with-video')
+async def solve_math_problem_with_video(
+    data: MathProblemWithVideoRequest,
+    user=Depends(authenticate_request)
+):
     """
     Solve a math problem with step-by-step solution AND generate an AI video explanation.
-    
-    Expected JSON body:
-    {
-        "problem": "Solve for x: 2x + 5 = 15",
-        "max_tokens": 4000 (optional),
-        "temperature": 0.3 (optional),
-        "generate_video": true (optional, default: true)
-    }
     
     Returns:
         JSON response with solution and video links
     """
     try:
-        data = request.json
-        if not data:
-            return jsonify({"error": "No JSON data provided"}), 400
+        logger.info(f"Solving math problem with video generation: {data.generate_video}")
         
-        # Extract math problem
-        math_problem = data.get("problem")
-        if not math_problem:
-            return jsonify({"error": "Problem field is required"}), 400
-        
-        # Extract optional parameters with defaults
-        max_tokens = data.get("max_tokens", 4000)
-        temperature = data.get("temperature", 0.3)
-        generate_video = data.get("generate_video", True)
-        remove_watermark = data.get("remove_watermark", False)  # New parameter
-        
-        logger.info(f"Solving math problem with video generation: {generate_video}")
-        
-        # Generate solution
-        solution = generate_math_tutor_response(
-            math_problem=math_problem,
-            max_tokens=max_tokens,
-            temperature=temperature
+        # Generate solution (run in thread pool to avoid blocking)
+        solution = await asyncio.to_thread(
+            generate_math_tutor_response,
+            math_problem=data.problem,
+            max_tokens=data.max_tokens,
+            temperature=data.temperature
         )
         
         response_data = {
             "success": True,
-            "problem": math_problem,
+            "problem": data.problem,
             "solution": solution
         }
         
         # Generate video if requested
-        if generate_video:
+        if data.generate_video:
             try:
                 logger.info("Generating AI video explanation...")
-                video_result = generate_math_ai_video(
-                    math_problem=math_problem
+                video_result = await asyncio.to_thread(
+                    generate_math_ai_video,
+                    math_problem=data.problem
                 )
                 
                 video_link = video_result.get("video_link")
                 vtt_file = video_result.get("vtt_file")
                 
                 # Process video to remove watermark if requested
-                if remove_watermark and video_link:
+                if data.remove_watermark and video_link:
                     try:
                         logger.info("Removing watermark from video...")
-                        processed_video_path = process_knolify_video(video_link)
+                        processed_video_path = await asyncio.to_thread(
+                            process_knolify_video,
+                            video_link
+                        )
                         
                         # TODO: Upload processed video to your own storage
                         # For now, return the local path
@@ -220,21 +220,15 @@ def solve_math_problem_with_video():
                     "error": str(video_error)
                 }
         
-        return jsonify(response_data), 200
+        return response_data
         
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
-        return jsonify({
-            "error": "Validation error",
-            "details": str(ve)
-        }), 400
+        raise HTTPException(status_code=400, detail=f"Validation error: {str(ve)}")
         
     except Exception as e:
         logger.error(f"Error solving math problem: {str(e)}")
-        return jsonify({
-            "error": "Failed to solve math problem",
-            "details": str(e)
-        }), 500
+        raise HTTPException(status_code=500, detail=f"Failed to solve math problem: {str(e)}")
 
 
 @math_tutor_bp.route('/find-issues-in-solution', methods=['POST'])
