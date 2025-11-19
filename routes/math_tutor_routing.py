@@ -5,7 +5,7 @@ This module handles API endpoints for the math tutor feature.
 from flask import Blueprint, request, jsonify
 import logging
 from helper.middleware import authenticate_request
-from math_tutor.math_tutor_response import generate_math_tutor_response
+from math_tutor.math_tutor_response import generate_math_tutor_response, review_student_solution
 from math_tutor.math_ai_video_generator import generate_math_ai_video
 from math_tutor.process_video import process_knolify_video
 
@@ -18,18 +18,26 @@ math_tutor_bp = Blueprint('math_tutor', __name__)
 def solve_math_problem():
     """
     Solve a math problem with step-by-step solution.
-    Supports both text and image inputs.
+    Supports text, image, or both combined (text provides additional context with image).
     
-    Expected JSON body (for text):
+    Expected JSON body (for text only):
     {
         "problem": "Solve for x: 2x + 5 = 15",
         "max_tokens": 4000 (optional),
         "temperature": 0.3 (optional)
     }
     
-    Expected JSON body (for image):
+    Expected JSON body (for image only):
     {
         "image": "base64_encoded_image_or_data_uri",
+        "max_tokens": 4000 (optional),
+        "temperature": 0.3 (optional)
+    }
+    
+    Expected JSON body (for image + text):
+    {
+        "image": "base64_encoded_image_or_data_uri",
+        "problem": "Additional context or clarification",
         "max_tokens": 4000 (optional),
         "temperature": 0.3 (optional)
     }
@@ -42,29 +50,31 @@ def solve_math_problem():
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
         
-        # Extract inputs - either text problem or image
+        # Extract inputs - text problem and/or image
         math_problem = data.get("problem")
         image_data = data.get("image")
         
-        # Validate that exactly one input type is provided
+        # Validate that at least one input type is provided
         if not math_problem and not image_data:
             return jsonify({
-                "error": "Either 'problem' (text) or 'image' (base64) field is required"
-            }), 400
-        
-        if math_problem and image_data:
-            return jsonify({
-                "error": "Provide either 'problem' OR 'image', not both"
+                "error": "At least one of 'problem' (text) or 'image' (base64) is required"
             }), 400
         
         # Extract optional parameters with defaults
         max_tokens = data.get("max_tokens", 4000)
         temperature = data.get("temperature", 0.3)
         
-        input_type = "text" if math_problem else "image"
+        # Determine input type for response
+        if image_data and math_problem:
+            input_type = "image+text"
+        elif image_data:
+            input_type = "image"
+        else:
+            input_type = "text"
+        
         logger.info(f"Solving math problem from {input_type} input")
         
-        # Generate solution (function handles both text and image)
+        # Generate solution (function handles text, image, or both)
         solution = generate_math_tutor_response(
             math_problem=math_problem,
             image_data=image_data,
@@ -223,5 +233,144 @@ def solve_math_problem_with_video():
         logger.error(f"Error solving math problem: {str(e)}")
         return jsonify({
             "error": "Failed to solve math problem",
+            "details": str(e)
+        }), 500
+
+
+@math_tutor_bp.route('/find-issues-in-solution', methods=['POST'])
+@authenticate_request
+def find_issues_in_solution():
+    """
+    Review a student's solution and identify mistakes.
+    Supports text, image, or both combined for problem and solution.
+    Text can provide additional context when used with images.
+    
+    Expected JSON body examples:
+    
+    1. Text problem + Text solution:
+    {
+        "problem": "Solve for x: 2x + 5 = 15",
+        "solution": "2x + 5 = 15\\n2x = 10\\nx = 10",
+        "max_tokens": 4000 (optional),
+        "temperature": 0.3 (optional)
+    }
+    
+    2. Image problem + Text solution:
+    {
+        "problem_image": "base64_encoded_image",
+        "solution": "Step 1: ...",
+        "max_tokens": 4000 (optional)
+    }
+    
+    3. Text problem + Image solution:
+    {
+        "problem": "Solve for x: 2x + 5 = 15",
+        "solution_image": "base64_encoded_image",
+        "max_tokens": 4000 (optional)
+    }
+    
+    4. Image problem + Image solution:
+    {
+        "problem_image": "base64_encoded_image",
+        "solution_image": "base64_encoded_image",
+        "max_tokens": 4000 (optional)
+    }
+    
+    5. Image problem with text context + Image solution with notes:
+    {
+        "problem_image": "base64_encoded_image",
+        "problem": "Additional context about the problem",
+        "solution_image": "base64_encoded_image",
+        "solution": "My notes about my solution",
+        "max_tokens": 4000 (optional)
+    }
+    
+    Returns:
+        JSON response with detailed feedback on mistakes and corrections
+    """
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+        
+        # Extract problem inputs
+        problem_text = data.get("problem")
+        problem_image = data.get("problem_image")
+        
+        # Extract solution inputs
+        solution_text = data.get("solution")
+        solution_image = data.get("solution_image")
+        
+        # Validate that at least one problem input is provided
+        if not problem_text and not problem_image:
+            return jsonify({
+                "error": "At least one of 'problem' (text) or 'problem_image' (base64) is required"
+            }), 400
+        
+        # Validate that at least one solution input is provided
+        if not solution_text and not solution_image:
+            return jsonify({
+                "error": "At least one of 'solution' (text) or 'solution_image' (base64) is required"
+            }), 400
+        
+        # Extract optional parameters
+        max_tokens = data.get("max_tokens", 4000)
+        temperature = data.get("temperature", 0.3)
+        
+        # Determine input types for logging and response
+        if problem_image and problem_text:
+            problem_type = "image+text"
+        elif problem_image:
+            problem_type = "image"
+        else:
+            problem_type = "text"
+        
+        if solution_image and solution_text:
+            solution_type = "image+text"
+        elif solution_image:
+            solution_type = "image"
+        else:
+            solution_type = "text"
+        
+        logger.info(f"Reviewing solution - Problem: {problem_type}, Solution: {solution_type}")
+        
+        # Review the solution
+        feedback = review_student_solution(
+            problem_text=problem_text,
+            problem_image=problem_image,
+            solution_text=solution_text,
+            solution_image=solution_image,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        
+        response_data = {
+            "success": True,
+            "feedback": feedback,
+            "input_types": {
+                "problem": problem_type,
+                "solution": solution_type
+            }
+        }
+        
+        # Include original texts in response if provided
+        if problem_text:
+            response_data["problem"] = problem_text
+        if solution_text:
+            response_data["solution"] = solution_text
+        
+        return jsonify(response_data), 200
+        
+    except ValueError as ve:
+        logger.warning(f"Validation error: {str(ve)}")
+        return jsonify({
+            "error": "Validation error",
+            "details": str(ve)
+        }), 400
+        
+    except Exception as e:
+        logger.error(f"Error reviewing solution: {str(e)}")
+        return jsonify({
+            "error": "Failed to review solution",
             "details": str(e)
         }), 500
