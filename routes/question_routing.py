@@ -17,6 +17,94 @@ logger = logging.getLogger(__name__)
 question_router = APIRouter(prefix="/api/questions", tags=["questions"])
 
 
+# Helper function to fetch questions for SAT predictor quiz
+def _fetch_questions_by_criteria(
+    db, 
+    subject_name: str, 
+    sub_category: str, 
+    difficulty_level: int, 
+    num_questions: int
+) -> List[Dict[str, Any]]:
+    """
+    Helper function to fetch questions based on specific criteria.
+    Used internally for SAT predictor quiz composition.
+    
+    Args:
+        db: Firestore database client
+        subject_name: Subject (e.g., 'math', 'reading-and-writing')
+        sub_category: Subcategory (e.g., 'algebra', 'craft-and-structure')
+        difficulty_level: Difficulty level (1-5)
+        num_questions: Number of questions to fetch
+    
+    Returns:
+        List of question dictionaries
+    """
+    try:
+        # Build the query path
+        doc_path = f"{subject_name}|{sub_category}"
+        
+        # Build the collection reference
+        questions_ref = (db.collection('question_bank')
+                        .document(doc_path)
+                        .collection('difficulty_levels')
+                        .document(str(difficulty_level))
+                        .collection('questions'))
+        
+        # Fetch questions using random_value for randomization
+        rand_value = random.random()
+        
+        # Fields to exclude from response
+        excluded_fields = [
+            'question_exam', 'math_validation_result', 'validation_results',
+            'created_at', 'random_value', 'updated_at', 'is_correct',
+            'question_standard', 'llm_model_used'
+        ]
+        
+        # First pass: Get questions with random_value >= rand_value
+        query_first = (questions_ref
+                      .where('random_value', '>=', rand_value)
+                      .order_by('random_value')
+                      .limit(num_questions))
+        
+        docs_first = list(query_first.stream())
+        questions = []
+        
+        for doc in docs_first:
+            question_data = doc.to_dict()
+            if question_data:
+                question_data['id'] = doc.id
+                # Remove unnecessary fields
+                for field in excluded_fields:
+                    question_data.pop(field, None)
+                questions.append(question_data)
+        
+        # Second pass: If we need more questions, fetch with random_value < rand_value
+        if len(questions) < num_questions:
+            remaining = num_questions - len(questions)
+            query_second = (questions_ref
+                           .where('random_value', '<', rand_value)
+                           .order_by('random_value')
+                           .limit(remaining))
+            
+            docs_second = list(query_second.stream())
+            
+            for doc in docs_second:
+                question_data = doc.to_dict()
+                if question_data:
+                    question_data['id'] = doc.id
+                    # Remove unnecessary fields
+                    for field in excluded_fields:
+                        question_data.pop(field, None)
+                    questions.append(question_data)
+        
+        logger.info(f"Fetched {len(questions)}/{num_questions} questions for {subject_name}|{sub_category} (difficulty: {difficulty_level})")
+        return questions
+        
+    except Exception as e:
+        logger.error(f"Error fetching questions for {subject_name}|{sub_category}: {str(e)}")
+        return []
+
+
 # Pydantic models for request validation
 class FetchQuizRequest(BaseModel):
     subject_name: str
@@ -199,6 +287,13 @@ def fetch_quiz(
         # Fetch questions using random_value for randomization
         rand_value = random.random()
         
+        # Fields to exclude from response
+        excluded_fields = [
+            'question_exam', 'math_validation_result', 'validation_results',
+            'created_at', 'random_value', 'updated_at', 'is_correct',
+            'question_standard', 'llm_model_used'
+        ]
+        
         # First pass: Get questions with random_value >= rand_value
         query_first = (questions_ref
                       .where('random_value', '>=', rand_value)
@@ -212,11 +307,9 @@ def fetch_quiz(
             question_data = doc.to_dict()
             if question_data:
                 question_data['id'] = doc.id
-                # Convert datetime fields
-                if 'created_at' in question_data and hasattr(question_data['created_at'], 'isoformat'):
-                    question_data['created_at'] = question_data['created_at'].isoformat()
-                if 'updated_at' in question_data and hasattr(question_data['updated_at'], 'isoformat'):
-                    question_data['updated_at'] = question_data['updated_at'].isoformat()
+                # Remove unnecessary fields
+                for field in excluded_fields:
+                    question_data.pop(field, None)
                 questions.append(question_data)
         
         # Second pass: If we need more questions, fetch with random_value < rand_value
@@ -233,11 +326,9 @@ def fetch_quiz(
                 question_data = doc.to_dict()
                 if question_data:
                     question_data['id'] = doc.id
-                    # Convert datetime fields
-                    if 'created_at' in question_data and hasattr(question_data['created_at'], 'isoformat'):
-                        question_data['created_at'] = question_data['created_at'].isoformat()
-                    if 'updated_at' in question_data and hasattr(question_data['updated_at'], 'isoformat'):
-                        question_data['updated_at'] = question_data['updated_at'].isoformat()
+                    # Remove unnecessary fields
+                    for field in excluded_fields:
+                        question_data.pop(field, None)
                     questions.append(question_data)
         
         # Shuffle the results for additional randomness
@@ -370,6 +461,127 @@ def report_question(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 'error': 'Failed to submit question report',
+                'message': str(e)
+            }
+        )
+
+
+@question_router.get('/sat_predictor_quiz')
+def get_sat_predictor_quiz(user: dict = Depends(authenticate_request)):
+    """
+    Get SAT Predictor Quiz questions - a curated mix of questions across categories and difficulty levels.
+    
+    Returns a total of 24 questions:
+    - Math: 12 questions (8 difficulty 5, 4 difficulty 1)
+      - 3x algebra (diff 5), 2x algebra (diff 1)
+      - 3x advanced_math (diff 5), 1x advanced_math (diff 1)
+      - 2x problem_solving (diff 5), 1x problem_solving (diff 1)
+    
+    - Reading & Writing: 12 questions (8 difficulty 5, 4 difficulty 1)
+      - 2x craft-and-structure (diff 5), 1x craft-and-structure (diff 1)
+      - 2x expression-of-ideas (diff 5), 1x expression-of-ideas (diff 1)
+      - 2x information-and-ideas (diff 5), 1x information-and-ideas (diff 1)
+      - 2x standard-english-conventions (diff 5), 1x standard-english-conventions (diff 1)
+    
+    Response:
+    {
+        "success": true,
+        "questions": [array of 24 question objects],
+        "count": 24,
+        "composition": {detailed breakdown of questions by category}
+    }
+    """
+    try:
+        # Get database client
+        db = get_question_db_client()
+        
+        if db is None:
+            logger.error("Firestore client is not initialized")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Database connection failed',
+                    'message': 'Unable to connect to question bank database'
+                }
+            )
+        
+        # Define the composition of the SAT predictor quiz
+        quiz_composition = [
+            # Math questions
+            {"subject": "math", "subcategory": "algebra", "difficulty": 5, "count": 3},
+            {"subject": "math", "subcategory": "advanced-math", "difficulty": 5, "count": 3},
+            {"subject": "math", "subcategory": "problem-solving-and-data-analysis", "difficulty": 5, "count": 2},
+            {"subject": "math", "subcategory": "algebra", "difficulty": 1, "count": 2},
+            {"subject": "math", "subcategory": "advanced-math", "difficulty": 1, "count": 1},
+            {"subject": "math", "subcategory": "problem-solving-and-data-analysis", "difficulty": 1, "count": 1},
+            
+            # Reading and Writing questions
+            {"subject": "reading-and-writing", "subcategory": "craft-and-structure", "difficulty": 5, "count": 2},
+            {"subject": "reading-and-writing", "subcategory": "expression-of-ideas", "difficulty": 5, "count": 2},
+            {"subject": "reading-and-writing", "subcategory": "information-and-ideas", "difficulty": 5, "count": 2},
+            {"subject": "reading-and-writing", "subcategory": "standard-english-conventions", "difficulty": 5, "count": 2},
+            {"subject": "reading-and-writing", "subcategory": "craft-and-structure", "difficulty": 1, "count": 1},
+            {"subject": "reading-and-writing", "subcategory": "expression-of-ideas", "difficulty": 1, "count": 1},
+            {"subject": "reading-and-writing", "subcategory": "information-and-ideas", "difficulty": 1, "count": 1},
+            {"subject": "reading-and-writing", "subcategory": "standard-english-conventions", "difficulty": 1, "count": 1},
+        ]
+        
+        all_questions = []
+        composition_details = []
+        
+        # Fetch questions for each category
+        for spec in quiz_composition:
+            questions = _fetch_questions_by_criteria(
+                db,
+                spec["subject"],
+                spec["subcategory"],
+                spec["difficulty"],
+                spec["count"]
+            )
+            
+            all_questions.extend(questions)
+            composition_details.append({
+                "subject": spec["subject"],
+                "subcategory": spec["subcategory"],
+                "difficulty_level": spec["difficulty"],
+                "requested": spec["count"],
+                "fetched": len(questions)
+            })
+        
+        # Shuffle all questions for randomization
+        random.shuffle(all_questions)
+        
+        logger.info(f"SAT Predictor Quiz: Fetched {len(all_questions)} total questions")
+        
+        if len(all_questions) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'success': False,
+                    'message': 'No questions found for SAT predictor quiz',
+                    'questions': [],
+                    'count': 0,
+                    'composition': composition_details
+                }
+            )
+        
+        return {
+            'success': True,
+            'questions': all_questions,
+            'count': len(all_questions),
+            'composition': composition_details
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating SAT predictor quiz: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Failed to generate SAT predictor quiz',
                 'message': str(e)
             }
         )

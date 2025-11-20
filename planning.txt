@@ -1,0 +1,22 @@
+I want to add a new API, which will be for my SAT Predictor quiz
+get_sat_predictor_quiz questions. The API should be a GET request
+at the endpoint /api/sat_predictor_quiz that returns a JSON
+response containing a list of questions for the SAT Predictor quiz.
+
+It will return the questions, in the same format as the existing fetch quiz APIs.
+
+Just, the set of questions will be made by different logic, which will be:
+1. 3 questions: math|algebra -> difficulty_level 5
+2. 3 questions: math|advanced_math -> difficulty_level 5
+3. 2 questions: math|problem_solving -> difficulty_level 5
+4. 2 questions: math|algebra -> difficulty_level 1
+5. 1 questions: math|advanced_math -> difficulty_level 1
+6. 1 questions: math|problem_solving -> difficulty_level 1
+7. 2 questions: reading-and-writing|craft-and-structure -> difficulty_level 5
+8. 2 questions: reading-and-writing|expression-of-ideas -> difficulty_level 5
+9. 2 questions: reading-and-writing|information-and-ideas -> difficulty_level 5
+10. 2 questions: reading-and-writing|standard-english-conventions -> difficulty_level 5
+11. 1 questions: reading-and-writing|craft-and-structure -> difficulty_level 1
+12. 1 questions: reading-and-writing|expression-of-ideas -> difficulty_level 1
+13. 1 questions: reading-and-writing|information-and-ideas -> difficulty_level 1
+14. 1 questions: reading-and-writing|standard-english-conventions -> difficulty_level 1
