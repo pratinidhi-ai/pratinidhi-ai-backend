@@ -523,6 +523,86 @@ def sat_predictor_submit(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@analytics_router.get('/sat_predictor_history/{student_id}')
+def get_sat_predictor_history(
+    student_id: str,
+    limit: int = Query(25, ge=1, le=50, description="Number of records to return (max 50)"),
+    user=Depends(authenticate_request)
+):
+    """
+    Get SAT predictor performance history for a student
+    
+    Returns the last N SAT predictor test performances, ordered by timestamp (newest first).
+    
+    Args:
+        student_id: The student's user ID
+        limit: Maximum number of records to return (default 25, max 50)
+    
+    Returns:
+        List of performance records with scores and timestamps
+    """
+    try:
+        # Verify user exists
+        user_db = get_user_db()
+        if not user_db.user_exists(student_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {student_id} does not exist"
+            )
+        
+        # Get analytics database
+        analytics_db = get_analytics_db()
+        
+        if not analytics_db._check_connection():
+            raise HTTPException(
+                status_code=500,
+                detail="Database connection failed"
+            )
+        
+        # Query sat_predictor_performance subcollection
+        sat_perf_ref = (analytics_db.db.collection('users')
+                       .document(student_id)
+                       .collection('sat_predictor_performance'))
+        
+        # Get documents ordered by timestamp, newest first
+        docs = (sat_perf_ref
+               .order_by('timestamp', direction='DESCENDING')
+               .limit(limit)
+               .stream())
+        
+        performances = []
+        for doc in docs:
+            data = doc.to_dict()
+            if data:
+                # Extract only the required fields
+                performance = {
+                    'session_id': data.get('session_id', doc.id),
+                    'math_score': data.get('math_score', 0),
+                    'rw_score': data.get('rw_score', 0),
+                    'total_sat_score': data.get('total_sat_score', 0),
+                    'time_bonus_points': data.get('time_bonus_points', 0),
+                    'timestamp': data.get('timestamp')
+                }
+                performances.append(performance)
+        
+        logger.info(f"Retrieved {len(performances)} SAT predictor performances for student {student_id}")
+        
+        return {
+            'success': True,
+            'student_id': student_id,
+            'count': len(performances),
+            'performances': performances
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching SAT predictor history: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @analytics_router.get('/performance-summary/{student_id}')
 def get_performance_summary(
     student_id: str,

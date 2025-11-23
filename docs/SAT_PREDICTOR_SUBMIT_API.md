@@ -497,6 +497,51 @@ Common validation errors:
 
 ## Related Endpoints
 
+### GET `/api/analytics/sat_predictor_history/{student_id}`
+
+Retrieves the SAT predictor performance history for a student.
+
+**Authentication:** Required (Bearer token)
+
+**Query Parameters:**
+- `limit` (optional): Number of records to return (default: 25, max: 50)
+
+**Example Request:**
+```bash
+curl -X GET "http://localhost:8000/api/analytics/sat_predictor_history/user123?limit=25" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "student_id": "user123",
+  "count": 25,
+  "performances": [
+    {
+      "session_id": "550e8400-e29b-41d4-a716-446655440000",
+      "math_score": 650,
+      "rw_score": 700,
+      "total_sat_score": 1350,
+      "time_bonus_points": 20,
+      "timestamp": "2025-11-24T10:30:45.123456"
+    },
+    {
+      "session_id": "661f9511-f3ac-52e5-b827-557766551111",
+      "math_score": 600,
+      "rw_score": 650,
+      "total_sat_score": 1250,
+      "time_bonus_points": 15,
+      "timestamp": "2025-11-20T14:20:30.987654"
+    }
+    // ... up to 25 records, ordered by timestamp (newest first)
+  ]
+}
+```
+
+### Other Related Endpoints
+
 - **GET `/api/questions/sat_predictor_quiz`** - Fetch SAT predictor quiz questions
 - **GET `/api/analytics/performance-summary/{student_id}`** - Get overall performance summary
 - **POST `/api/analytics/submit-quiz`** - Submit regular practice quiz
