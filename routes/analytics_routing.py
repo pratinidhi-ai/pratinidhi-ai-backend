@@ -12,7 +12,7 @@ import uuid
 from helper.middleware import authenticate_request
 from database.analytics_db import get_analytics_db
 from database.user_db import get_user_db
-from models.analytics_schema import QuizSubmission, TagDetail
+from models.analytics_schema import QuizSubmission, TagDetail, SATPredictorSubmission
 from database.leaderboard_db import get_leaderboard_db
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
 from routes.leaderboard_routing import update_leaderboard_db
@@ -186,10 +186,77 @@ class QuizSubmitRequest(BaseModel):
     correct_question_ids: List[str]
     incorrect_question_ids: List[str]
 
+
+class SATPredictorQuestion(BaseModel):
+    """Individual question data for SAT predictor"""
+    id: str  # Question document ID
+    question_id: str  # Original question ID
+    subject: str
+    sub_category: str
+    difficulty_level: int
+    tags: List[str]
+    is_correct: bool
+
+
+class SATPredictorSubmitRequest(BaseModel):
+    """Request model for SAT predictor quiz submission"""
+    student_id: str
+    time_spent: int = Field(..., description="Time spent in seconds")
+    
+    # Math section (12 questions)
+    math_correct: int = Field(..., ge=0, le=12)
+    math_total: int = Field(12, description="Must be 12")
+    math_questions: List[SATPredictorQuestion]
+    
+    # Reading & Writing section (12 questions)
+    rw_correct: int = Field(..., ge=0, le=12)
+    rw_total: int = Field(12, description="Must be 12")
+    rw_questions: List[SATPredictorQuestion]
+
+
 class PerformanceRequest(BaseModel):
     user_id: str
     subject: str
     sub_category: Optional[str] = None  # Make it optional since some endpoints don't need it
+
+
+def process_sat_predictor_background(submission_data: dict, request_id: str):
+    """
+    Background task to process SAT predictor submission and store analytics
+    
+    Args:
+        submission_data: The validated SAT predictor submission data
+        request_id: Unique ID for tracking this submission
+    """
+    try:
+        logger.info(f"[{request_id}] Starting SAT predictor background processing for student {submission_data['student_id']}")
+        
+        # Convert to dict format expected by SATPredictorSubmission
+        submission = SATPredictorSubmission(
+            student_id=submission_data['student_id'],
+            time_spent=submission_data['time_spent'],
+            math_correct=submission_data['math_correct'],
+            math_total=submission_data['math_total'],
+            math_questions=submission_data['math_questions'],
+            rw_correct=submission_data['rw_correct'],
+            rw_total=submission_data['rw_total'],
+            rw_questions=submission_data['rw_questions']
+        )
+        
+        # Submit to analytics database
+        analytics_db = get_analytics_db()
+        success, session_id = analytics_db.submit_sat_predictor(submission)
+        
+        if success:
+            logger.info(f"[{request_id}] Successfully processed SAT predictor for student {submission_data['student_id']}, session {session_id}")
+        else:
+            logger.error(f"[{request_id}] Failed to process SAT predictor for student {submission_data['student_id']}")
+            
+    except Exception as e:
+        logger.error(f"[{request_id}] Error in SAT predictor background task: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 
 def process_quiz_submission_background(submission_data: dict, request_id: str):
     """
@@ -325,6 +392,132 @@ def submit_quiz(
         raise
     except Exception as e:
         logger.error(f"Error accepting quiz submission: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@analytics_router.post('/sat_predictor_submit', status_code=202)
+def sat_predictor_submit(
+    data: SATPredictorSubmitRequest,
+    background_tasks: BackgroundTasks,
+    user=Depends(authenticate_request)
+):
+    """
+    Submit SAT Predictor quiz results (ASYNC)
+    
+    This endpoint:
+    1. Validates the submission (24 questions: 12 math + 12 R&W)
+    2. Calculates SAT scores (200-800 per section, 400-1600 total)
+    3. Returns immediate response with scores and analytics
+    4. Processes and stores data in background
+    
+    Background processing:
+    - Stores performance in sat_predictor_performance subcollection
+    - Updates analytics (performance_summary, activity_logs, correct/incorrect questions)
+    - Updates subject/subcategory/tag level statistics
+    """
+    try:
+        # Verify user exists
+        user_db = get_user_db()
+        if not user_db.user_exists(data.student_id):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Student with ID {data.student_id} does not exist"
+            )
+        
+        # Create submission object for score calculation
+        submission = SATPredictorSubmission(
+            student_id=data.student_id,
+            time_spent=data.time_spent,
+            math_correct=data.math_correct,
+            math_total=data.math_total,
+            math_questions=[q.dict() for q in data.math_questions],
+            rw_correct=data.rw_correct,
+            rw_total=data.rw_total,
+            rw_questions=[q.dict() for q in data.rw_questions]
+        )
+        
+        # Calculate SAT scores
+        math_score = submission.calculate_math_score()
+        rw_score = submission.calculate_rw_score()
+        total_sat_score = submission.calculate_total_sat_score()
+        
+        # Get subject/subcategory analytics
+        stats = submission.get_subject_subcategory_stats()
+        
+        # Format analytics for response
+        analytics_breakdown = {}
+        for subject, subcategories in stats.items():
+            analytics_breakdown[subject] = {}
+            for subcategory, sub_data in subcategories.items():
+                analytics_breakdown[subject][subcategory] = {
+                    'total_questions': sub_data['total'],
+                    'correct_answers': sub_data['correct'],
+                    'accuracy': round((sub_data['correct'] / sub_data['total'] * 100), 2) if sub_data['total'] > 0 else 0,
+                    'tags': {}
+                }
+                # Add tag-level stats
+                for tag_name, tag_data in sub_data['tags'].items():
+                    analytics_breakdown[subject][subcategory]['tags'][tag_name] = {
+                        'total_questions': tag_data['total'],
+                        'correct_answers': tag_data['correct'],
+                        'accuracy': round((tag_data['correct'] / tag_data['total'] * 100), 2) if tag_data['total'] > 0 else 0
+                    }
+        
+        # Generate unique request ID for tracking
+        request_id = str(uuid.uuid4())
+        
+        # Add background task
+        background_tasks.add_task(
+            process_sat_predictor_background,
+            submission.to_dict(),
+            request_id
+        )
+        
+        logger.info(f"[{request_id}] SAT Predictor submission accepted for student {data.student_id}, processing in background")
+        
+        # Calculate time bonus for response
+        time_bonus = submission._calculate_time_bonus()
+        
+        # Return immediate response with scores and analytics
+        return {
+            'success': True,
+            'message': 'SAT Predictor submission received and is being processed',
+            'request_id': request_id,
+            'scores': {
+                'math_score': math_score,
+                'math_accuracy': submission.get_math_accuracy(),
+                'rw_score': rw_score,
+                'rw_accuracy': submission.get_rw_accuracy(),
+                'total_sat_score': total_sat_score,
+                'time_bonus_points': time_bonus
+            },
+            'section_breakdown': {
+                'math': {
+                    'correct': data.math_correct,
+                    'total': data.math_total,
+                    'score': math_score
+                },
+                'reading_and_writing': {
+                    'correct': data.rw_correct,
+                    'total': data.rw_total,
+                    'score': rw_score
+                }
+            },
+            'time_info': {
+                'time_spent_seconds': data.time_spent,
+                'target_time_seconds': 900,
+                'time_bonus_points': time_bonus,
+                'max_time_bonus': 40
+            },
+            'analytics': analytics_breakdown
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error accepting SAT predictor submission: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

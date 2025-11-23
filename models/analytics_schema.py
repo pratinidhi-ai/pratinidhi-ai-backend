@@ -4,7 +4,7 @@ Data classes for student performance analytics and tracking
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone
 
 
@@ -345,4 +345,225 @@ class PerformanceSummary:
             total_quizzes=data.get('total_quizzes', 0),
             subjects=subjects,
             last_updated=datetime.fromisoformat(data['last_updated']) if data.get('last_updated') else _get_utc_now()
+        )
+
+
+@dataclass
+class SATPredictorSubmission:
+    """
+    Data submitted after SAT Predictor quiz is completed
+    This represents a full 24-question SAT predictor test
+    """
+    student_id: str
+    time_spent: int  # in seconds
+    
+    # Math section (12 questions)
+    math_correct: int
+    math_total: int  # Should always be 12
+    math_questions: List[Dict[str, Any]]  # List of question details with tags, correctness
+    
+    # Reading & Writing section (12 questions)  
+    rw_correct: int
+    rw_total: int  # Should always be 12
+    rw_questions: List[Dict[str, Any]]  # List of question details with tags, correctness
+    
+    timestamp: datetime = field(default_factory=_get_utc_now)
+    session_id: Optional[str] = None  # Auto-generated unique ID
+    
+    def __post_init__(self):
+        """Validate submission data"""
+        # Validate question counts
+        if self.math_total != 12:
+            raise ValueError("Math section must have exactly 12 questions")
+        if self.rw_total != 12:
+            raise ValueError("Reading & Writing section must have exactly 12 questions")
+        
+        if self.math_correct > self.math_total:
+            raise ValueError("Math correct answers cannot exceed total questions")
+        if self.rw_correct > self.rw_total:
+            raise ValueError("R&W correct answers cannot exceed total questions")
+    
+    def calculate_math_score(self) -> int:
+        """
+        Calculate SAT Math score (200-800) based on correct answers and difficulty
+        
+        Scoring system:
+        - Difficulty 5: 65 points per correct answer
+        - Difficulty 1: 15 points per correct answer
+        - Linear interpolation for difficulties 2-4
+        - Time bonus: Up to 40 points for completing under 15 minutes
+        
+        Formula: Base score from questions + time bonus, scaled to 200-800
+        """
+        base_score = 0
+        
+        # Calculate points from correct answers based on difficulty
+        for q in self.math_questions:
+            if q.get('is_correct', False):
+                difficulty = q.get('difficulty_level', 3)
+                # Linear interpolation: 15 points (diff 1) to 65 points (diff 5)
+                points = 15 + ((difficulty - 1) / 4) * 50
+                base_score += points
+        
+        total_score = 200 + base_score
+        return min(800, total_score)
+    
+    def calculate_rw_score(self) -> int:
+        """
+        Calculate SAT Reading & Writing score (200-800) based on correct answers and difficulty
+        
+        Scoring system:
+        - Difficulty 5: 65 points per correct answer
+        - Difficulty 1: 15 points per correct answer
+        - Linear interpolation for difficulties 2-4
+        - Time bonus: Up to 40 points for completing under 15 minutes
+        
+        Formula: Base score from questions + time bonus, scaled to 200-800
+        """
+        base_score = 0
+        
+        # Calculate points from correct answers based on difficulty
+        for q in self.rw_questions:
+            if q.get('is_correct', False):
+                difficulty = q.get('difficulty_level', 3)
+                # Linear interpolation: 15 points (diff 1) to 65 points (diff 5)
+                points = 15 + ((difficulty - 1) / 4) * 50
+                base_score += points
+        
+        total_score = 200 + base_score
+        return min(800, total_score)
+    
+    def _calculate_time_bonus(self) -> int:
+        """
+        Calculate time bonus based on how quickly the test was completed
+        
+        Rules:
+        - Target time: 900 seconds (15 minutes)
+        - For every 3 seconds saved: +1 point
+        - Maximum bonus: 40 points
+        
+        Returns:
+            Time bonus points (0-40)
+        """
+        target_time = 900  # 15 minutes
+        max_bonus = 40
+        
+        if self.time_spent >= target_time:
+            return 0
+        
+        time_saved = target_time - self.time_spent
+        bonus = time_saved // 3  # Integer division: 1 point per 3 seconds
+        
+        return min(bonus, max_bonus)
+    
+    def calculate_total_sat_score(self) -> int:
+        """Calculate total SAT score (400-1600)"""
+        return self.calculate_math_score() + self.calculate_rw_score() + self._calculate_time_bonus()
+    
+    def get_math_accuracy(self) -> float:
+        """Calculate math section accuracy percentage"""
+        if self.math_total == 0:
+            return 0.0
+        return round((self.math_correct / self.math_total * 100), 2)
+    
+    def get_rw_accuracy(self) -> float:
+        """Calculate R&W section accuracy percentage"""
+        if self.rw_total == 0:
+            return 0.0
+        return round((self.rw_correct / self.rw_total * 100), 2)
+    
+    def get_subject_subcategory_stats(self) -> Dict[str, Dict[str, Dict[str, int]]]:
+        """
+        Calculate performance statistics by subject, subcategory, and tags
+        Returns nested dict: {subject: {subcategory: {tag: {correct, total}}}}
+        """
+        stats = {}
+        
+        # Process math questions
+        for q in self.math_questions:
+            subject = q.get('subject', 'math')
+            subcategory = q.get('sub_category', 'unknown')
+            tags = q.get('tags', [])
+            is_correct = q.get('is_correct', False)
+            
+            if subject not in stats:
+                stats[subject] = {}
+            if subcategory not in stats[subject]:
+                stats[subject][subcategory] = {'total': 0, 'correct': 0, 'tags': {}}
+            
+            stats[subject][subcategory]['total'] += 1
+            if is_correct:
+                stats[subject][subcategory]['correct'] += 1
+            
+            # Track tag-level stats
+            for tag in tags:
+                if tag not in stats[subject][subcategory]['tags']:
+                    stats[subject][subcategory]['tags'][tag] = {'total': 0, 'correct': 0}
+                stats[subject][subcategory]['tags'][tag]['total'] += 1
+                if is_correct:
+                    stats[subject][subcategory]['tags'][tag]['correct'] += 1
+        
+        # Process R&W questions
+        for q in self.rw_questions:
+            subject = q.get('subject', 'reading-and-writing')
+            subcategory = q.get('sub_category', 'unknown')
+            tags = q.get('tags', [])
+            is_correct = q.get('is_correct', False)
+            
+            if subject not in stats:
+                stats[subject] = {}
+            if subcategory not in stats[subject]:
+                stats[subject][subcategory] = {'total': 0, 'correct': 0, 'tags': {}}
+            
+            stats[subject][subcategory]['total'] += 1
+            if is_correct:
+                stats[subject][subcategory]['correct'] += 1
+            
+            # Track tag-level stats
+            for tag in tags:
+                if tag not in stats[subject][subcategory]['tags']:
+                    stats[subject][subcategory]['tags'][tag] = {'total': 0, 'correct': 0}
+                stats[subject][subcategory]['tags'][tag]['total'] += 1
+                if is_correct:
+                    stats[subject][subcategory]['tags'][tag]['correct'] += 1
+        
+        return stats
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary for storage"""
+        time_bonus = self._calculate_time_bonus()
+        
+        return {
+            'student_id': self.student_id,
+            'time_spent': self.time_spent,
+            'time_bonus_points': time_bonus,
+            'math_correct': self.math_correct,
+            'math_total': self.math_total,
+            'math_score': self.calculate_math_score(),
+            'math_accuracy': self.get_math_accuracy(),
+            'rw_correct': self.rw_correct,
+            'rw_total': self.rw_total,
+            'rw_score': self.calculate_rw_score(),
+            'rw_accuracy': self.get_rw_accuracy(),
+            'total_sat_score': self.calculate_total_sat_score(),
+            'math_questions': self.math_questions,
+            'rw_questions': self.rw_questions,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'session_id': self.session_id
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'SATPredictorSubmission':
+        """Create from dictionary"""
+        return cls(
+            student_id=data['student_id'],
+            time_spent=data['time_spent'],
+            math_correct=data['math_correct'],
+            math_total=data['math_total'],
+            math_questions=data['math_questions'],
+            rw_correct=data['rw_correct'],
+            rw_total=data['rw_total'],
+            rw_questions=data['rw_questions'],
+            timestamp=datetime.fromisoformat(data['timestamp']) if data.get('timestamp') else _get_utc_now(),
+            session_id=data.get('session_id')
         )

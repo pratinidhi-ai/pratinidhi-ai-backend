@@ -19,7 +19,8 @@ from models.analytics_schema import (
     SubjectPerformance,
     SubCategoryPerformance,
     TagPerformance,
-    TagDetail
+    TagDetail,
+    SATPredictorSubmission
 )
 
 logger = logging.getLogger(__name__)
@@ -859,7 +860,157 @@ class AnalyticsDatabase:
             
         except Exception as e:
             logger.error(f"Error getting last 15 math questions for {student_id}: {str(e)}")
-            return None
+            return False
+
+
+    def submit_sat_predictor(self, submission: SATPredictorSubmission) -> tuple[bool, Optional[str]]:
+        """
+        Process and store SAT predictor quiz submission
+        
+        This function:
+        1. Stores the test performance in sat_predictor_performance subcollection
+        2. Updates analytics (performance_summary, activity_logs, correct/incorrect questions)
+        
+        Args:
+            submission: SATPredictorSubmission object with test results
+            
+        Returns:
+            tuple: (success: bool, session_id: str or None)
+        """
+        try:
+            if not self._check_connection():
+                return False, None
+            
+            # Generate unique session ID if not provided
+            if not submission.session_id:
+                submission.session_id = str(uuid.uuid4())
+            
+            student_id = submission.student_id
+            
+            # 1. Store SAT predictor performance
+            sat_perf_success = self._store_sat_predictor_performance(student_id, submission)
+            if not sat_perf_success:
+                logger.error(f"Failed to store SAT predictor performance for student {student_id}")
+                return False, None
+            
+            # 2. Update analytics (same as regular quiz submission)
+            analytics_success = self._update_analytics_from_sat_predictor(student_id, submission)
+            if not analytics_success:
+                logger.error(f"Failed to update analytics from SAT predictor for student {student_id}")
+                return False, None
+            
+            logger.info(f"Successfully processed SAT predictor for student {student_id}, session {submission.session_id}")
+            return True, submission.session_id
+            
+        except Exception as e:
+            logger.error(f"Error submitting SAT predictor: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False, None
+    
+    def _store_sat_predictor_performance(self, student_id: str, submission: SATPredictorSubmission) -> bool:
+        """
+        Store SAT predictor test performance in sat_predictor_performance subcollection
+        """
+        try:
+            # Reference to sat_predictor_performance subcollection
+            sat_perf_ref = (self.db.collection('users')
+                           .document(student_id)
+                           .collection('sat_predictor_performance'))
+            
+            # Create document with session_id as document ID
+            doc_ref = sat_perf_ref.document(submission.session_id)
+            
+            # Store the submission
+            doc_ref.set(submission.to_dict())
+            
+            logger.info(f"Stored SAT predictor performance for student {student_id}, session {submission.session_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error storing SAT predictor performance: {str(e)}")
+            return False
+    
+    def _update_analytics_from_sat_predictor(self, student_id: str, submission: SATPredictorSubmission) -> bool:
+        """
+        Update analytics collections from SAT predictor submission
+        Similar to regular quiz submission but processes all questions
+        """
+        try:
+            analytics_ref = self.db.collection('users').document(student_id).collection('analytics')
+            
+            # Get subject/subcategory stats from submission
+            stats = submission.get_subject_subcategory_stats()
+            
+            # Process each subject's data
+            for subject, subcategories in stats.items():
+                for subcategory, sub_data in subcategories.items():
+                    # Create a QuizSubmission-like object for each subcategory
+                    # This allows reuse of existing analytics update logic
+                    
+                    # Collect tag details
+                    tag_wise_details = []
+                    for tag_name, tag_data in sub_data['tags'].items():
+                        tag_detail = TagDetail(
+                            tag=tag_name,
+                            total_questions=tag_data['total'],
+                            correct_answers=tag_data['correct'],
+                            score=tag_data['correct'] * 3,  # Use difficulty 3 as average
+                            total_possible_score=tag_data['total'] * 3
+                        )
+                        tag_wise_details.append(tag_detail)
+                    
+                    # Collect correct and incorrect question IDs for this subcategory
+                    correct_ids = []
+                    incorrect_ids = []
+                    
+                    # Get questions for this subject
+                    questions_list = submission.math_questions if subject == 'math' else submission.rw_questions
+                    for q in questions_list:
+                        if q.get('sub_category') == subcategory:
+                            q_id = q.get('id') or q.get('question_id', '')
+                            if q.get('is_correct', False):
+                                correct_ids.append(q_id)
+                            else:
+                                incorrect_ids.append(q_id)
+                    
+                    # Create QuizSubmission object for this subcategory
+                    quiz_sub = QuizSubmission(
+                        student_id=student_id,
+                        time_spent=submission.time_spent // len(stats),  # Distribute time
+                        number_of_questions=sub_data['total'],
+                        number_of_correct_answers=sub_data['correct'],
+                        subject=subject,
+                        sub_category=subcategory,
+                        difficulty_level=3,  # Use middle difficulty
+                        tag_wise_details=tag_wise_details,
+                        correct_question_ids=correct_ids,
+                        incorrect_question_ids=incorrect_ids,
+                        timestamp=submission.timestamp,
+                        session_id=f"{submission.session_id}_{subject}_{subcategory}"
+                    )
+                    
+                    # Store activity log
+                    self._store_activity_log(student_id, quiz_sub)
+                    
+                    # Update performance summary
+                    self._update_performance_summary(analytics_ref, quiz_sub)
+                    
+                    # Update question lists
+                    self._update_question_lists(analytics_ref, quiz_sub)
+                    
+                    # Update last 15 math if applicable
+                    if subject.lower() == 'math':
+                        self._update_last_15_math_questions(analytics_ref, quiz_sub)
+            
+            logger.info(f"Successfully updated analytics from SAT predictor for student {student_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating analytics from SAT predictor: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
 
 
 # Singleton instance
