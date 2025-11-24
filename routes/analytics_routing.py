@@ -189,8 +189,7 @@ class QuizSubmitRequest(BaseModel):
 
 class SATPredictorQuestion(BaseModel):
     """Individual question data for SAT predictor"""
-    id: str  # Question document ID
-    question_id: str  # Original question ID
+    question_id: str  # Question document ID
     subject: str
     sub_category: str
     difficulty_level: int

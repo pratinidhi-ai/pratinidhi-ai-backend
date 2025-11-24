@@ -968,7 +968,7 @@ class AnalyticsDatabase:
                     questions_list = submission.math_questions if subject == 'math' else submission.rw_questions
                     for q in questions_list:
                         if q.get('sub_category') == subcategory:
-                            q_id = q.get('id') or q.get('question_id', '')
+                            q_id = q.get('question_id', '')
                             if q.get('is_correct', False):
                                 correct_ids.append(q_id)
                             else:
@@ -982,7 +982,7 @@ class AnalyticsDatabase:
                         number_of_correct_answers=sub_data['correct'],
                         subject=subject,
                         sub_category=subcategory,
-                        difficulty_level=3,  # Use middle difficulty
+                        difficulty_level=3,  # Use middle difficulty for summary stats
                         tag_wise_details=tag_wise_details,
                         correct_question_ids=correct_ids,
                         incorrect_question_ids=incorrect_ids,
@@ -1001,13 +1001,154 @@ class AnalyticsDatabase:
                     
                     # Update last 15 math if applicable
                     if subject.lower() == 'math':
-                        self._update_last_15_math_questions(analytics_ref, quiz_sub)
+                        # For SAT predictor, pass the actual questions with their difficulty levels
+                        questions_for_subcategory = [q for q in questions_list if q.get('sub_category') == subcategory]
+                        self._update_last_15_math_questions_sat_predictor(analytics_ref, student_id, questions_for_subcategory, submission.timestamp)
             
             logger.info(f"Successfully updated analytics from SAT predictor for student {student_id}")
             return True
             
         except Exception as e:
             logger.error(f"Error updating analytics from SAT predictor: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _update_last_15_math_questions_sat_predictor(self, analytics_ref, student_id: str, 
+                                                      questions: List[Dict[str, Any]], 
+                                                      timestamp: datetime) -> bool:
+        """
+        Update last 15 math questions for SAT predictor quiz
+        Handles questions with varying difficulty levels (1 and 5)
+        
+        Args:
+            analytics_ref: Reference to analytics subcollection
+            student_id: The student's user ID
+            questions: List of question dictionaries with actual difficulty levels
+            timestamp: Timestamp of the quiz
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            from database.firebase_client import get_question_db_client
+            
+            last_15_ref = analytics_ref.document('last_15_math_questions')
+            
+            # Get existing document or create new one
+            last_15_doc = last_15_ref.get()
+            
+            if last_15_doc.exists:
+                last_15_data = last_15_doc.to_dict()
+                questions_list = last_15_data.get('questions', [])
+            else:
+                last_15_data = {
+                    'student_id': student_id,
+                    'questions': []
+                }
+                questions_list = []
+            
+            # Fetch question data from database
+            question_db = get_question_db_client()
+            new_questions = []
+            
+            # Helper function to fetch question by ID with its actual difficulty level
+            def fetch_question_data(question_id: str, subject: str, sub_category: str, difficulty: int) -> Optional[Dict[str, Any]]:
+                """
+                Fetch question data using the correct Firestore path with actual difficulty level.
+                """
+                try:
+                    subject_subcategory = f"{subject}|{sub_category}"
+                    difficulty_level = str(difficulty)
+                    
+                    question_ref = (question_db
+                                   .collection('question_bank')
+                                   .document(subject_subcategory)
+                                   .collection('difficulty_levels')
+                                   .document(difficulty_level)
+                                   .collection('questions')
+                                   .document(question_id))
+                    
+                    question_doc = question_ref.get()
+                    
+                    if question_doc.exists:
+                        data = question_doc.to_dict()
+                        if data:
+                            data['id'] = question_doc.id
+                            logger.info(f"Found SAT question {question_id} at difficulty {difficulty}")
+                            return data
+                    
+                    logger.warning(f"SAT question {question_id} not found at difficulty {difficulty}")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error fetching SAT question {question_id}: {str(e)}")
+                    return None
+            
+            # Process all questions
+            for q in questions:
+                question_id = q.get('question_id', '')
+                is_correct = q.get('is_correct', False)
+                difficulty = q.get('difficulty_level', 3)
+                sub_category = q.get('sub_category', '')
+                tags = q.get('tags', [])
+                
+                # Fetch full question data with correct difficulty level
+                question_data = fetch_question_data(question_id, 'math', sub_category, difficulty)
+                
+                if question_data:
+                    options = question_data.get('options', ['', '', '', ''])
+                    
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': question_data.get('question_text', ''),
+                        'option_a': options[0] if len(options) > 0 else '',
+                        'option_b': options[1] if len(options) > 1 else '',
+                        'option_c': options[2] if len(options) > 2 else '',
+                        'option_d': options[3] if len(options) > 3 else '',
+                        'correct_answer': question_data.get('correct_answer', ''),
+                        'is_answered_correctly': is_correct,
+                        'difficulty_level': difficulty,
+                        'tags': tags if tags else question_data.get('tags', []),
+                        'sub_category': sub_category,
+                        'timestamp': timestamp.isoformat() if timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+                else:
+                    # Store basic info if question not found
+                    logger.warning(f"SAT question {question_id} not found, storing basic info")
+                    question_entry = {
+                        'question_id': question_id,
+                        'question_text': '',
+                        'option_a': '',
+                        'option_b': '',
+                        'option_c': '',
+                        'option_d': '',
+                        'correct_answer': '',
+                        'is_answered_correctly': is_correct,
+                        'difficulty_level': difficulty,
+                        'tags': tags,
+                        'sub_category': sub_category,
+                        'timestamp': timestamp.isoformat() if timestamp else datetime.now(timezone.utc).isoformat()
+                    }
+                    new_questions.append(question_entry)
+            
+            # Add new questions to the front (most recent first)
+            questions_list = new_questions + questions_list
+            
+            # Keep only last 15
+            questions_list = questions_list[:15]
+            
+            # Update document
+            last_15_data['questions'] = questions_list
+            last_15_data['last_updated'] = datetime.now(timezone.utc).isoformat()
+            
+            last_15_ref.set(last_15_data)
+            
+            logger.info(f"Updated last 15 math questions from SAT predictor for student {student_id}, now tracking {len(questions_list)} questions")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating last 15 math questions from SAT predictor: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
