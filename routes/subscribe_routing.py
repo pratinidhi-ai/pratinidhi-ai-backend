@@ -84,12 +84,12 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
                 }
             )
         
-        if plan_type not in ['monthly', 'annual']:
+        if plan_type not in ['monthly', 'yearly']:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail= {
                     'error': 'Invalid plan type',
-                    'message': 'Plan type must be either "monthly" or "annual"'
+                    'message': 'Plan type must be either "monthly" or "yearly"'
                 }
             )
             
@@ -242,30 +242,22 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
                     'error': 'User not found',
                     'message': 'No user exists with the provided ID'
                 }
-            )
-        
-        subscription_info = user_data.get('subscription', {})
-        if subscription_info.get('taken_free_trial', False):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    'error': 'Free trial already used',
-                    'message': 'User has already taken the free trial'
-                }
-            )
-        
-        expiry_date = user.get('subscription', {}).get('pro_expiry_date')
+            )      
+    
+        if user_data.get('subscription') is None:
+            user_data['subscription'] = {}
+            
+        expiry_date = user_data.get('subscription', {}).get('pro_expiry_date')
         if expiry_date is None:
             expiry_date = datetime.now(timezone.utc)
-            
+                        
         expiry_date += timedelta(days=7)
         
         user_data['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': PlanType.TRIAL.value,
             'pro_expiry_date': expiry_date,
-            'taken_free_trial': True,
-            'payment_detail_list': subscription_info.get('payment_detail_list', [])
+            'taken_free_trial': True,        
         }
         
         user_db = get_user_db()
