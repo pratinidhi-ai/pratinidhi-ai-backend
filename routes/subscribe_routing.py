@@ -254,7 +254,11 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
                 }
             )
         
-        expiry_date = datetime.now(timezone.utc) + timedelta(days=7)
+        expiry_date = user.get('subscription', {}).get('pro_expiry_date')
+        if expiry_date is None:
+            expiry_date = datetime.now(timezone.utc)
+            
+        expiry_date += timedelta(days=7)
         
         user_data['subscription'] = {
             'type': SubscriptionType.PRO.value,
