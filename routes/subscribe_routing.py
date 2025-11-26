@@ -253,9 +253,14 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
                         
         expiry_date += timedelta(days=7)
         
+        
+        current_plan = user_data['subscription'].get('plan_type')
+        if current_plan == PlanType.NONE:
+            current_plan = PlanType.TRIAL
+        
         user_data['subscription'] = {
             'type': SubscriptionType.PRO.value,
-            'plan_type': PlanType.TRIAL.value,
+            'plan_type': current_plan,
             'pro_expiry_date': expiry_date,
             'taken_free_trial': True,        
         }
