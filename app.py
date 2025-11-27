@@ -61,6 +61,7 @@ try:
     from routes.math_tutor_routing import math_tutor_router
     from routes.leaderboard_routing import router as leaderboard_router
     from routes.subscribe_routing import router as subscribe_router
+    from routes.coupon_routing import router as coupon_router
 
     app.include_router(user_router)
     app.include_router(tutor_router)
@@ -70,6 +71,7 @@ try:
     app.include_router(math_tutor_router)
     app.include_router(leaderboard_router)
     app.include_router(subscribe_router)
+    app.include_router(coupon_router)
     logger.info("Routers loaded successfully")
 except Exception as e:
     logger.error(f"Failed to load routers: {str(e)}")

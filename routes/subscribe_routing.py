@@ -11,7 +11,7 @@ import hashlib
 import math
 from utils.users import validate_user_id, get_user, update_user
 
-router = APIRouter(prefix='/api/subscription', tags=['Subscription'])
+router = APIRouter(prefix='/api/subscription', tags=["subscription"])
 logger = logging.getLogger(__name__)
 
 # Initialize Razorpay client
@@ -242,6 +242,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         return {
             'success': True,
             'message': 'Free trial started successfully',
+            'days': FREE_TRIAL_DAYS,
         }
         
     except HTTPException:
