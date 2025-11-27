@@ -4,11 +4,12 @@ import razorpay
 import os
 from helper.middleware import authenticate_request
 from database.user_db import getUserbyId, get_user_db
-from models.users_schema import User, SubscriptionType, PlanType, SubscriptionInfo
+from models.users_schema import SubscriptionType, PlanType
 from datetime import datetime, timedelta, timezone
 import logging
 import hashlib
 import math
+from utils.users import validate_user_id, get_user, update_user
 
 router = APIRouter(prefix='/api/subscription', tags=['Subscription'])
 logger = logging.getLogger(__name__)
@@ -71,15 +72,7 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
         # Validate input
         user_id = request.user_id
         plan_type = request.plan_type.lower()
-        
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail= {
-                    'error': 'User not found',
-                    'message': 'User ID is required to create an order'
-                }
-            )
+        validate_user_id(user_id)
         
         if plan_type not in ['monthly', 'yearly']:
             raise HTTPException(
@@ -108,6 +101,8 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
         }
         
         order = razorpay_client.order.create(data=order_data)
+        
+        logger.info(f"Created order {order['id']} for user {user_id} with plan {plan_type}")
         
         return {
             'success': True,
@@ -154,17 +149,7 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
         
         razorpay_client.utility.verify_payment_signature(params_dict)
         
-        # Payment is verified - Update user subscription in database here
-        user = getUserbyId(user_id=request.user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    'error': 'User not found',
-                    'message': 'No user exists with the provided ID'
-                }
-            )
-            
+        user = get_user(request.user_id)  
         if user.get('subscription') is None:
             user['subscription'] = {}
                 
@@ -186,17 +171,7 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
             }]
         }
         
-        user_db = get_user_db()
-        is_updated = user_db.update_user(user_id=request.user_id, update_data=user)
-        if not is_updated:
-            logger.error(f"Failed to update subscription for user {request.user_id}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    'error': 'Subscription update failed',
-                    'message': 'Could not update user subscription details in the database'
-                }
-            )
+        update_user(request.user_id, user, 'Could not update user subscription details in the database')
         
         return {
             'success': True,
@@ -222,27 +197,22 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
 def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authenticate_request)):
     try:
         user_id = request.user_id
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail= {
-                    'error': 'User not found',
-                    'message': 'User ID is required to start free trial'
-                }
-            )
-        
-        user_data = getUserbyId(user_id=user_id)
-        if not user_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    'error': 'User not found',
-                    'message': 'No user exists with the provided ID'
-                }
-            )      
+        validate_user_id(user_id)
+       
+        user_data = get_user(user_id)    
     
         if user_data.get('subscription') is None:
             user_data['subscription'] = {}
+            
+        # Check if user has already taken free trial
+        if user_data['subscription'].get('taken_free_trial', False):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail= {
+                    'error': 'Free trial already used',
+                    'message': 'User has already taken the free trial'
+                }
+            )
             
         expiry_date = user_data.get('subscription', {}).get('pro_expiry_date')
         if expiry_date is None:
@@ -262,17 +232,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
             'taken_free_trial': True,        
         }
         
-        user_db = get_user_db()
-        is_updated = user_db.update_user(user_id=user_id, update_data=user_data)
-        if not is_updated:
-            logger.error(f"Failed to update free trial subscription for user {user_id}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail={
-                    'error': 'Free trial activation failed',
-                    'message': 'Could not update user subscription details in the database'
-                }
-            )
+        update_user(user_id, user_data, 'Could not update user subscription details in the database')
         
         return {
             'success': True,
@@ -293,26 +253,11 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
 @router.get('/state/{user_id}', status_code=status.HTTP_200_OK)
 def subscription_status(user_id: str,user: dict = Depends(authenticate_request)):
     try:
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail= {
-                    'error': 'User not found',
-                    'message': 'User ID is required to fetch subscription status'
-                }
-            )
+        validate_user_id(user_id)
         
+        user_data =get_user(user_id)
         user_data = getUserbyId(user_id=user_id)
-        if not user_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    'error': 'User not found',
-                    'message': 'No user exists with the provided ID'
-                }
-            )
         subscription_data = user_data.get('subscription', {})
-        
         
         remaining_days = 0
         if subscription_data.get('pro_expiry_date'):
@@ -320,21 +265,23 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
             time_diff = (expiry_date - datetime.now(timezone.utc)).total_seconds()
             remaining_days = max(0, math.ceil(time_diff / 86400))  # 86400 seconds in a day
             
-        plan_type = subscription_data.get('plan_type', PlanType.NONE.value)
-        if remaining_days == 0 and plan_type != PlanType.NONE.value:
-            plan_type = PlanType.NONE.value
+        subscription_type = subscription_data.get('type', SubscriptionType.REGULAR.value)
+        if remaining_days == 0 and subscription_type == SubscriptionType.PRO.value:
+            subscription_type = SubscriptionType.REGULAR.value
             # TODO add a background job to clean expired subscriptions
             # update the plan type in database
             user_db = get_user_db()
-            is_update = user_db.update_user(user_id=user_id, update_data={
-                'subscription.plan_type': PlanType.NONE.value})
-            if not is_update:
-                logger.error(f"Failed to update plan type to NONE for user {user_id}")
-            
+            user_db.update_user(user_id, {
+                'subscription.type': subscription_type
+            })
+        
+        # Handle None plan_type by using 'or' operator
+        plan_type = subscription_data.get('plan_type') or PlanType.NONE.value
+        
         response = SubscriptionState(
             remaining_days= remaining_days,
-            plan_type=subscription_data.get('plan_type', PlanType.NONE.value),
-            subscription_type=subscription_data.get('type', SubscriptionType.REGULAR.value),
+            plan_type=plan_type,
+            subscription_type=subscription_type,
             all_plan_details=SUBSCRIPTION_PLANS,
             taken_free_trial=subscription_data.get('taken_free_trial', False)
         )
