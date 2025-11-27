@@ -26,6 +26,11 @@ class PlanDetails(BaseModel):
     interval: int
     currency: str
 
+FREE_TRIAL_DAYS = 14
+MONTHLY_DAYS = 30
+YEARLY_DAYS = 365
+SECONDS_PER_DAY = 86400
+
 # Subscription plans configuration
 SUBSCRIPTION_PLANS = {
     PlanType.MONTHLY.value : PlanDetails(
@@ -161,7 +166,7 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
         user['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': request.plan_type.lower(),
-            'pro_expiry_date': expiry_date + timedelta(days=30) if request.plan_type.lower() == PlanType.MONTHLY.value else expiry_date + timedelta(days=365),
+            'pro_expiry_date': expiry_date + timedelta(days=MONTHLY_DAYS) if request.plan_type.lower() == PlanType.MONTHLY.value else expiry_date + timedelta(days=YEARLY_DAYS),
             'taken_free_trial': user.get('subscription', {}).get('taken_free_trial', False),
             'payment_detail_list': user.get('subscription', {}).get('payment_detail_list', []) + [{
                 'payment_id': request.payment_id,
@@ -218,7 +223,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         if expiry_date is None:
             expiry_date = datetime.now(timezone.utc)
                         
-        expiry_date += timedelta(days=7)
+        expiry_date += timedelta(days=FREE_TRIAL_DAYS)
         
         
         current_plan = user_data['subscription'].get('plan_type')
@@ -263,7 +268,7 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
         if subscription_data.get('pro_expiry_date'):
             expiry_date = subscription_data['pro_expiry_date']
             time_diff = (expiry_date - datetime.now(timezone.utc)).total_seconds()
-            remaining_days = max(0, math.ceil(time_diff / 86400))  # 86400 seconds in a day
+            remaining_days = max(0, math.ceil(time_diff / SECONDS_PER_DAY))  # 86400 seconds in a day
             
         subscription_type = subscription_data.get('type', SubscriptionType.REGULAR.value)
         if remaining_days == 0 and subscription_type == SubscriptionType.PRO.value:
