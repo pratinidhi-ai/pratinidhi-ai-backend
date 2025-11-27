@@ -11,7 +11,20 @@ def _get_utc_now():
 class SubscriptionType(Enum):
 	REGULAR = "regular"
 	PRO = "pro"
-	
+
+class PlanType(Enum):
+	NONE = "none"
+	TRIAL = "trial"
+	MONTHLY = "monthly"
+	YEARLY = "yearly"
+
+@dataclass
+class PaymentDetail:
+	order_id: str
+	payment_id: str
+	signature: str
+	time: str
+
 @dataclass
 class SubscriptionInfo:
 	type: SubscriptionType = SubscriptionType.REGULAR
@@ -19,7 +32,9 @@ class SubscriptionInfo:
 	sessions_limit: int = 25  # Default limit for regular users
 	last_reset_date: Optional[datetime] = None
 	pro_expiry_date: Optional[datetime] = None
-
+	plan_type: Optional[PlanType] = None
+	payment_detail_list: List[PaymentDetail] = field(default_factory=list)
+	taken_free_trial: bool = False
 
 class Grade(Enum):
 	GRADE_6 = "6"
@@ -131,7 +146,17 @@ class User:
 				'sessions_used': self.subscription.sessions_used,
 				'sessions_limit': self.subscription.sessions_limit,
 				'last_reset_date': self.subscription.last_reset_date.isoformat() if self.subscription.last_reset_date else None,
-				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None
+				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None,
+				'plan_type': self.subscription.plan_type.value if self.subscription.plan_type else None,
+				'taken_free_trial': self.subscription.taken_free_trial,
+				'payment_detail_list': [
+					{
+						'order_id': pd.order_id,
+						'payment_id': pd.payment_id,
+						'signature': pd.signature,
+						'time': pd.time
+					} for pd in self.subscription.payment_detail_list
+				]
 			},
 			'completed_chapters': self.completed_chapters,
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
@@ -156,12 +181,24 @@ class User:
 		if not sub_data:  # If subscription field doesn't exist or is empty
 			subscription = SubscriptionInfo()  # Will use default values
 		else:
+			payment_details = [
+				PaymentDetail(
+					order_id=pd.get('order_id', ''),
+					payment_id=pd.get('payment_id', ''),
+					signature=pd.get('signature', ''),
+					time=pd.get('time', '')
+				) for pd in sub_data.get('payment_detail_list', [])
+			]
+			
 			subscription = SubscriptionInfo(
 				type=SubscriptionType(sub_data.get('type', 'regular')),
 				sessions_used=sub_data.get('sessions_used', 0),
 				sessions_limit=sub_data.get('sessions_limit', 25),
 				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
-				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None
+				pro_expiry_date=sub_data['pro_expiry_date'] if sub_data.get('pro_expiry_date') else None,
+				plan_type=PlanType(sub_data['plan_type']) if sub_data.get('plan_type') else None,
+				taken_free_trial= sub_data.get('taken_free_trial', False),
+				payment_detail_list=payment_details
 			)
 
 		preferences = UserPreferences(

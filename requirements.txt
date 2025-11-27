@@ -86,6 +86,7 @@ python-dotenv==1.0.0
 python-multipart==0.0.6
 pytz==2025.2
 PyYAML==6.0.3
+razorpay==1.4.2
 redis==6.4.0
 regex==2025.9.18
 requests==2.32.5

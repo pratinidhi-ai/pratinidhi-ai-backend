@@ -60,6 +60,7 @@ try:
     from routes.analytics_routing import analytics_router
     from routes.math_tutor_routing import math_tutor_router
     from routes.leaderboard_routing import router as leaderboard_router
+    from routes.subscribe_routing import router as subscribe_router
 
     app.include_router(user_router)
     app.include_router(tutor_router)
@@ -68,6 +69,7 @@ try:
     app.include_router(analytics_router)
     app.include_router(math_tutor_router)
     app.include_router(leaderboard_router)
+    app.include_router(subscribe_router)
     logger.info("Routers loaded successfully")
 except Exception as e:
     logger.error(f"Failed to load routers: {str(e)}")
