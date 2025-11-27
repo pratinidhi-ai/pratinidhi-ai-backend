@@ -8,19 +8,16 @@ from models.users_schema import User, SubscriptionType, PlanType, SubscriptionIn
 from datetime import datetime, timedelta, timezone
 import logging
 import hashlib
-
-
+import math
 
 router = APIRouter(prefix='/api/subscription', tags=['Subscription'])
 logger = logging.getLogger(__name__)
-
 
 # Initialize Razorpay client
 razorpay_client = razorpay.Client(auth=(
     os.getenv('RAZORPAY_KEY_ID'),
     os.getenv('RAZORPAY_KEY_SECRET')
 ))
-
 
 class PlanDetails(BaseModel):
     amount: int
@@ -320,9 +317,20 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
         remaining_days = 0
         if subscription_data.get('pro_expiry_date'):
             expiry_date = subscription_data['pro_expiry_date']
-            remaining_days = max(0,(expiry_date - datetime.now(timezone.utc)).days)
+            time_diff = (expiry_date - datetime.now(timezone.utc)).total_seconds()
+            remaining_days = max(0, math.ceil(time_diff / 86400))  # 86400 seconds in a day
             
-        
+        plan_type = subscription_data.get('plan_type', PlanType.NONE.value)
+        if remaining_days == 0 and plan_type != PlanType.NONE.value:
+            plan_type = PlanType.NONE.value
+            # TODO add a background job to clean expired subscriptions
+            # update the plan type in database
+            user_db = get_user_db()
+            is_update = user_db.update_user(user_id=user_id, update_data={
+                'subscription.plan_type': PlanType.NONE.value})
+            if not is_update:
+                logger.error(f"Failed to update plan type to NONE for user {user_id}")
+            
         response = SubscriptionState(
             remaining_days= remaining_days,
             plan_type=subscription_data.get('plan_type', PlanType.NONE.value),
