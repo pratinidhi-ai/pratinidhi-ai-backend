@@ -1,0 +1,408 @@
+{
+  "purpose": "This JSON file maps SAT score ranges to predicted college admission outcomes. For example, if a student gets a score of 1350, the prediction would be 'Strong chance of admission to upper-tier colleges worldwide'. Each range includes country-wise universities that accept students in that score range.",
+  "sat_score_predictions": [
+    {
+      "score_range": "400-1000",
+      "min_score": 400,
+      "max_score": 1000,
+      "prediction": "Limited options - focus on community colleges and test-optional universities",
+      "recommendation": "Consider retaking the SAT to improve your score for better university options",
+      "country_wise_possible_colleges": {
+        "USA": [],
+        "Canada": [],
+        "UK": [],
+        "Australia": [],
+        "Singapore": [],
+        "Germany": [],
+        "India": [],
+        "Ireland": [],
+        "France": [],
+        "New Zealand": [],
+        "UAE": [],
+        "Malaysia": [],
+        "Hong Kong": []
+      }
+    },
+    {
+      "score_range": "1001-1200",
+      "min_score": 1001,
+      "max_score": 1200,
+      "prediction": "Likely to be admitted to mid-tier colleges and several international universities",
+      "recommendation": "You have good options in Canada, Ireland, New Zealand, and Malaysia. Consider retaking for top-tier options.",
+      "country_wise_possible_colleges": {
+        "USA": [],
+        "Canada": [
+          "University of Calgary",
+          "Queen's University",
+          "Dalhousie University",
+          "Western University"
+        ],
+        "UK": [
+          "University of Glasgow"
+        ],
+        "Australia": [
+          "University of Sydney",
+          "Monash University",
+          "University of New South Wales (UNSW)",
+          "University of Melbourne"
+        ],
+        "Singapore": [
+          "Singapore Management University (SMU)"
+        ],
+        "Germany": [
+          "Bard College Berlin",
+          "Jacobs University Bremen",
+          "Cologne Institute of Technology"
+        ],
+        "India": [],
+        "Ireland": [
+          "Trinity College Dublin",
+          "University College Dublin",
+          "University College Cork",
+          "National University of Ireland, Galway (NUI Galway)",
+          "Maynooth University"
+        ],
+        "France": [
+          "American University of Paris",
+          "Parsons Paris"
+        ],
+        "New Zealand": [
+          "University of Auckland",
+          "University of Waikato",
+          "Victoria University of Wellington",
+          "University of Otago",
+          "Massey University"
+        ],
+        "UAE": [
+          "Khalifa University (Abu Dhabi)",
+          "American University of Sharjah"
+        ],
+        "Malaysia": [
+          "Monash University Malaysia",
+          "University of Nottingham Malaysia",
+          "Heriot-Watt University Malaysia"
+        ],
+        "Hong Kong": [
+          "City University of Hong Kong"
+        ]
+      }
+    },
+    {
+      "score_range": "1201-1350",
+      "min_score": 1201,
+      "max_score": 1350,
+      "prediction": "Strong chance of admission to upper-tier colleges worldwide",
+      "recommendation": "Excellent options across multiple countries including UK, Australia, Singapore, and competitive Canadian universities.",
+      "country_wise_possible_colleges": {
+        "USA": [
+          "University of Michigan",
+          "University of California, Berkeley (UC Berkeley)"
+        ],
+        "Canada": [
+          "University of Toronto",
+          "McMaster University",
+          "University of Calgary",
+          "Queen's University",
+          "Dalhousie University",
+          "Western University"
+        ],
+        "UK": [
+          "Imperial College London",
+          "University College London (UCL)",
+          "University of Manchester",
+          "University of Glasgow"
+        ],
+        "Australia": [
+          "University of Sydney",
+          "Monash University",
+          "University of New South Wales (UNSW)",
+          "Australian National University (ANU)",
+          "University of Melbourne"
+        ],
+        "Singapore": [
+          "National University of Singapore (NUS)",
+          "Nanyang Technological University (NTU)",
+          "Singapore Management University (SMU)"
+        ],
+        "Germany": [
+          "Frankfurt School of Finance & Management",
+          "Bard College Berlin",
+          "Jacobs University Bremen",
+          "Cologne Institute of Technology"
+        ],
+        "India": [
+          "Ashoka University",
+          "Shiv Nadar University",
+          "Ahmedabad University",
+          "FLAME University",
+          "Bennett University"
+        ],
+        "Ireland": [
+          "Trinity College Dublin",
+          "University College Dublin",
+          "University College Cork",
+          "National University of Ireland, Galway (NUI Galway)",
+          "Maynooth University"
+        ],
+        "France": [
+          "Sciences Po",
+          "American University of Paris",
+          "Parsons Paris"
+        ],
+        "New Zealand": [
+          "University of Auckland",
+          "University of Waikato",
+          "Victoria University of Wellington",
+          "University of Otago",
+          "Massey University"
+        ],
+        "UAE": [
+          "Khalifa University (Abu Dhabi)",
+          "American University of Sharjah",
+          "BITS Pilani Dubai Campus"
+        ],
+        "Malaysia": [
+          "Monash University Malaysia",
+          "University of Nottingham Malaysia",
+          "Heriot-Watt University Malaysia"
+        ],
+        "Hong Kong": [
+          "Chinese University of Hong Kong (CUHK)",
+          "Hong Kong University of Science and Technology (HKUST)",
+          "City University of Hong Kong"
+        ]
+      }
+    },
+    {
+      "score_range": "1351-1470",
+      "min_score": 1351,
+      "max_score": 1470,
+      "prediction": "Highly competitive - eligible for top-tier universities globally",
+      "recommendation": "You're competitive for prestigious universities including Ivy League schools, Oxford, Cambridge, and top Canadian/Singapore institutions.",
+      "country_wise_possible_colleges": {
+        "USA": [
+          "Yale University",
+          "University of Michigan",
+          "University of California, Berkeley (UC Berkeley)",
+          "New York University (NYU)"
+        ],
+        "Canada": [
+          "McGill University",
+          "University of Toronto",
+          "University of British Columbia (UBC)",
+          "University of Montreal",
+          "McMaster University",
+          "Simon Fraser University"
+        ],
+        "UK": [
+          "University of Cambridge",
+          "University of Oxford",
+          "Imperial College London",
+          "London School of Economics (LSE)",
+          "University College London (UCL)",
+          "University of Manchester",
+          "University of Glasgow"
+        ],
+        "Australia": [
+          "University of Sydney",
+          "Monash University",
+          "University of New South Wales (UNSW)",
+          "Australian National University (ANU)",
+          "University of Melbourne"
+        ],
+        "Singapore": [
+          "National University of Singapore (NUS)",
+          "Nanyang Technological University (NTU)",
+          "Singapore Management University (SMU)"
+        ],
+        "Germany": [
+          "Frankfurt School of Finance & Management",
+          "Bard College Berlin",
+          "Jacobs University Bremen"
+        ],
+        "India": [
+          "Ashoka University",
+          "Shiv Nadar University",
+          "Ahmedabad University",
+          "FLAME University",
+          "Bennett University"
+        ],
+        "Ireland": [
+          "Trinity College Dublin",
+          "University College Dublin",
+          "University College Cork",
+          "National University of Ireland, Galway (NUI Galway)",
+          "Maynooth University"
+        ],
+        "France": [
+          "Sciences Po",
+          "American University of Paris",
+          "Parsons Paris"
+        ],
+        "New Zealand": [
+          "University of Auckland",
+          "Victoria University of Wellington"
+        ],
+        "UAE": [
+          "Khalifa University (Abu Dhabi)",
+          "BITS Pilani Dubai Campus"
+        ],
+        "Malaysia": [
+          "Monash University Malaysia"
+        ],
+        "Hong Kong": [
+          "Chinese University of Hong Kong (CUHK)",
+          "Hong Kong University of Science and Technology (HKUST)",
+          "City University of Hong Kong"
+        ]
+      }
+    },
+    {
+      "score_range": "1471-1520",
+      "min_score": 1471,
+      "max_score": 1520,
+      "prediction": "Elite level - strong candidate for Ivy League and world's top universities",
+      "recommendation": "Exceptional score! You're highly competitive for MIT, Stanford, Harvard, Oxford, Cambridge, and all top global universities.",
+      "country_wise_possible_colleges": {
+        "USA": [
+          "Massachusetts Institute of Technology (MIT)",
+          "Stanford University",
+          "Harvard University",
+          "Yale University",
+          "Duke University",
+          "Northwestern University",
+          "New York University (NYU)",
+          "University of Michigan",
+          "University of California, Berkeley (UC Berkeley)"
+        ],
+        "Canada": [
+          "McGill University",
+          "University of Toronto",
+          "University of British Columbia (UBC)",
+          "University of Montreal",
+          "McMaster University",
+          "Simon Fraser University"
+        ],
+        "UK": [
+          "University of Oxford",
+          "University of Cambridge",
+          "Imperial College London",
+          "London School of Economics (LSE)",
+          "University College London (UCL)",
+          "University of Manchester"
+        ],
+        "Australia": [
+          "Australian National University (ANU)",
+          "University of Sydney",
+          "University of Melbourne",
+          "Monash University",
+          "University of New South Wales (UNSW)"
+        ],
+        "Singapore": [
+          "National University of Singapore (NUS)",
+          "Nanyang Technological University (NTU)"
+        ],
+        "Germany": [
+          "Frankfurt School of Finance & Management"
+        ],
+        "India": [
+          "Ashoka University",
+          "Shiv Nadar University",
+          "Ahmedabad University",
+          "FLAME University",
+          "Bennett University"
+        ],
+        "Ireland": [
+          "Trinity College Dublin",
+          "University College Dublin"
+        ],
+        "France": [
+          "Sciences Po"
+        ],
+        "New Zealand": [
+          "University of Auckland"
+        ],
+        "UAE": [
+          "BITS Pilani Dubai Campus"
+        ],
+        "Malaysia": [],
+        "Hong Kong": [
+          "Chinese University of Hong Kong (CUHK)",
+          "Hong Kong University of Science and Technology (HKUST)"
+        ]
+      }
+    },
+    {
+      "score_range": "1521-1600",
+      "min_score": 1521,
+      "max_score": 1600,
+      "prediction": "Perfect/Near-perfect score - virtually any university is within reach",
+      "recommendation": "Outstanding achievement! You're an exceptional candidate for the most selective universities in the world including MIT, Caltech, Harvard, Stanford, and all Ivy League schools.",
+      "country_wise_possible_colleges": {
+        "USA": [
+          "Massachusetts Institute of Technology (MIT)",
+          "California Institute of Technology (Caltech)",
+          "Stanford University",
+          "Harvard University",
+          "Yale University",
+          "Duke University",
+          "Northwestern University",
+          "New York University (NYU)",
+          "University of Michigan",
+          "University of California, Berkeley (UC Berkeley)"
+        ],
+        "Canada": [
+          "McGill University",
+          "University of Toronto",
+          "University of British Columbia (UBC)",
+          "Simon Fraser University",
+          "University of Montreal",
+          "McMaster University"
+        ],
+        "UK": [
+          "University of Oxford",
+          "University of Cambridge",
+          "Imperial College London",
+          "London School of Economics (LSE)",
+          "University College London (UCL)"
+        ],
+        "Australia": [
+          "Australian National University (ANU)",
+          "University of Sydney",
+          "University of Melbourne",
+          "Monash University",
+          "University of New South Wales (UNSW)"
+        ],
+        "Singapore": [
+          "National University of Singapore (NUS)",
+          "Nanyang Technological University (NTU)"
+        ],
+        "Germany": [
+          "Frankfurt School of Finance & Management"
+        ],
+        "India": [
+          "Ashoka University",
+          "Shiv Nadar University",
+          "Ahmedabad University"
+        ],
+        "Ireland": [
+          "Trinity College Dublin"
+        ],
+        "France": [
+          "Sciences Po"
+        ],
+        "New Zealand": [
+          "University of Auckland"
+        ],
+        "UAE": [
+          "BITS Pilani Dubai Campus"
+        ],
+        "Malaysia": [],
+        "Hong Kong": [
+          "Hong Kong University of Science and Technology (HKUST)",
+          "Chinese University of Hong Kong (CUHK)"
+        ]
+      }
+    }
+  ]
+}

@@ -47,6 +47,13 @@ class UpdateUserRequest(BaseModel):
     num_tasks_per_week: Optional[int] = None
 
 
+class ReportIssueRequest(BaseModel):
+    user_id: str
+    issue_title: str
+    issue_description: str
+    issue_type: str # e.g., 'bug', 'feature_request', 'other'
+
+
 @user_router.get('/{user_id}', status_code=status.HTTP_200_OK)
 def get_user(user_id: str, user: dict = Depends(authenticate_request)):
     try:
@@ -361,5 +368,54 @@ def update_user(user_id: str, request_data: UpdateUserRequest, user: dict = Depe
             detail={
                 'error': 'Internal server error',
                 'message': 'Failed to update user'
+            }
+        )
+
+
+@user_router.post('/report-issue', status_code=status.HTTP_201_CREATED)
+def report_issue(request_data: ReportIssueRequest, user: dict = Depends(authenticate_request)):
+    """
+    Report an issue faced by a user while using the application.
+    Issue types: bug, feature_request, other
+    """
+    try:
+        from database.firebase_client import get_firestore_client
+        import uuid
+        
+        db = get_firestore_client()
+        
+        # Generate a unique ID for the issue
+        issue_id = str(uuid.uuid4())
+        
+        # Create the issue document
+        issue_data = {
+            'id': issue_id,
+            'user_id': request_data.user_id,
+            'issue_title': request_data.issue_title,
+            'issue_description': request_data.issue_description,
+            'issue_type': request_data.issue_type,
+            'created_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Store in user_issues collection
+        db.collection('user_issues').document(issue_id).set(issue_data)
+        
+        logger.info(f"Issue reported successfully: {issue_id} by user {request_data.user_id}")
+        
+        return {
+            'success': True,
+            'message': 'Issue reported successfully',
+            'data': {
+                'issue_id': issue_id
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error reporting issue: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Internal server error',
+                'message': 'Failed to report issue'
             }
         )

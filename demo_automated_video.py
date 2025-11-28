@@ -15,7 +15,7 @@ from math_tutor.process_video import (
 import os
 import time
 
-TEST_PROBLEM = "Solve: What is the equation of a circle with radius 7 centered at (5, -2)?"
+TEST_PROBLEM = "Solve: Find if these 4 points make a square: (1,1), (1,3), (3,1), (3,3). Explain your reasoning."
 
 def demo_video_only():
     """

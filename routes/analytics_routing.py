@@ -1544,6 +1544,12 @@ def get_my_comprehensive_performance_analytics(
         
         # Build a map of tag data from user's performance
         tag_data_map = {}
+        sub_category_stats = {
+            'total_questions': 0,
+            'accuracy': 0,
+            'score': 0
+        }
+        
         if summary and 'subjects' in summary:
             subjects_data = summary.get('subjects', {})
             if data.subject in subjects_data:
@@ -1553,6 +1559,15 @@ def get_my_comprehensive_performance_analytics(
                     sub_cat_data = sub_categories[data.sub_category]
                     tags = sub_cat_data.get('tags', {})
                     tag_data_map = tags
+                    
+                    # Extract sub_category level stats
+                    sub_cat_total_questions = sub_cat_data.get('total_questions_attempted', 0)
+                    sub_cat_total_correct = sub_cat_data.get('total_correct_answers', 0)
+                    sub_cat_total_score = sub_cat_data.get('total_score', 0)
+                    
+                    sub_category_stats['total_questions'] = sub_cat_total_questions
+                    sub_category_stats['accuracy'] = round((sub_cat_total_correct / sub_cat_total_questions * 100), 2) if sub_cat_total_questions > 0 else 0
+                    sub_category_stats['score'] = sub_cat_total_score
         
         # Calculate mean questions attempted across all tags
         total_questions_attempted = 0
@@ -1627,6 +1642,9 @@ def get_my_comprehensive_performance_analytics(
                 'subject': data.subject,
                 'sub_category': data.sub_category,
                 'total_tags': total_tags,
+                'total_questions': sub_category_stats['total_questions'],
+                'accuracy': sub_category_stats['accuracy'],
+                'score': sub_category_stats['score'],
                 'mean_questions_attempted': round(mean_questions_attempted, 2),
                 'unexplored_threshold': round(unexplored_threshold, 2),
                 'strength': strength,
