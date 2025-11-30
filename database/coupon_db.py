@@ -90,27 +90,6 @@ class CouponDatabase:
 			logger.error(f"Error getting coupon {coupon_id}: {str(e)}")
 			return None
 	
-		"""Get a coupon by its name"""
-		try:
-			if self.db is None:
-				logger.error("Firestore client is not initialized")
-				return None
-				
-			coupons_collection = self.db.collection('coupons').where('coupon_name', '==', coupon_name.upper())
-			docs = coupons_collection.limit(1).stream()
-			
-			for doc in docs:
-				coupon_data = doc.to_dict()
-				coupon_data['coupon_id'] = doc.id
-				return self._firestore_to_coupon(coupon_data)
-			
-			logger.info(f"Coupon not found with name: {coupon_name}")
-			return None
-			
-		except Exception as e:
-			logger.error(f"Error getting coupon by name {coupon_name}: {str(e)}")
-			return None
-	
 	def create_coupon(self, coupon: Coupon) -> bool:
 		"""Create a new coupon"""
 		try:

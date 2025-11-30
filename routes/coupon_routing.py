@@ -3,13 +3,24 @@ from typing import List, Optional
 from datetime import datetime, timezone
 import logging
 from pydantic import BaseModel
-
+from models.users_schema import PlanType
+from utils.coupon import get_validation_status
 from models.coupon_schema import Coupon
 from database.coupon_db import get_coupon_db
 from helper.middleware import authenticate_request
+from typing import Dict
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/coupons", tags=["coupons"])
+
+# Add more detailed request models if needed
+class ValidateCouponRequest(BaseModel):
+    coupon_id: str
+    
+class ValidateCouponResponse(BaseModel):
+    discount_percentage: float
+    validation_status: Dict[PlanType, bool]
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=dict)
 def create_coupon(coupon: Coupon, user: dict = Depends(authenticate_request)):
@@ -93,35 +104,34 @@ def get_coupon_by_id(coupon_id: str, user: dict = Depends(authenticate_request))
             detail=f"Error retrieving coupon: {str(e)}"
         )
 
-@router.post("/validate/{coupon_id}", status_code=status.HTTP_200_OK, response_model=dict)
-def validate_coupon(coupon_id: str, user: dict = Depends(authenticate_request)):
+@router.post("/validation-status", status_code=status.HTTP_200_OK, response_model=dict)
+def validation_status(request: ValidateCouponRequest, user: dict = Depends(authenticate_request)):
     """
     Validate a coupon and return its details if valid
     """
     try:
-        coupon = get_coupon_db().get_coupon_by_id(coupon_id)
+        coupon = get_coupon_db().get_coupon_by_id(request.coupon_id)
         if not coupon:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Coupon with ID {coupon_id} not found"
+                detail=f"Coupon with ID {request.coupon_id} not found"
             )
         
-        is_valid, error_message = coupon.is_valid()
-        
-        if not is_valid:
+        validationStatus, error_message = get_validation_status(coupon)  
+        if error_message != "Coupon is valid":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=error_message
             )
         
         return {
-            "valid": True,
-            "message": "Coupon is valid",
+            "discount_percentage": coupon.discount_percentage,
+            "validationStatus": validationStatus
         }
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error validating coupon {coupon_id}: {str(e)}")
+        logger.error(f"Error validating coupon {request.coupon_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error validating coupon: {str(e)}"
@@ -199,39 +209,3 @@ def delete_coupon(coupon_id: str, user: dict = Depends(authenticate_request)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting coupon: {str(e)}"
         )
-
-@router.post("/apply/{coupon_id}", status_code=status.HTTP_200_OK, response_model=dict)
-def apply_coupon(coupon_id: str, user: dict = Depends(authenticate_request)):
-    """
-    Apply a coupon to an order - validates and updates coupon state
-    """
-    try:
-        # Check if coupon exists
-        coupon = get_coupon_db().get_coupon_by_id(coupon_id)
-        if not coupon:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Coupon with ID {coupon_id} not found"
-            )
-        
-        # Validate the coupon
-        is_valid, error_message = coupon.is_valid()
-        if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error_message
-            )
-        
-        return {
-            "discount_percentage": coupon.discount_percentage,
-            "message": "Coupon applied successfully"
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error applying coupon {coupon_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error applying coupon: {str(e)}"
-        )
-
