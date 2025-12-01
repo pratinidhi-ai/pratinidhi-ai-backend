@@ -131,11 +131,15 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
             }
         )
 
-
+# Workflow of verify payment:
+# 1. Verify payment signature using Razorpay utility
+# 2. Update user subscription details in the database
+# 3. If a coupon code is provided, apply the coupon in a background task
 @router.post('/verify-payment', status_code=status.HTTP_200_OK)
 def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTasks,
  user: dict = Depends(authenticate_request)):
     logger.info(f"Verifying payment for user {request.user_id} with order ID {request.order_id}")
+    logger.info(f"request data: {request.dict()}")
     try:
         # Validate input
         if not all([request.order_id, request.payment_id, request.signature, request.user_id, request.plan_type]):
@@ -169,6 +173,7 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
         background_tasks.add_task(
             apply_coupon,
             coupon_id = request.coupon_code,
+            plan_type = request.plan_type.lower()
         )
             
             
@@ -186,7 +191,7 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
         }
         
         update_user(request.user_id, user, 'Could not update user subscription details in the database')
-        
+        logger.info(f"Payment verified and subscription updated for user {request.user_id}")
         return {
             'success': True,
             'message': 'Payment verified successfully'
