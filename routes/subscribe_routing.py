@@ -77,7 +77,6 @@ class StartFreeTrialRequest(BaseModel):
 def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_request)):
     try:
         logger.info(f'Creating order for user {request.user_id} with plan {request.plan_type}')
-        logger.debug(f"Request data: {request.dict()}")
         # Validate input
         user_id = request.user_id
         plan_type = request.plan_type.lower()
