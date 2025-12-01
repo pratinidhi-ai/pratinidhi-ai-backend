@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
 from pydantic import BaseModel
 import razorpay
 import os
@@ -10,8 +10,8 @@ import logging
 import hashlib
 import math
 from utils.users import validate_user_id, get_user, update_user
-
-router = APIRouter(prefix='/api/subscription', tags=['Subscription'])
+from utils.coupon import apply_coupon  
+router = APIRouter(prefix='/api/subscription', tags=["subscription"])
 logger = logging.getLogger(__name__)
 
 # Initialize Razorpay client
@@ -67,6 +67,7 @@ class VerifyPaymentRequest(BaseModel):
     signature: str
     user_id: str
     plan_type: str
+    coupon_code: str | None = None
     
 class StartFreeTrialRequest(BaseModel):
     user_id: str
@@ -132,7 +133,8 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
 
 
 @router.post('/verify-payment', status_code=status.HTTP_200_OK)
-def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authenticate_request)):
+def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTasks,
+ user: dict = Depends(authenticate_request)):
     logger.info(f"Verifying payment for user {request.user_id} with order ID {request.order_id}")
     try:
         # Validate input
@@ -154,6 +156,7 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
         
         razorpay_client.utility.verify_payment_signature(params_dict)
         
+        # update user subscription details
         user = get_user(request.user_id)  
         if user.get('subscription') is None:
             user['subscription'] = {}
@@ -161,7 +164,13 @@ def verify_payment(request: VerifyPaymentRequest, user: dict = Depends(authentic
         expiry_date = user.get('subscription', {}).get('pro_expiry_date')
         if expiry_date is None:
             expiry_date = datetime.now(timezone.utc)
-        
+            
+        # apply coupon if provided in background
+        background_tasks.add_task(
+            apply_coupon,
+            coupon_id = request.coupon_code,
+        )
+            
             
         user['subscription'] = {
             'type': SubscriptionType.PRO.value,
@@ -242,6 +251,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         return {
             'success': True,
             'message': 'Free trial started successfully',
+            'days': FREE_TRIAL_DAYS,
         }
         
     except HTTPException:
