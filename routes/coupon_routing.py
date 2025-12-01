@@ -28,6 +28,8 @@ def create_coupon(coupon: Coupon, user: dict = Depends(authenticate_request)):
     Create a new coupon
     """
     try:
+        logger.info(f"Creating coupon with ID {coupon.coupon_id}")
+        logger.debug(f"Coupon data: {coupon.dict()}")
         # Check if coupon already exists
         existing = get_coupon_db().get_coupon_by_id(coupon.coupon_id)
         if existing:

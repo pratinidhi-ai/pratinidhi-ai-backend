@@ -7,6 +7,7 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
+# Returns a tuple containing a dictionary of plan type validations and a status message
 def get_validation_status(coupon: Coupon) -> tuple[Dict[PlanType,bool], str]:
     try:
         coupon_db = get_coupon_db()
@@ -24,9 +25,9 @@ def get_validation_status(coupon: Coupon) -> tuple[Dict[PlanType,bool], str]:
             return planTypeValidations, "Coupon has expired"
         
         for planType in planTypeValidations.keys():
-            if coupon.current_usage[planType]+1 < coupon.max_usage[planType]:
+            # If max_usage is -1, it means unlimited usage
+            if (coupon.max_usage[planType]==-1) or (coupon.current_usage[planType]+1 < coupon.max_usage[planType]):
                 planTypeValidations[planType] = True
-        
         
         return planTypeValidations, "Coupon is valid"
         
@@ -34,8 +35,9 @@ def get_validation_status(coupon: Coupon) -> tuple[Dict[PlanType,bool], str]:
         logger.error(f"Error validating coupon {coupon.coupon_id}: {str(e)}")
         return False, f"Error validating coupon: {str(e)}"
 
-def apply_coupon(coupon_id: str):
+def apply_coupon(coupon_id: str, plan_type: str):
     try:
+        logger.info(f"Applying coupon {coupon_id}")
         if not coupon_id:
             return
         
@@ -45,7 +47,7 @@ def apply_coupon(coupon_id: str):
             logger.error(f"Coupon with ID {coupon_id} not found for application")
             return
         
-        coupon.current_usage += 1
+        coupon.current_usage[PlanType(plan_type)] += 1
         coupon_db.update_coupon(coupon_id, coupon)
         logger.info(f"Coupon {coupon_id} applied successfully in background task")
         
