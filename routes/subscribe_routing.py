@@ -92,8 +92,7 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
             )
             
         # Get plan details
-        plan_details = SUBSCRIPTION_PLANS[plan_type]
-        
+        plan_details = SUBSCRIPTION_PLANS[plan_type].model_copy()        
         user_hash = hashlib.md5(user_id.encode()).hexdigest()[:8]
         timestamp = int(datetime.now().timestamp())
         
