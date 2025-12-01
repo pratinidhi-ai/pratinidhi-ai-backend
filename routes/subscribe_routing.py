@@ -60,6 +60,7 @@ class SubscriptionState(BaseModel):
 class CreateOrderRequest(BaseModel):
     user_id: str
     plan_type: str
+    discount_percentage: float | None = None
 
 class VerifyPaymentRequest(BaseModel):
     order_id: str
@@ -75,6 +76,8 @@ class StartFreeTrialRequest(BaseModel):
 @router.post('/create-order', status_code=status.HTTP_201_CREATED)
 def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_request)):
     try:
+        logger.info(f'Creating order for user {request.user_id} with plan {request.plan_type}')
+        logger.debug(f"Request data: {request.dict()}")
         # Validate input
         user_id = request.user_id
         plan_type = request.plan_type.lower()
@@ -94,6 +97,11 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
         
         user_hash = hashlib.md5(user_id.encode()).hexdigest()[:8]
         timestamp = int(datetime.now().timestamp())
+        
+        if request.discount_percentage:
+            discount_amount = int(plan_details.amount * (request.discount_percentage / 100))
+            plan_details.amount -= discount_amount
+            logger.info(f"Applied discount of {request.discount_percentage}% for user {user_id}. New amount: {plan_details.amount}")
 
         # Create Razorpay order
         order_data = {
