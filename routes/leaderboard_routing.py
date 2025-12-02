@@ -169,8 +169,20 @@ def get_leaderboard_generic(
         # remove the last entry and add current user at the end
         leaderboard_users = {entry.get('user_id', '') for entry in leaderboard_list}
         if user_id not in leaderboard_users:
+            # Get current user's actual rank in the filtered leaderboard
+            user_rank_dict = leaderboard_db.get_user_rank(
+                user_id=user_id,
+                country=country,
+                state=state,
+                city=city,
+                sort_by=sort_by
+            )
+            logger.info(f"User {user_id} rank in filtered leaderboard: {user_rank_dict}")
+            
             leaderboard_list = leaderboard_list[:limit-1]  # Keep only top N-1
-            leaderboard_list.append(user_leaderboard_entity)  # Add current user at the end
+            user_entry = user_leaderboard_entity.__dict__
+            user_entry['rank'] = user_rank_dict['rank'] if user_rank_dict else len(leaderboard_list) + 1
+            leaderboard_list.append(user_entry)  # Add current user at the end
 
         return {
             'success': True,
