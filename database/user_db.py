@@ -293,7 +293,7 @@ def _update_user_async(user: User):
 	try:
 		user_dict = user.to_dict()
 		db = get_user_db()
-		db.collection('users').document(user.id).set(user_dict, merge=True)
+		db.db.collection('users').document(user.id).set(user_dict, merge=True)
 		logger.info(f"Successfully updated session count for user {user.id}")
 	except Exception as e:
 		logger.error(f"Failed to update user data in background: {e}")
