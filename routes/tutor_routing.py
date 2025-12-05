@@ -36,11 +36,11 @@ class SessionMessageRequest(BaseModel):
 
 
 @tutor_router.post('/start-session', status_code=status.HTTP_200_OK)
-async def start_session(request_data: StartSessionRequest, user: dict = Depends(authenticate_request)):
+def start_session(request_data: StartSessionRequest, user: dict = Depends(authenticate_request)):
     try:
         user_id = request_data.user_id
         
-        if not await userStartSession(user_id=user_id):
+        if not userStartSession(user_id=user_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "You Have Used up the quota of allotted sessions"}
@@ -76,7 +76,7 @@ async def start_session(request_data: StartSessionRequest, user: dict = Depends(
             lecture_chapter=request_data.lecture_chapter,
             session_system_prompt=system_prompt
         )
-        await get_redis_session_manager().save_session(session_id, session)
+        get_redis_session_manager().save_session(session_id, session)
         
         return {
             "session_id": session_id,
@@ -93,14 +93,14 @@ async def start_session(request_data: StartSessionRequest, user: dict = Depends(
 
 
 @tutor_router.post('/{session_id}/message', status_code=status.HTTP_200_OK)
-async def session_message(
+def session_message(
     session_id: str,
     request_data: SessionMessageRequest,
     user: dict = Depends(authenticate_request)
 ):
     try:
         logger.info(f"Step 1: Getting session {session_id}")
-        session = await get_redis_session_manager().get_session(session_id)
+        session = get_redis_session_manager().get_session(session_id)
         
         if not session or not session.is_active:
             raise HTTPException(
@@ -116,7 +116,7 @@ async def session_message(
         
         logger.info("Step 2: Calling OpenAI API")
         try:
-            ai_response = await call_openai_api(session, use_rag)
+            ai_response = call_openai_api(session, use_rag)
             logger.info(f"OpenAI API call successful, response length: {len(ai_response)}")
         except Exception as openai_error:
             logger.exception(f"OpenAI API call failed: {str(openai_error)}")
@@ -135,11 +135,11 @@ async def session_message(
         if session.length >= 100:
             session.is_active = False
             session.ended_at = time.time()
-            session.summary = await generate_summary(session.messages)
-            await saveSessionSummary(session=session)
-            await get_redis_session_manager().delete_session(session_id)
+            session.summary = generate_summary(session.messages)
+            saveSessionSummary(session=session)
+            get_redis_session_manager().delete_session(session_id)
         else:
-            await get_redis_session_manager().save_session(session_id, session)
+            get_redis_session_manager().save_session(session_id, session)
 
         return {
             "ai_response": ai_response, 
@@ -158,9 +158,9 @@ async def session_message(
 
 
 @tutor_router.post('/{session_id}/end', status_code=status.HTTP_200_OK)
-async def end_session(session_id: str, user: dict = Depends(authenticate_request)):
+def end_session(session_id: str, user: dict = Depends(authenticate_request)):
     try:
-        session = await get_redis_session_manager().get_session(session_id)
+        session = get_redis_session_manager().get_session(session_id)
         if not session:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -175,17 +175,17 @@ async def end_session(session_id: str, user: dict = Depends(authenticate_request
         
         session.is_active = False
         session.ended_at = time.time()
-        session.summary = await generate_summary(session.messages)
+        session.summary = generate_summary(session.messages)
         
         response_data = {
             "success": True,
             "summary": session.summary,
             "total_messages": session.length
         }
-        if not await saveSessionSummary(session=session):
+        if not saveSessionSummary(session=session): 
             logger.warning("Error in storing user session summary.")
         
-        await get_redis_session_manager().delete_session(session_id)
+        get_redis_session_manager().delete_session(session_id)
         return response_data
         
     except HTTPException:
@@ -199,9 +199,9 @@ async def end_session(session_id: str, user: dict = Depends(authenticate_request
 
 
 @tutor_router.get('/{user_id}', status_code=status.HTTP_200_OK)
-async def get_user_sessions(user_id: str, user: dict = Depends(authenticate_request)):
+def get_user_sessions(user_id: str, user: dict = Depends(authenticate_request)):
     try:
-        sessions_list = await _getUserSessions(user_id)
+        sessions_list = _getUserSessions(user_id)
         
         return {
             "message": "Sessions retrieved successfully" if sessions_list else "No sessions found",
@@ -217,10 +217,10 @@ async def get_user_sessions(user_id: str, user: dict = Depends(authenticate_requ
 
 
 @tutor_router.get('/redis-health', status_code=status.HTTP_200_OK)
-async def redis_health():
+def redis_health():
     try:
         start_time = time.time()
-        result = await get_redis_session_manager().redis_client.ping()
+        result = get_redis_session_manager().redis_client.ping()
         latency = (time.time() - start_time) * 1000
         
         return {
