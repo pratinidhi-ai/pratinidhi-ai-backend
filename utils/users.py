@@ -44,3 +44,21 @@ def update_user(user_id: str, update_data: Dict[str, Any], error_message: str) -
                 'message': error_message
             }
         )
+        
+def save_last_predictor_score(user_id: str, math_score: int, rw_score:int ) -> None:
+    """Save the last predictor score for a user"""
+    try:
+        user_db = get_user_db()
+        
+        update_data = {
+            'predicted_score': {
+                'math_score': math_score,
+                'rw_score': rw_score,
+                'is_synced': True
+            }
+        }
+        user_db.update_user(user_id=user_id, update_data=update_data)
+        logger.info(f"Saved last predictor scores for user {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Error saving last predictor scores for user {user_id}: {str(e)}")
