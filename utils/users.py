@@ -49,15 +49,12 @@ def save_last_predictor_score(user_id: str, math_score: int, rw_score:int ) -> N
     """Save the last predictor score for a user"""
     try:
         user_db = get_user_db()
-        user = user_db.get_user_by_id(user_id)
-        if not user:
-            logger.error(f"User with ID {user_id} not found for saving predictor score")
-            return
         
         update_data = {
             'predicted_score': {
                 'math_score': math_score,
-                'rw_score': rw_score
+                'rw_score': rw_score,
+                'is_synced': True
             }
         }
         user_db.update_user(user_id=user_id, update_data=update_data)

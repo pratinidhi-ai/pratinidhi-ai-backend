@@ -108,7 +108,7 @@ class User:
 	# Subscription Info
 	subscription: SubscriptionInfo = field(default_factory=SubscriptionInfo)
  
-	# SAT predictor
+	# SAT predicted score
 	predicted_score:  PredictedScore = field(default_factory=PredictedScore)
 
 	
