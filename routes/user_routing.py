@@ -371,6 +371,67 @@ def update_user(user_id: str, request_data: UpdateUserRequest, user: dict = Depe
             }
         )
 
+# @user_router.delete('/{user_id}', status_code=status.HTTP_200_OK)
+def delete_user(user_id: str, user: dict = Depends(authenticate_request)):
+    """
+    Delete a user and their associated leaderboard entry.
+    """
+    try:
+        # Check if user exists
+        user_db = get_user_db()
+        existing_user = user_db.get_user_by_id(user_id)
+        if not existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'error': 'Not found',
+                    'message': 'User not found'
+                }
+            )
+        
+        # Delete from user database
+        user_delete_success = user_db.delete_user(user_id)
+        
+        if not user_delete_success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Internal server error',
+                    'message': 'Failed to delete user from database'
+                }
+            )
+        
+        # Delete from leaderboard database
+        try:
+            leaderboard_db = get_leaderboard_db()
+            lb_delete_success = leaderboard_db.delete_entity(user_id)
+            if not lb_delete_success:
+                logger.warning(f"Failed to delete leaderboard entry for user {user_id}")
+        except Exception as lb_error:
+            logger.error(f"Error deleting leaderboard entry for user {user_id}: {str(lb_error)}")
+        
+        logger.info(f"Successfully deleted user {user_id}")
+        
+        return {
+            'success': True,
+            'message': 'User deleted successfully',
+            'data': {
+                'user_id': user_id
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Internal server error',
+                'message': 'Failed to delete user'
+            }
+        )
+
 
 @user_router.post('/report-issue', status_code=status.HTTP_201_CREATED)
 def report_issue(request_data: ReportIssueRequest, user: dict = Depends(authenticate_request)):
