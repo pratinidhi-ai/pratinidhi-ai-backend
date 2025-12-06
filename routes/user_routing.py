@@ -54,7 +54,7 @@ class ReportIssueRequest(BaseModel):
     issue_type: str # e.g., 'bug', 'feature_request', 'other'
 
 
-def update_predicted_score(user_id: str, math_score: int, rw_score: int) -> None:
+def update_predicted_score(user_id: str, math_score: int, rw_score: int, total_score: int) -> None:
     """Update the predicted_score field for a user"""
     try:
         user_db = get_user_db()
@@ -62,6 +62,7 @@ def update_predicted_score(user_id: str, math_score: int, rw_score: int) -> None
             'predicted_score': {
                 'math_score': math_score,
                 'rw_score': rw_score,
+                'total_score': total_score,
                 'is_synced': True
             }
         }
@@ -111,7 +112,7 @@ def get_user(user_id: str, user: dict = Depends(authenticate_request)):
                 
                 # Update user in database with zero scores 
                 try:
-                    update_predicted_score(user_id, 0, 0)
+                    update_predicted_score(user_id, 0, 0, 0)
                 except Exception as e:
                     logger.error(f"Failed to update user {user_id} with zero predicted_score: {str(e)}")
                 
@@ -123,12 +124,14 @@ def get_user(user_id: str, user: dict = Depends(authenticate_request)):
             data = docs[0].to_dict()
             user_obj.predicted_score.math_score = data.get('math_score', 0)
             user_obj.predicted_score.rw_score = data.get('rw_score', 0)
+            user_obj.predicted_score.total_score = data.get('total_sat_score', 0)
             user_obj.predicted_score.is_synced = True
             logger.info(f"Populated predicted_score for user {user_id} from SAT predictor history")
             
             # Update user in database with the new predicted_score
             try:
-                update_predicted_score(user_id, data.get('math_score', 0), data.get('rw_score', 0))
+                update_predicted_score(user_id, data.get('math_score', 0),
+                                       data.get('rw_score', 0), data.get('total_sat_score', 0))
             except Exception as e:
                 logger.error(f"Failed to update user {user_id} with populated predicted_score: {str(e)}")
         

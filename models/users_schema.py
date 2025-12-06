@@ -41,6 +41,7 @@ class PredictedScore:
 	math_score: int = 0
 	rw_score: int = 0
 	is_synced: bool = False
+	total_score: int = 0
 
 class Grade(Enum):
 	GRADE_6 = "6"
@@ -171,7 +172,8 @@ class User:
 			'predicted_score': {
 				'math_score': self.predicted_score.math_score,
 				'rw_score': self.predicted_score.rw_score,
-				'is_synced': self.predicted_score.is_synced
+				'is_synced': self.predicted_score.is_synced,
+				'total_score': self.predicted_score.total_score
 			},
 			'completed_chapters': self.completed_chapters,
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
@@ -232,7 +234,8 @@ class User:
 		predicted_score = PredictedScore(
 			math_score=predicted_score_data.get('math_score', 0),
 			rw_score=predicted_score_data.get('rw_score', 0),
-			is_synced=predicted_score_data.get('is_synced', False)
+			is_synced=predicted_score_data.get('is_synced', False),
+			total_score=predicted_score_data.get('total_score', 0)
 		)
 		
 		return cls(
