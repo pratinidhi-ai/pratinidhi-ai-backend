@@ -35,6 +35,12 @@ class SubscriptionInfo:
 	plan_type: Optional[PlanType] = None
 	payment_detail_list: List[PaymentDetail] = field(default_factory=list)
 	taken_free_trial: bool = False
+ 
+@dataclass
+class PredictedScore:
+	math_score: int = 0
+	rw_score: int = 0
+	is_synced: bool = False
 
 class Grade(Enum):
 	GRADE_6 = "6"
@@ -99,7 +105,11 @@ class User:
 	terms_and_conditions: bool = False
 	personalized_content: bool = True
 	
+	# Subscription Info
 	subscription: SubscriptionInfo = field(default_factory=SubscriptionInfo)
+ 
+	# SAT predictor
+	predicted_score:  PredictedScore = field(default_factory=PredictedScore)
 
 	
 	# SAT Preparation Tracking
@@ -158,6 +168,11 @@ class User:
 					} for pd in self.subscription.payment_detail_list
 				]
 			},
+			'predicted_score': {
+				'math_score': self.predicted_score.math_score,
+				'rw_score': self.predicted_score.rw_score,
+				'is_synced': self.predicted_score.is_synced
+			},
 			'completed_chapters': self.completed_chapters,
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
 			'completed_tutorial_tags': dict(self.completed_tutorial_tags),
@@ -212,6 +227,14 @@ class User:
 			quiet_hours_end=prefs_data.get('quiet_hours_end')
 		)
 		
+		# Handle predicted score
+		predicted_score_data = data.get('predicted_score', {})
+		predicted_score = PredictedScore(
+			math_score=predicted_score_data.get('math_score', 0),
+			rw_score=predicted_score_data.get('rw_score', 0),
+			is_synced=predicted_score_data.get('is_synced', False)
+		)
+		
 		return cls(
 			id=data['id'],
 			email=data['email'],
@@ -227,6 +250,7 @@ class User:
 			terms_and_conditions=data.get('terms_and_conditions', False),
 			personalized_content=data.get('personalized_content', True),
 			subscription = subscription,
+			predicted_score=predicted_score,
 			completed_chapters=data.get('completed_chapters', []),
 			current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),

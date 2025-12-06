@@ -16,6 +16,7 @@ from models.analytics_schema import QuizSubmission, TagDetail, SATPredictorSubmi
 from database.leaderboard_db import get_leaderboard_db
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
 from routes.leaderboard_routing import update_leaderboard_db
+from utils.users import save_last_predictor_score
 
 logger = logging.getLogger(__name__)
 
@@ -466,6 +467,14 @@ def sat_predictor_submit(
         
         # Generate unique request ID for tracking
         request_id = str(uuid.uuid4())
+        
+        # Add background task to save the data in users.predicted_score 
+        background_tasks.add_task(
+            save_last_predictor_score,
+            data.student_id,
+            math_score,
+            rw_score
+        )
         
         # Add background task
         background_tasks.add_task(
