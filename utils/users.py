@@ -45,7 +45,7 @@ def update_user(user_id: str, update_data: Dict[str, Any], error_message: str) -
             }
         )
         
-def save_last_predictor_score(user_id: str, math_score: int, rw_score:int ) -> None:
+def save_last_predictor_score(user_id: str, math_score: int, rw_score:int , total_score: int) -> None:
     """Save the last predictor score for a user"""
     try:
         user_db = get_user_db()
@@ -54,6 +54,7 @@ def save_last_predictor_score(user_id: str, math_score: int, rw_score:int ) -> N
             'predicted_score': {
                 'math_score': math_score,
                 'rw_score': rw_score,
+                'total_score': total_score,
                 'is_synced': True
             }
         }

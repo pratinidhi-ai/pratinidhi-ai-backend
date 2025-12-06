@@ -473,7 +473,8 @@ def sat_predictor_submit(
             save_last_predictor_score,
             data.student_id,
             math_score,
-            rw_score
+            rw_score,
+            total_sat_score,
         )
         
         # Add background task
