@@ -212,7 +212,7 @@ class User:
 				sessions_used=sub_data.get('sessions_used', 0),
 				sessions_limit=sub_data.get('sessions_limit', 25),
 				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
-				pro_expiry_date=sub_data['pro_expiry_date'] if sub_data.get('pro_expiry_date') else None,
+				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None,
 				plan_type=PlanType(sub_data['plan_type']) if sub_data.get('plan_type') else None,
 				taken_free_trial= sub_data.get('taken_free_trial', False),
 				payment_detail_list=payment_details
