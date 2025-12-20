@@ -54,8 +54,26 @@ class ReportIssueRequest(BaseModel):
     issue_type: str # e.g., 'bug', 'feature_request', 'other'
 
 
+def update_predicted_score(user_id: str, math_score: int, rw_score: int, total_score: int) -> None:
+    """Update the predicted_score field for a user"""
+    try:
+        user_db = get_user_db()
+        update_data = {
+            'predicted_score': {
+                'math_score': math_score,
+                'rw_score': rw_score,
+                'total_score': total_score,
+                'is_synced': True
+            }
+        }
+        user_db.update_user(user_id=user_id, update_data=update_data)
+        logger.info(f"Updated predicted_score for user {user_id}")
+    except Exception as e:
+        logger.error(f"Failed to update predicted_score for user {user_id}: {str(e)}")
+
 @user_router.get('/{user_id}', status_code=status.HTTP_200_OK)
 def get_user(user_id: str, user: dict = Depends(authenticate_request)):
+    logger.info(f"Fetching user with ID: {user_id}")
     try:
         item = getUserbyId(user_id=user_id)
         if not item:
@@ -68,6 +86,55 @@ def get_user(user_id: str, user: dict = Depends(authenticate_request)):
             )
         user_obj = User.from_dict(item)
         user_obj.last_login = datetime.now(timezone.utc)
+        
+        #  If predicted_score is not synced, fetch from SAT predictor history
+        if not user_obj.predicted_score or user_obj.predicted_score.is_synced != True:
+            from database.analytics_db import get_analytics_db
+            analytics_db = get_analytics_db()
+            sat_perf_ref = (analytics_db.db.collection('users')
+                       .document(user_id)
+                       .collection('sat_predictor_performance'))
+        
+            # Get documents ordered by timestamp, newest first
+            docs = list(sat_perf_ref
+                .order_by('timestamp', direction='DESCENDING')
+                .limit(1)
+                .stream())
+            
+            # If there's no document, set predicted_score to zero
+            if len(docs) == 0: 
+                logger.info(f"No SAT predictor performance found for user {user_id} to populate predicted_score")
+                
+                # Set predicted_score on user object
+                user_obj.predicted_score.math_score = 0
+                user_obj.predicted_score.rw_score = 0
+                user_obj.predicted_score.is_synced = True
+                
+                # Update user in database with zero scores 
+                try:
+                    update_predicted_score(user_id, 0, 0, 0)
+                except Exception as e:
+                    logger.error(f"Failed to update user {user_id} with zero predicted_score: {str(e)}")
+                
+                return {
+                    'success': True,
+                    'data': user_obj.to_dict()    
+                }
+              
+            data = docs[0].to_dict()
+            user_obj.predicted_score.math_score = data.get('math_score', 0)
+            user_obj.predicted_score.rw_score = data.get('rw_score', 0)
+            user_obj.predicted_score.total_score = data.get('total_sat_score', 0)
+            user_obj.predicted_score.is_synced = True
+            logger.info(f"Populated predicted_score for user {user_id} from SAT predictor history")
+            
+            # Update user in database with the new predicted_score
+            try:
+                update_predicted_score(user_id, data.get('math_score', 0),
+                                       data.get('rw_score', 0), data.get('total_sat_score', 0))
+            except Exception as e:
+                logger.error(f"Failed to update user {user_id} with populated predicted_score: {str(e)}")
+        
         return {
             'success': True,
             'data': user_obj.to_dict()
@@ -368,6 +435,67 @@ def update_user(user_id: str, request_data: UpdateUserRequest, user: dict = Depe
             detail={
                 'error': 'Internal server error',
                 'message': 'Failed to update user'
+            }
+        )
+
+# @user_router.delete('/{user_id}', status_code=status.HTTP_200_OK)
+def delete_user(user_id: str, user: dict = Depends(authenticate_request)):
+    """
+    Delete a user and their associated leaderboard entry.
+    """
+    try:
+        # Check if user exists
+        user_db = get_user_db()
+        existing_user = user_db.get_user_by_id(user_id)
+        if not existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'error': 'Not found',
+                    'message': 'User not found'
+                }
+            )
+        
+        # Delete from user database
+        user_delete_success = user_db.delete_user(user_id)
+        
+        if not user_delete_success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    'error': 'Internal server error',
+                    'message': 'Failed to delete user from database'
+                }
+            )
+        
+        # Delete from leaderboard database
+        try:
+            leaderboard_db = get_leaderboard_db()
+            lb_delete_success = leaderboard_db.delete_entity(user_id)
+            if not lb_delete_success:
+                logger.warning(f"Failed to delete leaderboard entry for user {user_id}")
+        except Exception as lb_error:
+            logger.error(f"Error deleting leaderboard entry for user {user_id}: {str(lb_error)}")
+        
+        logger.info(f"Successfully deleted user {user_id}")
+        
+        return {
+            'success': True,
+            'message': 'User deleted successfully',
+            'data': {
+                'user_id': user_id
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Internal server error',
+                'message': 'Failed to delete user'
             }
         )
 

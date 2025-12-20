@@ -13,6 +13,16 @@ from utils.users import validate_user_id, get_user, update_user
 from utils.coupon import apply_coupon
 from utils.datetime_utils import parse_datetime  
 router = APIRouter(prefix='/api/subscription', tags=["subscription"])
+
+def parse_expiry_date(expiry_date) -> datetime | None:
+    """Parse pro_expiry_date from various formats to datetime object"""
+    if expiry_date is None:
+        return None
+    if isinstance(expiry_date, datetime):
+        return expiry_date
+    if isinstance(expiry_date, str):
+        return datetime.fromisoformat(expiry_date)
+    return None
 logger = logging.getLogger(__name__)
 
 # Initialize Razorpay client
@@ -172,7 +182,7 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
         if user.get('subscription') is None:
             user['subscription'] = {}
                 
-        expiry_date = user.get('subscription', {}).get('pro_expiry_date')
+        expiry_date = parse_expiry_date(user.get('subscription', {}).get('pro_expiry_date'))
         if expiry_date is None:
             expiry_date = datetime.now(timezone.utc)
             
@@ -187,7 +197,7 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
         user['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': request.plan_type.lower(),
-            'pro_expiry_date': expiry_date + timedelta(days=MONTHLY_DAYS) if request.plan_type.lower() == PlanType.MONTHLY.value else expiry_date + timedelta(days=YEARLY_DAYS),
+            'pro_expiry_date': (expiry_date + timedelta(days=MONTHLY_DAYS) if request.plan_type.lower() == PlanType.MONTHLY.value else expiry_date + timedelta(days=YEARLY_DAYS)).isoformat(),
             'taken_free_trial': user.get('subscription', {}).get('taken_free_trial', False),
             'payment_detail_list': user.get('subscription', {}).get('payment_detail_list', []) + [{
                 'payment_id': request.payment_id,
@@ -240,7 +250,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
                 }
             )
             
-        expiry_date = user_data.get('subscription', {}).get('pro_expiry_date')
+        expiry_date = parse_expiry_date(user_data.get('subscription', {}).get('pro_expiry_date'))
         if expiry_date is None:
             expiry_date = datetime.now(timezone.utc)
                         
@@ -254,7 +264,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         user_data['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': current_plan,
-            'pro_expiry_date': expiry_date,
+            'pro_expiry_date': expiry_date.isoformat(),
             'taken_free_trial': True,        
         }
         
