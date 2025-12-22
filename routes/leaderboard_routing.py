@@ -169,20 +169,30 @@ def get_leaderboard_generic(
         # remove the last entry and add current user at the end
         leaderboard_users = {entry.get('user_id', '') for entry in leaderboard_list}
         if user_id not in leaderboard_users:
-            # Get current user's actual rank in the filtered leaderboard
-            user_rank_dict = leaderboard_db.get_user_rank(
-                user_id=user_id,
-                country=country,
-                state=state,
-                city=city,
-                sort_by=sort_by
-            )
-            logger.info(f"User {user_id} rank in filtered leaderboard: {user_rank_dict}")
-            
-            leaderboard_list = leaderboard_list[:limit-1]  # Keep only top N-1
-            user_entry = user_leaderboard_entity.__dict__
-            user_entry['rank'] = user_rank_dict['rank'] if user_rank_dict else len(leaderboard_list) + 1
-            leaderboard_list.append(user_entry)  # Add current user at the end
+            try:
+                # Get current user's actual rank in the filtered leaderboard
+                user_rank_dict = leaderboard_db.get_user_rank(
+                    user_id=user_id,
+                    country=country,
+                    state=state,
+                    city=city,
+                    sort_by=sort_by
+                )
+                logger.info(f"User {user_id} rank in filtered leaderboard: {user_rank_dict}")
+                
+                # Only add user if we successfully retrieved their rank
+                if user_rank_dict and 'rank' in user_rank_dict:
+                    leaderboard_list = leaderboard_list[:limit-1]  # Keep only top N-1
+                    # Use to_dict() instead of __dict__ to ensure proper JSON serialization of datetime fields
+                    user_entry = user_leaderboard_entity.to_dict()
+                    user_entry['rank'] = user_rank_dict['rank']  # Use actual rank from database
+                    leaderboard_list.append(user_entry)  # Add current user at the end
+                else:
+                    # If we can't get the user's rank, don't add them to avoid confusion
+                    logger.warning(f"No rank information available for user {user_id}")
+            except Exception as rank_error:
+                # If rank calculation fails, don't add user to the list to avoid showing incorrect rank
+                logger.warning(f"Failed to calculate rank for {user_id}: {str(rank_error)}, not adding to leaderboard")
 
         return {
             'success': True,

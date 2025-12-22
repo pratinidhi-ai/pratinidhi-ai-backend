@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timezone
 
 class TutorSession:
 	def __init__(self, user_id, personality, language, session_id, subject=None, exam=None, interests=None, goals=None,lecture_notes=None, lecture_subject=None, lecture_chapter=None,session_system_prompt=None):
@@ -9,7 +10,7 @@ class TutorSession:
 		self.messages = []
 		self.length = 0
 		self.is_active = True
-		self.created_at = time.time()
+		self.created_at = datetime.now(timezone.utc).isoformat()  # Store as ISO format string instead of Unix timestamp
 		self.summary = None
 		self.ended_at = None
 		self.subject = subject
@@ -38,7 +39,7 @@ class TutorSession:
 			"messages": self.messages,
 			"length": self.length,
 			"is_active": self.is_active,
-			"created_at": self.created_at,
+			"created_at": self.created_at,  # Already in ISO format
 			"summary": self.summary,
-			"ended_at": self.ended_at
+			"ended_at": self.ended_at if isinstance(self.ended_at, str) else (datetime.now(timezone.utc).isoformat() if self.ended_at else None)  # Convert to ISO if set
 		}

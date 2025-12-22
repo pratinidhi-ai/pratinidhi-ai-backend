@@ -10,7 +10,7 @@ import logging
 from database.firebase_client import get_question_db_client
 from helper.middleware import authenticate_request
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -435,8 +435,8 @@ def report_question(
             'reported_by': request_data.user_id,
             'status': 'pending',  # Status: pending, reviewed, resolved
             'bounty_awarded': False,  # Will be set to True when verified and bounty given
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
+            'created_at': datetime.now(timezone.utc).isoformat(),
+            'updated_at': datetime.now(timezone.utc).isoformat()
         }
         
         # Store the report in question_reports collection

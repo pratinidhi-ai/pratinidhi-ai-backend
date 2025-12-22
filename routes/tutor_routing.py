@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any
 import uuid, time
 from collections import defaultdict
 import logging
+from datetime import datetime, timezone
 from models.tutor_session_schema import TutorSession
 from ai.ai_api import *
 from helper.middleware import authenticate_request
@@ -134,7 +135,7 @@ def session_message(
         
         if session.length >= 100:
             session.is_active = False
-            session.ended_at = time.time()
+            session.ended_at = datetime.now(timezone.utc).isoformat()
             session.summary = generate_summary(session.messages)
             saveSessionSummary(session=session)
             get_redis_session_manager().delete_session(session_id)
@@ -174,7 +175,7 @@ def end_session(session_id: str, user: dict = Depends(authenticate_request)):
             )
         
         session.is_active = False
-        session.ended_at = time.time()
+        session.ended_at = datetime.now(timezone.utc).isoformat()
         session.summary = generate_summary(session.messages)
         
         response_data = {

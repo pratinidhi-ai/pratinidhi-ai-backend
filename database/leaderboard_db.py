@@ -425,6 +425,8 @@ class LeaderboardDatabase:
             
         except Exception as e:
             logger.error(f"Error getting user rank for {user_id}: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
 
 

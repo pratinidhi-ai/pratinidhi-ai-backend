@@ -15,8 +15,24 @@ from math_tutor.process_video import (
 import os
 import time
 
-TEST_PROBLEM = "Solve: Find if these 4 points make a square: (1,1), (1,3), (3,1), (3,3). Explain your reasoning."
+'''
+I want to illustrate this script:
+Stop losing focus during SAT practice… I’ve got the secret weapon.
+Meet your brain on the SAT… it’s basically a cute, distracted squirrel.
+Phone buzz? Gotta check it.
+Snack nearby? Can’t resist.
+That’s why you can’t get through a practice section.
 
+Here’s the fix: the Acorn Stash Method. It’s the Pomodoro Technique, but for SAT warriors.
+Step one: set a timer for 25 minutes. This is your FOCUS SPRINT.
+Attack one practice section like your score depends on it. No phone, no snacks, no distractions—just you and the questions.
+
+Step two: when the timer dings, take a guilt-free 5-minute break. Scroll, snack, stretch—you earned it.
+Then repeat. You’re not studying for two hours straight… you’re doing four powerful, focused sprints.
+Your brain gets rewards, and your score gets results.
+'''
+
+TEST_PROBLEM = "3D Visualization of parabola, cuboid, and plane transformations"
 def demo_video_only():
     """
     Option 1: Generate video only (no watermark removal)

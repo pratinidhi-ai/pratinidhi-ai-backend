@@ -14,7 +14,7 @@ SOLVE_WITH_VIDEO_ENDPOINT = f"{BASE_URL}/math-tutor/solve-with-video"
 # To get a token, run: python testing/get_firebase_token.py
 TOKEN = "YOUR_FIREBASE_TOKEN_HERE"
 
-TEST_PROBLEM = "Solve: Given coordinates of four points A(1,2), B(3,4), C(5,6), and D(7,8), determine if they form a square."
+TEST_PROBLEM = "Solve: 50^1/2 + 8^1/2. Provide step-by-step solution. Start with the common mistakes students make when solving this problem."
 
 def test_math_ai_video_generation_with_watermark_removal():
     """Test the generate_math_ai_video function with watermark removal"""
