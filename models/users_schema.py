@@ -1,12 +1,29 @@
 from datetime import datetime , timezone
-from typing import List, Optional
+from typing import List, Optional, Union
 import time
 from dataclasses import dataclass, field
 from collections import defaultdict
 
 from enum import Enum
+
 def _get_utc_now():
 	return datetime.now(timezone.utc)
+
+
+def _parse_datetime(value: Union[str, datetime, None]) -> Optional[datetime]:
+	"""Parse datetime from string or return datetime object as-is"""
+	if value is None:
+		return None
+	if isinstance(value, datetime):
+		if value.tzinfo is None:
+			return value.replace(tzinfo=timezone.utc)
+		return value
+	if isinstance(value, str):
+		try:
+			return datetime.fromisoformat(value.replace('Z', '+00:00'))
+		except ValueError:
+			return None
+	return None
 
 class SubscriptionType(Enum):
 	REGULAR = "regular"
@@ -119,6 +136,7 @@ class User:
 	completed_quiz_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
 	completed_tutorial_tags: defaultdict[str, int] = field(default_factory=lambda: defaultdict(int))
 	num_tasks : Optional[int] = 16
+	predicted_score: Optional[int] = None  # Predicted SAT score from assessments
 
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
@@ -179,6 +197,7 @@ class User:
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
 			'completed_tutorial_tags': dict(self.completed_tutorial_tags),
 			'num_tasks': self.num_tasks,
+			'predicted_score': self.predicted_score,
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
@@ -211,10 +230,15 @@ class User:
 				type=SubscriptionType(sub_data.get('type', 'regular')),
 				sessions_used=sub_data.get('sessions_used', 0),
 				sessions_limit=sub_data.get('sessions_limit', 25),
+<<<<<<< HEAD
+				last_reset_date=_parse_datetime(sub_data.get('last_reset_date')),
+				pro_expiry_date=_parse_datetime(sub_data.get('pro_expiry_date')),
+=======
 				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
 				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None,
+>>>>>>> bf55a12b4b489d4e1ba348c831916d4135c9e8e5
 				plan_type=PlanType(sub_data['plan_type']) if sub_data.get('plan_type') else None,
-				taken_free_trial= sub_data.get('taken_free_trial', False),
+				taken_free_trial=sub_data.get('taken_free_trial', False),
 				payment_detail_list=payment_details
 			)
 
@@ -255,14 +279,15 @@ class User:
 			subscription = subscription,
 			predicted_score=predicted_score,
 			completed_chapters=data.get('completed_chapters', []),
-			current_week_start=datetime.fromisoformat(data['current_week_start']) if data.get('current_week_start') else None,
+			current_week_start=_parse_datetime(data.get('current_week_start')),
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			num_tasks=data.get('num_tasks', 16),
-			created_at=datetime.fromisoformat(data['created_at']) if data.get('created_at') else datetime.now(timezone.utc),
-			updated_at=datetime.fromisoformat(data['updated_at']) if data.get('updated_at') else datetime.now(timezone.utc),
+			predicted_score=data.get('predicted_score'),
+			created_at=_parse_datetime(data.get('created_at')) or datetime.now(timezone.utc),
+			updated_at=_parse_datetime(data.get('updated_at')) or datetime.now(timezone.utc),
 			onboarding_completed=data.get('onboarding_completed', False),
-			last_login=datetime.fromisoformat(data['last_login']) if data.get('last_login') else None
+			last_login=_parse_datetime(data.get('last_login'))
 		)
 	
 	def complete_onboarding(self):

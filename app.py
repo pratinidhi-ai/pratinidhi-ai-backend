@@ -5,6 +5,7 @@ Main FastAPI Application Entry Point
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from utils.metrics_middleware import MetricsMiddleware
 from contextlib import asynccontextmanager
 import logging
 import sys
@@ -51,6 +52,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add metrics collection middleware
+app.add_middleware(MetricsMiddleware)
+
 # Import and include routers
 try:
     from routes.user_routing import user_router
@@ -62,6 +66,7 @@ try:
     from routes.leaderboard_routing import router as leaderboard_router
     from routes.subscribe_routing import router as subscribe_router
     from routes.coupon_routing import router as coupon_router
+    from routes.metrics_routing import router as metrics_router
 
     app.include_router(user_router)
     app.include_router(tutor_router)
@@ -72,6 +77,7 @@ try:
     app.include_router(leaderboard_router)
     app.include_router(subscribe_router)
     app.include_router(coupon_router)
+    app.include_router(metrics_router)
     logger.info("Routers loaded successfully")
 except Exception as e:
     logger.error(f"Failed to load routers: {str(e)}")
@@ -128,3 +134,4 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server on http://0.0.0.0:8080")
     uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)
+

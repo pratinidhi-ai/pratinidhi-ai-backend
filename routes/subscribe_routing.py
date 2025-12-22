@@ -10,7 +10,8 @@ import logging
 import hashlib
 import math
 from utils.users import validate_user_id, get_user, update_user
-from utils.coupon import apply_coupon  
+from utils.coupon import apply_coupon
+from utils.datetime_utils import parse_datetime  
 router = APIRouter(prefix='/api/subscription', tags=["subscription"])
 
 def parse_expiry_date(expiry_date) -> datetime | None:
@@ -297,9 +298,10 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
         
         remaining_days = 0
         if subscription_data.get('pro_expiry_date'):
-            expiry_date = parse_expiry_date(subscription_data['pro_expiry_date'])
-            time_diff = (expiry_date - datetime.now(timezone.utc)).total_seconds()
-            remaining_days = max(0, math.ceil(time_diff / SECONDS_PER_DAY))  # 86400 seconds in a day
+            expiry_date = parse_datetime(subscription_data['pro_expiry_date'])
+            if expiry_date:
+                time_diff = (expiry_date - datetime.now(timezone.utc)).total_seconds()
+                remaining_days = max(0, math.ceil(time_diff / SECONDS_PER_DAY))  # 86400 seconds in a day
             
         subscription_type = subscription_data.get('type', SubscriptionType.REGULAR.value)
         if remaining_days == 0 and subscription_type == SubscriptionType.PRO.value:
