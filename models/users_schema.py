@@ -197,7 +197,6 @@ class User:
 			'completed_quiz_tags':dict(self.completed_quiz_tags),
 			'completed_tutorial_tags': dict(self.completed_tutorial_tags),
 			'num_tasks': self.num_tasks,
-			'predicted_score': self.predicted_score,
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
