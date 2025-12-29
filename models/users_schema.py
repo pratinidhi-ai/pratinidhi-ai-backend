@@ -230,13 +230,8 @@ class User:
 				type=SubscriptionType(sub_data.get('type', 'regular')),
 				sessions_used=sub_data.get('sessions_used', 0),
 				sessions_limit=sub_data.get('sessions_limit', 25),
-<<<<<<< HEAD
 				last_reset_date=_parse_datetime(sub_data.get('last_reset_date')),
 				pro_expiry_date=_parse_datetime(sub_data.get('pro_expiry_date')),
-=======
-				last_reset_date=datetime.fromisoformat(sub_data['last_reset_date']) if sub_data.get('last_reset_date') else None,
-				pro_expiry_date=datetime.fromisoformat(sub_data['pro_expiry_date']) if sub_data.get('pro_expiry_date') else None,
->>>>>>> bf55a12b4b489d4e1ba348c831916d4135c9e8e5
 				plan_type=PlanType(sub_data['plan_type']) if sub_data.get('plan_type') else None,
 				taken_free_trial=sub_data.get('taken_free_trial', False),
 				payment_detail_list=payment_details
@@ -283,7 +278,6 @@ class User:
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			num_tasks=data.get('num_tasks', 16),
-			predicted_score=data.get('predicted_score'),
 			created_at=_parse_datetime(data.get('created_at')) or datetime.now(timezone.utc),
 			updated_at=_parse_datetime(data.get('updated_at')) or datetime.now(timezone.utc),
 			onboarding_completed=data.get('onboarding_completed', False),
