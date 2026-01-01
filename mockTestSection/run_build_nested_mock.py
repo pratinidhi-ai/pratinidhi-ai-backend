@@ -1,4 +1,5 @@
 # mockTestSection/run_build_nested_mock.py
+import time
 from dotenv import load_dotenv
 from mockTestSection.mock_builder import build_and_store_one_mock
 from database.firebase_client import get_firestore_client
@@ -23,7 +24,7 @@ if __name__ == "__main__":
 
     mock_name = get_next_mock_name("SATMock")  # → SATMock1, SATMock2, etc.
     print(f"🧩 Creating new mock: {mock_name}")
-
+    start_time = time.time()
     mock_id = build_and_store_one_mock(
         name=mock_name,
         seed=None,     # None → random shuffle each time
@@ -31,3 +32,4 @@ if __name__ == "__main__":
     )
 
     print("✅ Created mock:", mock_id)
+    print(f"⏱️  Time taken: {time.time() - start_time:.2f} seconds")
