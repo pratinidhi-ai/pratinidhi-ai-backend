@@ -41,7 +41,7 @@ def create_mock_parent(
 def save_module_questions(mock_id: str, section: str, module_key: str, questions: List[Dict]) -> int:
     """
     Write full question docs into the parent mock's subcollection.
-    Each question lives as its own doc.
+    Each question is stored with its sequence number as the document ID.
     """
     db = get_firestore_client()
     subcoll = MODULE_KEYS[(section, module_key)]
@@ -49,11 +49,13 @@ def save_module_questions(mock_id: str, section: str, module_key: str, questions
     batch = db.batch()
 
     count = 0
-    for q in questions:
-        ref = parent.collection(subcoll).document()  # auto-id
+    for idx, q in enumerate(questions, start=1):
+        # Use sequence number as document ID (1, 2, 3, ...)
+        ref = parent.collection(subcoll).document(str(idx))
         data = dict(q)
         data["__section"] = section
         data["__module_key"] = module_key
+        data["sequence"] = idx  # Store sequence for easy reference
         batch.set(ref, data)
         count += 1
         if count % 400 == 0:
