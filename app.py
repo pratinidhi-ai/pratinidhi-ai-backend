@@ -82,6 +82,14 @@ try:
 except Exception as e:
     logger.error(f"Failed to load routers: {str(e)}")
 
+# Load mock router separately to ensure it works even if other routers fail
+try:
+    from mockTestSection.mock_bp import mock_router
+    app.include_router(mock_router)
+    logger.info("Mock router loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load mock router: {str(e)}")
+
 @app.get("/")
 def root():
     return {
@@ -134,4 +142,3 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting server on http://0.0.0.0:8080")
     uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)
-
