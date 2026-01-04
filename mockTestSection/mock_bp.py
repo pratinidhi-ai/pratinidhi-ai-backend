@@ -64,14 +64,14 @@ def get_mock_module(
     mock_id: str,
     module_key: str,
     limit: Optional[int] = Query(None, description="Number of questions to return"),
-    shuffle: bool = Query(True, description="Whether to shuffle questions"),
     user: dict = Depends(authenticate_request)
 ):
     """
-    Fetch all questions from a specific module in a single optimized batch request.
+    Fetch all questions from a specific module with deterministic ordering.
     
-    Questions are stored complete in the subcollection, so no additional fetching needed.
-    Returns all question data (text, options, metadata, difficulty) in one response.
+    Questions are stored complete in the subcollection with question_no field.
+    Returns questions in stable order based on question_no - NO randomization.
+    Order is guaranteed to be consistent across all requests and views.
     """
     if module_key not in MODULE_KEYS:
         raise HTTPException(status_code=400, detail="invalid_module_key")
@@ -83,24 +83,26 @@ def get_mock_module(
     if not parent_ref.get(["id"]).exists:
         raise HTTPException(status_code=404, detail="mock_not_found")
 
-    # ✅ Step 2: Batch fetch ALL questions from the module subcollection
-    # Questions are already stored complete in the subcollection - no need to fetch from question_bank
-    subref = parent_ref.collection(module_key)
+    # ✅ Step 2: Fetch questions with deterministic ordering
+    # Order by question_no to ensure stable, consistent ordering
+    subref = parent_ref.collection(module_key).order_by("question_no")
     
-    # Use stream() to efficiently fetch all documents in batch
-    # Firestore automatically batches these requests
+    # Stream all documents in order
     question_docs = list(subref.stream())
     
-    # Convert to dictionaries with doc_id
+    # Convert to dictionaries with question_no preserved
     items = []
     for qdoc in question_docs:
         q = qdoc.to_dict() or {}
+        # Ensure question_no is present (should always be from storage)
+        if "question_no" not in q:
+            # Fallback: use doc_id as question_no if somehow missing
+            logger.warning(f"Missing question_no for doc {qdoc.id}, using doc_id")
+            q["question_no"] = int(qdoc.id) if qdoc.id.isdigit() else None
         q["doc_id"] = qdoc.id
         items.append(q)
     
-    # ✅ Step 3: Apply shuffle and limit if requested (optional client preferences)
-    if shuffle:
-        random.shuffle(items)
+    # ✅ Step 3: Apply limit if requested (no shuffle - order is deterministic)
     if limit and limit > 0:
         items = items[:limit]
 

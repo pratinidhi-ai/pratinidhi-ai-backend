@@ -42,6 +42,7 @@ def save_module_questions(mock_id: str, section: str, module_key: str, questions
     """
     Write full question docs into the parent mock's subcollection.
     Each question is stored with its sequence number as the document ID.
+    question_no field ensures deterministic ordering.
     """
     db = get_firestore_client()
     subcoll = MODULE_KEYS[(section, module_key)]
@@ -55,7 +56,7 @@ def save_module_questions(mock_id: str, section: str, module_key: str, questions
         data = dict(q)
         data["__section"] = section
         data["__module_key"] = module_key
-        data["sequence"] = idx  # Store sequence for easy reference
+        data["question_no"] = idx  # Source of truth for question numbering
         batch.set(ref, data)
         count += 1
         if count % 400 == 0:
