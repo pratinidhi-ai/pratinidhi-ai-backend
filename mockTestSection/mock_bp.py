@@ -72,6 +72,14 @@ def get_mock_module(
     Questions are stored complete in the subcollection with question_no field.
     Returns questions in stable order based on question_no - NO randomization.
     Order is guaranteed to be consistent across all requests and views.
+    
+    CRITICAL: Each question has:
+    - question_no: Sequential number (1, 2, 3...) - used for display
+    - id: Document ID (matches question_no as string) - used for answer matching
+    - question_id: Alias of id for clarity
+    
+    Frontend MUST use question_no for display numbering and id/question_id for answer matching.
+    These are guaranteed to be consistent across exam and result views.
     """
     if module_key not in MODULE_KEYS:
         raise HTTPException(status_code=400, detail="invalid_module_key")
@@ -99,7 +107,13 @@ def get_mock_module(
             # Fallback: use doc_id as question_no if somehow missing
             logger.warning(f"Missing question_no for doc {qdoc.id}, using doc_id")
             q["question_no"] = int(qdoc.id) if qdoc.id.isdigit() else None
-        q["doc_id"] = qdoc.id
+        
+        # ✅ CRITICAL FIX: Use question_no as the primary identifier
+        # Override any existing 'id' field with doc_id to ensure consistency
+        # This ensures question numbering is deterministic and based on question_no
+        q["id"] = qdoc.id  # Use Firestore doc_id (which is the sequence number: "1", "2", "3"...)
+        q["question_id"] = qdoc.id  # Alias for clarity in answer matching
+        
         items.append(q)
     
     # ✅ Step 3: Apply limit if requested (no shuffle - order is deterministic)

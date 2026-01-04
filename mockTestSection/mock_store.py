@@ -43,6 +43,12 @@ def save_module_questions(mock_id: str, section: str, module_key: str, questions
     Write full question docs into the parent mock's subcollection.
     Each question is stored with its sequence number as the document ID.
     question_no field ensures deterministic ordering.
+    
+    CRITICAL DESIGN:
+    - Document ID = str(idx) where idx is 1, 2, 3...
+    - question_no = idx (same number as int)
+    - This ensures doc.id matches question_no for consistent identification
+    - Frontend should use question_no for display and doc.id for answer matching
     """
     db = get_firestore_client()
     subcoll = MODULE_KEYS[(section, module_key)]
@@ -54,6 +60,12 @@ def save_module_questions(mock_id: str, section: str, module_key: str, questions
         # Use sequence number as document ID (1, 2, 3, ...)
         ref = parent.collection(subcoll).document(str(idx))
         data = dict(q)
+        
+        # ✅ CRITICAL FIX: Remove any 'id' field from question bank to avoid confusion
+        # The 'id' field will be set by the API based on doc.id (which is the sequence number)
+        if 'id' in data:
+            data.pop('id')
+        
         data["__section"] = section
         data["__module_key"] = module_key
         data["question_no"] = idx  # Source of truth for question numbering
