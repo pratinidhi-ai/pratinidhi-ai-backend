@@ -64,7 +64,7 @@ def get_mock_module(
     mock_id: str,
     module_key: str,
     limit: Optional[int] = Query(None, description="Number of questions to return"),
-    shuffle: bool = Query(True, description="Whether to shuffle questions"),
+    shuffle: bool = Query(False, description="Whether to shuffle questions (deprecated - use sequence for consistent numbering)"),
     user: dict = Depends(authenticate_request)
 ):
     """
@@ -72,6 +72,10 @@ def get_mock_module(
     
     Questions are stored complete in the subcollection, so no additional fetching needed.
     Returns all question data (text, options, metadata, difficulty) in one response.
+    
+    IMPORTANT: Questions are returned sorted by sequence number to maintain consistent
+    question numbering across exam view and result view. The sequence number stored
+    in the database is the authoritative question number.
     """
     if module_key not in MODULE_KEYS:
         raise HTTPException(status_code=400, detail="invalid_module_key")
@@ -91,16 +95,21 @@ def get_mock_module(
     # Firestore automatically batches these requests
     question_docs = list(subref.stream())
     
-    # Convert to dictionaries with doc_id
+    # Convert to dictionaries with doc_id and sequence
     items = []
     for qdoc in question_docs:
         q = qdoc.to_dict() or {}
         q["doc_id"] = qdoc.id
+        # Ensure sequence is present (use doc_id as fallback for backward compatibility)
+        if "sequence" not in q:
+            q["sequence"] = int(qdoc.id) if qdoc.id.isdigit() else 0
         items.append(q)
     
-    # ✅ Step 3: Apply shuffle and limit if requested (optional client preferences)
-    if shuffle:
-        random.shuffle(items)
+    # ✅ Step 3: ALWAYS sort by sequence number to maintain consistent question numbering
+    # This ensures question numbers remain the same across exam view and result view
+    items.sort(key=lambda x: x.get("sequence", 0))
+    
+    # Apply limit if requested (but do NOT shuffle to maintain question number consistency)
     if limit and limit > 0:
         items = items[:limit]
 
