@@ -121,7 +121,7 @@ def get_mock_module(
     }
 
 
-def _normalize_answer(answer: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_answer(answer: Dict[str, Any], question_data: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Normalize answer to consistent schema with backward compatibility.
     
@@ -129,7 +129,11 @@ def _normalize_answer(answer: Dict[str, Any]) -> Dict[str, Any]:
     - Legacy: {"question_id": str, "difficulty": int, "is_correct": bool}
     - New: {"question_id": str, "difficulty": int, "user_answer": {...}, "correct_answer": {...}, "is_correct": bool}
     
-    Returns normalized format with null-safe defaults.
+    Returns normalized format with option_no and actual answer values.
+    
+    Args:
+        answer: User's answer data
+        question_data: Optional question data from database to extract correct answer details
     """
     normalized = {
         "question_id": answer.get("question_id"),
@@ -139,27 +143,127 @@ def _normalize_answer(answer: Dict[str, Any]) -> Dict[str, Any]:
     
     # Handle user_answer
     if "user_answer" in answer and answer["user_answer"] is not None:
+        user_ans = answer["user_answer"]
+        answer_type = user_ans.get("type", "mcq")
         normalized["user_answer"] = {
-            "value": answer["user_answer"].get("value"),
-            "type": answer["user_answer"].get("type", "mcq")
+            "type": answer_type
         }
+        
+        # For MCQ, check if frontend already provided both option_no and value
+        if answer_type == "mcq":
+            # Check if option_no is already provided (new format)
+            if "option_no" in user_ans and user_ans.get("option_no"):
+                # Frontend sent both option_no and value - use them directly
+                normalized["user_answer"]["option_no"] = user_ans.get("option_no")
+                normalized["user_answer"]["value"] = user_ans.get("value")
+            else:
+                # Legacy format: value contains option letter, need to fetch text
+                option_no = user_ans.get("value")  # This is A, B, C, D in legacy format
+                normalized["user_answer"]["option_no"] = option_no
+                
+                # Try to get actual answer text from question_data
+                if question_data and option_no and "options" in question_data:
+                    options = question_data["options"]
+                    # Options can be stored as array ["text1", "text2", "text3", "text4"]
+                    if isinstance(options, list):
+                        option_index = ord(option_no.upper()) - ord('A') if option_no and len(option_no) == 1 else -1
+                        if 0 <= option_index < len(options):
+                            normalized["user_answer"]["value"] = options[option_index]
+                        else:
+                            normalized["user_answer"]["value"] = option_no
+                    # Or as dict {"A": "text1", "B": "text2", ...}
+                    elif isinstance(options, dict):
+                        normalized["user_answer"]["value"] = options.get(option_no, option_no)
+                    else:
+                        normalized["user_answer"]["value"] = option_no
+                else:
+                    normalized["user_answer"]["value"] = option_no
+        else:
+            # For SPR (student produced response), value is the answer itself
+            normalized["user_answer"]["value"] = user_ans.get("value")
+            normalized["user_answer"]["option_no"] = None
     else:
         # Backward compatibility: if no user_answer, use null
         normalized["user_answer"] = {
             "value": None,
+            "option_no": None,
             "type": "mcq"
         }
     
     # Handle correct_answer
-    if "correct_answer" in answer and answer["correct_answer"] is not None:
+    # Try to get from question_data first, fallback to submitted answer
+    if question_data and "correct_answer" in question_data and question_data.get("correct_answer"):
+        # Extract correct answer from question data
+        correct_option_no = question_data.get("correct_answer")
+        question_type = question_data.get("type", "mcq")
+        
         normalized["correct_answer"] = {
-            "value": answer["correct_answer"].get("value"),
-            "type": answer["correct_answer"].get("type", "mcq")
+            "type": question_type,
+            "option_no": correct_option_no if question_type == "mcq" else None
         }
+        
+        # Get actual answer text for MCQ
+        if question_type == "mcq" and "options" in question_data and correct_option_no:
+            options = question_data["options"]
+            # Options can be stored as array ["text1", "text2", "text3", "text4"]
+            if isinstance(options, list):
+                option_index = ord(correct_option_no.upper()) - ord('A') if correct_option_no and len(correct_option_no) == 1 else -1
+                if 0 <= option_index < len(options):
+                    normalized["correct_answer"]["value"] = options[option_index]
+                else:
+                    normalized["correct_answer"]["value"] = correct_option_no
+            # Or as dict {"A": "text1", "B": "text2", ...}
+            elif isinstance(options, dict):
+                normalized["correct_answer"]["value"] = options.get(correct_option_no, correct_option_no)
+            else:
+                normalized["correct_answer"]["value"] = correct_option_no
+        else:
+            # For SPR or when options not available
+            normalized["correct_answer"]["value"] = correct_option_no
+    elif "correct_answer" in answer and answer["correct_answer"] is not None:
+        # Use provided correct_answer from frontend (fallback when question_data incomplete)
+        corr_ans = answer["correct_answer"]
+        answer_type = corr_ans.get("type", "mcq")
+        normalized["correct_answer"] = {
+            "type": answer_type
+        }
+        
+        if answer_type == "mcq":
+            # Check if option_no is already provided (new format)
+            if "option_no" in corr_ans and corr_ans.get("option_no"):
+                # Frontend sent both option_no and value - use them directly
+                normalized["correct_answer"]["option_no"] = corr_ans.get("option_no")
+                normalized["correct_answer"]["value"] = corr_ans.get("value")
+            else:
+                # Legacy format: value contains option letter
+                option_no = corr_ans.get("value")
+                normalized["correct_answer"]["option_no"] = option_no
+                
+                # Try to get option text from question_data if available
+                if question_data and "options" in question_data and option_no:
+                    options = question_data["options"]
+                    if isinstance(options, list):
+                        option_index = ord(option_no.upper()) - ord('A') if option_no and len(option_no) == 1 else -1
+                        if 0 <= option_index < len(options):
+                            normalized["correct_answer"]["value"] = options[option_index]
+                        else:
+                            normalized["correct_answer"]["value"] = option_no
+                    elif isinstance(options, dict):
+                        normalized["correct_answer"]["value"] = options.get(option_no, option_no)
+                    else:
+                        normalized["correct_answer"]["value"] = option_no
+                else:
+                    # Can't get text without question_data, use option letter
+                    normalized["correct_answer"]["value"] = option_no
+        else:
+            # SPR type
+            normalized["correct_answer"]["value"] = corr_ans.get("value")
+            normalized["correct_answer"]["option_no"] = None
     else:
         # Backward compatibility: if no correct_answer, use null
         normalized["correct_answer"] = {
             "value": None,
+            "option_no": None,
             "type": "mcq"
         }
     
@@ -254,11 +358,53 @@ def save_mock_attempt(
     if math_module2_key not in ["math_m2_easy", "math_m2_hard"]:
         raise HTTPException(status_code=400, detail="math_module2_must_be_math_m2_easy_or_math_m2_hard")
     
-    # Normalize all answers to consistent schema (per module)
-    normalized_rw_m1 = [_normalize_answer(ans) for ans in rw_m1]
-    normalized_rw_m2 = [_normalize_answer(ans) for ans in rw_m2]
-    normalized_math_m1 = [_normalize_answer(ans) for ans in math_m1]
-    normalized_math_m2 = [_normalize_answer(ans) for ans in math_m2]
+    # Fetch question data from mock test to get correct answers and options
+    # This allows us to store complete answer information
+    mock_ref = db.collection("mock_tests").document(mock_id)
+    
+    # Create a mapping of question_id -> question_data for all modules
+    question_map = {}
+    
+    # Fetch questions from all 4 modules
+    for module_key in ["rw_m1", rw_module2_key, "math_m1", math_module2_key]:
+        try:
+            module_questions = mock_ref.collection(module_key).stream()
+            for q_doc in module_questions:
+                q_data = q_doc.to_dict()
+                if q_data:
+                    question_map[q_doc.id] = q_data
+        except Exception as e:
+            logger.warning(f"Could not fetch questions from {module_key}: {str(e)}")
+    
+    # Log if any submitted questions are missing from question_map
+    all_submitted_ids = set()
+    for ans_list in [rw_m1, rw_m2, math_m1, math_m2]:
+        for ans in ans_list:
+            q_id = ans.get("question_id")
+            if q_id:
+                all_submitted_ids.add(q_id)
+    
+    missing_questions = [q_id for q_id in all_submitted_ids if q_id not in question_map]
+    if missing_questions:
+        logger.warning(f"Questions not found in mock test {mock_id}: {missing_questions}")
+    
+    # Normalize all answers to consistent schema (per module) with question data
+    normalized_rw_m1 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in rw_m1
+    ]
+    normalized_rw_m2 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in rw_m2
+    ]
+    normalized_math_m1 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in math_m1
+    ]
+    normalized_math_m2 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in math_m2
+    ]
 
     # Compute SAT scores using normalized answers
     # Combine Module 1 and Module 2 for scoring calculation only
