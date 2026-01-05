@@ -9,16 +9,22 @@ It provides a deterministic, side-effect-free scoring function that:
 - Caps scores realistically based on module path
 
 Constants:
-- Reading & Writing: 54 total questions
-- Math: 44 total questions
+- Reading & Writing: 54 total questions (27 per module)
+- Math: 44 total questions (22 per module)
 - Score range: 200-800 per section
 - Easy path max: 620 per section
 """
 
 from typing import List, Dict, Any
 
+# Module question count constants
+RW_MODULE_QUESTIONS = 27  # Questions per RW module (M1 and M2)
+MATH_MODULE_QUESTIONS = 22  # Questions per Math module (M1 and M2)
+TOTAL_RW_QUESTIONS = RW_MODULE_QUESTIONS * 2  # 54 total
+TOTAL_MATH_QUESTIONS = MATH_MODULE_QUESTIONS * 2  # 44 total
 
-def compute_section_score(answers: List[Dict[str, Any]], module2_path: str) -> int:
+
+def compute_section_score(answers: List[Dict[str, Any]], module2_path: str, section: str = "rw") -> int:
     """
     Compute the SAT section score based on answers and adaptive module path.
     
@@ -31,26 +37,33 @@ def compute_section_score(answers: List[Dict[str, Any]], module2_path: str) -> i
                      "is_correct": bool
                  }
         module2_path: "hard" or "easy" - indicates which Module 2 the student received
+        section: "rw" or "math" - section type to determine total question count
         
     Returns:
         int: Final section score (200-800, or 200-620 for easy path)
         
     Scoring Logic:
         1. Raw Score: Count of correct answers (no negative marking)
-        2. Base Scaling: 200 + 600 * (raw/total) * path_factor
+        2. Total Questions: Fixed constant based on section (54 for RW, 44 for Math)
+        3. Base Scaling: 200 + 600 * (raw/total_questions_constant) * path_factor
            - path_factor = 1.0 for "hard", 0.7 for "easy"
-        3. Difficulty Adjustment: (avg_difficulty - 3.0) * 20
+           - total_questions_constant is ALWAYS 54 (RW) or 44 (Math), NOT the attempted count
+        4. Difficulty Adjustment: (avg_difficulty - 3.0) * 20
            - Only considers correct answers
            - Defaults to 3.0 if no correct answers
-        4. Final Score: base_score + difficulty_bonus
-        5. Clamping:
+        5. Final Score: base_score + difficulty_bonus
+        6. Clamping:
            - Minimum: 200
            - Maximum: 800 (hard) or 620 (easy)
     """
-    total_questions = len(answers)
+    # Determine total questions constant based on section
+    total_questions_constant = TOTAL_RW_QUESTIONS if section == "rw" else TOTAL_MATH_QUESTIONS
+    
+    # Total attempted by user (can be less than total_questions_constant)
+    total_attempted = len(answers)
     
     # Handle edge case: no answers provided
-    if total_questions == 0:
+    if total_attempted == 0:
         return 200
     
     # Step 1: Calculate raw score (number of correct answers)
@@ -68,8 +81,9 @@ def compute_section_score(answers: List[Dict[str, Any]], module2_path: str) -> i
     path_factor = 1.0 if module2_path == "hard" else 0.7
     
     # Step 4: Calculate base score
-    # Base formula: 200 + 600 * (proportion correct) * path_factor
-    base_score = 200 + 600 * (raw_correct / total_questions) * path_factor
+    # CRITICAL: Use total_questions_constant (54 or 44), NOT total_attempted
+    # This ensures scoring is consistent regardless of how many questions user attempted
+    base_score = 200 + 600 * (raw_correct / total_questions_constant) * path_factor
     
     # Step 5: Calculate difficulty bonus
     # Rewards answering harder questions correctly
@@ -115,11 +129,13 @@ def compute_total_sat_score(
             "details": {
                 "rw": {
                     "raw_correct": int,
+                    "total_attempted": int,
                     "total_questions": int,
                     "module2": str
                 },
                 "math": {
                     "raw_correct": int,
+                    "total_attempted": int,
                     "total_questions": int,
                     "module2": str
                 }
@@ -127,8 +143,8 @@ def compute_total_sat_score(
         }
     """
     # Compute individual section scores
-    rw_score = compute_section_score(rw_answers, rw_module2_path)
-    math_score = compute_section_score(math_answers, math_module2_path)
+    rw_score = compute_section_score(rw_answers, rw_module2_path, section="rw")
+    math_score = compute_section_score(math_answers, math_module2_path, section="math")
     
     # Calculate raw correct counts for details
     rw_raw_correct = sum(1 for a in rw_answers if a.get("is_correct", False))
@@ -144,12 +160,14 @@ def compute_total_sat_score(
         "details": {
             "rw": {
                 "raw_correct": rw_raw_correct,
-                "total_questions": len(rw_answers),
+                "total_attempted": len(rw_answers),
+                "total_questions": TOTAL_RW_QUESTIONS,  # Always 54
                 "module2": rw_module2_path
             },
             "math": {
                 "raw_correct": math_raw_correct,
-                "total_questions": len(math_answers),
+                "total_attempted": len(math_answers),
+                "total_questions": TOTAL_MATH_QUESTIONS,  # Always 44
                 "module2": math_module2_path
             }
         }

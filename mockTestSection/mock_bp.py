@@ -121,6 +121,155 @@ def get_mock_module(
     }
 
 
+def _normalize_answer(answer: Dict[str, Any], question_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Normalize answer to consistent schema with backward compatibility.
+    
+    Accepts:
+    - Legacy: {"question_id": str, "difficulty": int, "is_correct": bool}
+    - New: {"question_id": str, "difficulty": int, "user_answer": {...}, "correct_answer": {...}, "is_correct": bool}
+    
+    Returns normalized format with option_no and actual answer values.
+    
+    Args:
+        answer: User's answer data
+        question_data: Optional question data from database to extract correct answer details
+    """
+    normalized = {
+        "question_id": answer.get("question_id"),
+        "difficulty": answer.get("difficulty", 1),
+        "is_correct": answer.get("is_correct", False),
+    }
+    
+    # Handle user_answer
+    if "user_answer" in answer and answer["user_answer"] is not None:
+        user_ans = answer["user_answer"]
+        answer_type = user_ans.get("type", "mcq")
+        normalized["user_answer"] = {
+            "type": answer_type
+        }
+        
+        # For MCQ, check if frontend already provided both option_no and value
+        if answer_type == "mcq":
+            # Check if option_no is already provided (new format)
+            if "option_no" in user_ans and user_ans.get("option_no"):
+                # Frontend sent both option_no and value - use them directly
+                normalized["user_answer"]["option_no"] = user_ans.get("option_no")
+                normalized["user_answer"]["value"] = user_ans.get("value")
+            else:
+                # Legacy format: value contains option letter, need to fetch text
+                option_no = user_ans.get("value")  # This is A, B, C, D in legacy format
+                normalized["user_answer"]["option_no"] = option_no
+                
+                # Try to get actual answer text from question_data
+                if question_data and option_no and "options" in question_data:
+                    options = question_data["options"]
+                    # Options can be stored as array ["text1", "text2", "text3", "text4"]
+                    if isinstance(options, list):
+                        option_index = ord(option_no.upper()) - ord('A') if option_no and len(option_no) == 1 else -1
+                        if 0 <= option_index < len(options):
+                            normalized["user_answer"]["value"] = options[option_index]
+                        else:
+                            normalized["user_answer"]["value"] = option_no
+                    # Or as dict {"A": "text1", "B": "text2", ...}
+                    elif isinstance(options, dict):
+                        normalized["user_answer"]["value"] = options.get(option_no, option_no)
+                    else:
+                        normalized["user_answer"]["value"] = option_no
+                else:
+                    normalized["user_answer"]["value"] = option_no
+        else:
+            # For SPR (student produced response), value is the answer itself
+            normalized["user_answer"]["value"] = user_ans.get("value")
+            normalized["user_answer"]["option_no"] = None
+    else:
+        # Backward compatibility: if no user_answer, use null
+        normalized["user_answer"] = {
+            "value": None,
+            "option_no": None,
+            "type": "mcq"
+        }
+    
+    # Handle correct_answer
+    # Try to get from question_data first, fallback to submitted answer
+    if question_data and "correct_answer" in question_data and question_data.get("correct_answer"):
+        # Extract correct answer from question data
+        correct_option_no = question_data.get("correct_answer")
+        question_type = question_data.get("type", "mcq")
+        
+        normalized["correct_answer"] = {
+            "type": question_type,
+            "option_no": correct_option_no if question_type == "mcq" else None
+        }
+        
+        # Get actual answer text for MCQ
+        if question_type == "mcq" and "options" in question_data and correct_option_no:
+            options = question_data["options"]
+            # Options can be stored as array ["text1", "text2", "text3", "text4"]
+            if isinstance(options, list):
+                option_index = ord(correct_option_no.upper()) - ord('A') if correct_option_no and len(correct_option_no) == 1 else -1
+                if 0 <= option_index < len(options):
+                    normalized["correct_answer"]["value"] = options[option_index]
+                else:
+                    normalized["correct_answer"]["value"] = correct_option_no
+            # Or as dict {"A": "text1", "B": "text2", ...}
+            elif isinstance(options, dict):
+                normalized["correct_answer"]["value"] = options.get(correct_option_no, correct_option_no)
+            else:
+                normalized["correct_answer"]["value"] = correct_option_no
+        else:
+            # For SPR or when options not available
+            normalized["correct_answer"]["value"] = correct_option_no
+    elif "correct_answer" in answer and answer["correct_answer"] is not None:
+        # Use provided correct_answer from frontend (fallback when question_data incomplete)
+        corr_ans = answer["correct_answer"]
+        answer_type = corr_ans.get("type", "mcq")
+        normalized["correct_answer"] = {
+            "type": answer_type
+        }
+        
+        if answer_type == "mcq":
+            # Check if option_no is already provided (new format)
+            if "option_no" in corr_ans and corr_ans.get("option_no"):
+                # Frontend sent both option_no and value - use them directly
+                normalized["correct_answer"]["option_no"] = corr_ans.get("option_no")
+                normalized["correct_answer"]["value"] = corr_ans.get("value")
+            else:
+                # Legacy format: value contains option letter
+                option_no = corr_ans.get("value")
+                normalized["correct_answer"]["option_no"] = option_no
+                
+                # Try to get option text from question_data if available
+                if question_data and "options" in question_data and option_no:
+                    options = question_data["options"]
+                    if isinstance(options, list):
+                        option_index = ord(option_no.upper()) - ord('A') if option_no and len(option_no) == 1 else -1
+                        if 0 <= option_index < len(options):
+                            normalized["correct_answer"]["value"] = options[option_index]
+                        else:
+                            normalized["correct_answer"]["value"] = option_no
+                    elif isinstance(options, dict):
+                        normalized["correct_answer"]["value"] = options.get(option_no, option_no)
+                    else:
+                        normalized["correct_answer"]["value"] = option_no
+                else:
+                    # Can't get text without question_data, use option letter
+                    normalized["correct_answer"]["value"] = option_no
+        else:
+            # SPR type
+            normalized["correct_answer"]["value"] = corr_ans.get("value")
+            normalized["correct_answer"]["option_no"] = None
+    else:
+        # Backward compatibility: if no correct_answer, use null
+        normalized["correct_answer"] = {
+            "value": None,
+            "option_no": None,
+            "type": "mcq"
+        }
+    
+    return normalized
+
+
 @mock_router.post("/submit/{uid}")
 def save_mock_attempt(
     uid: str,
@@ -130,20 +279,37 @@ def save_mock_attempt(
     """
     Save user's mock attempt and calculate SAT scores.
     
-    Request Body:
+    Request Body (Module-based Schema):
     {
         "mock_id": str,
-        "rw_answers": [{"question_id": str, "difficulty": int, "is_correct": bool}, ...],
-        "math_answers": [{"question_id": str, "difficulty": int, "is_correct": bool}, ...],
-        "rw_module2_path": "easy" | "hard",
-        "math_module2_path": "easy" | "hard"
+        "rw_m1": [{
+            "question_id": str,
+            "difficulty": int,
+            "user_answer": {"value": "A" | "42" | null, "type": "mcq" | "spr"},
+            "correct_answer": {"value": "A" | "42", "type": "mcq" | "spr"},
+            "is_correct": bool
+        }, ...],
+        "rw_m2_easy": [...] OR "rw_m2_hard": [...],  // Only one Module 2
+        "math_m1": [...],
+        "math_m2_easy": [...] OR "math_m2_hard": [...],  // Only one Module 2
+        "module2_names": {
+            "rw": "rw_m2_easy" | "rw_m2_hard",
+            "math": "math_m2_easy" | "math_m2_hard"
+        }
     }
+    
+    Note: Each module is stored separately. Do NOT combine Module 1 and Module 2.
+    Module 2 paths are mutually exclusive (only one easy OR hard per section).
     
     Response:
     {
         "success": true,
         "mock_id": str,
         "attempts": int,
+        "module2_names": {
+            "rw": "rw_m2_easy" | "rw_m2_hard",
+            "math": "math_m2_easy" | "math_m2_hard"
+        },
         "scores": {
             "rw_score": int,
             "math_score": int,
@@ -154,34 +320,107 @@ def save_mock_attempt(
     """
     db = get_firestore_client()
 
-    # Extract required fields
+    # Extract required fields - DO NOT reject if extra fields present
     mock_id = body.get("mock_id")
-    rw_answers = body.get("rw_answers", [])
-    math_answers = body.get("math_answers", [])
-    rw_module2_path = body.get("rw_module2_path", "hard")
-    math_module2_path = body.get("math_module2_path", "hard")
+    module2_names = body.get("module2_names", {})
+    
+    # Extract module-based answers
+    rw_m1 = body.get("rw_m1", [])
+    math_m1 = body.get("math_m1", [])
+    
+    # Determine which Module 2 was taken based on module2_names
+    rw_module2_key = module2_names.get("rw", "rw_m2_hard")
+    math_module2_key = module2_names.get("math", "math_m2_hard")
+    
+    # Get Module 2 answers
+    rw_m2 = body.get(rw_module2_key, [])
+    math_m2 = body.get(math_module2_key, [])
 
     # Validate inputs
     if not mock_id:
         raise HTTPException(status_code=400, detail="mock_id_required")
     
-    if not isinstance(rw_answers, list):
-        raise HTTPException(status_code=400, detail="rw_answers_must_be_list")
+    if not isinstance(rw_m1, list):
+        raise HTTPException(status_code=400, detail="rw_m1_must_be_list")
     
-    if not isinstance(math_answers, list):
-        raise HTTPException(status_code=400, detail="math_answers_must_be_list")
+    if not isinstance(math_m1, list):
+        raise HTTPException(status_code=400, detail="math_m1_must_be_list")
     
-    if rw_module2_path not in ["easy", "hard"]:
-        raise HTTPException(status_code=400, detail="rw_module2_path_must_be_easy_or_hard")
+    if not isinstance(rw_m2, list):
+        raise HTTPException(status_code=400, detail=f"{rw_module2_key}_must_be_list")
     
-    if math_module2_path not in ["easy", "hard"]:
-        raise HTTPException(status_code=400, detail="math_module2_path_must_be_easy_or_hard")
+    if not isinstance(math_m2, list):
+        raise HTTPException(status_code=400, detail=f"{math_module2_key}_must_be_list")
+    
+    if rw_module2_key not in ["rw_m2_easy", "rw_m2_hard"]:
+        raise HTTPException(status_code=400, detail="rw_module2_must_be_rw_m2_easy_or_rw_m2_hard")
+    
+    if math_module2_key not in ["math_m2_easy", "math_m2_hard"]:
+        raise HTTPException(status_code=400, detail="math_module2_must_be_math_m2_easy_or_math_m2_hard")
+    
+    # Fetch question data from mock test to get correct answers and options
+    # This allows us to store complete answer information
+    mock_ref = db.collection("mock_tests").document(mock_id)
+    
+    # Create a mapping of question_id -> question_data for all modules
+    question_map = {}
+    
+    # Fetch questions from all 4 modules
+    for module_key in ["rw_m1", rw_module2_key, "math_m1", math_module2_key]:
+        try:
+            module_questions = mock_ref.collection(module_key).stream()
+            for q_doc in module_questions:
+                q_data = q_doc.to_dict()
+                if q_data:
+                    question_map[q_doc.id] = q_data
+        except Exception as e:
+            logger.warning(f"Could not fetch questions from {module_key}: {str(e)}")
+    
+    # Log if any submitted questions are missing from question_map
+    all_submitted_ids = set()
+    for ans_list in [rw_m1, rw_m2, math_m1, math_m2]:
+        for ans in ans_list:
+            q_id = ans.get("question_id")
+            if q_id:
+                all_submitted_ids.add(q_id)
+    
+    missing_questions = [q_id for q_id in all_submitted_ids if q_id not in question_map]
+    if missing_questions:
+        logger.warning(f"Questions not found in mock test {mock_id}: {missing_questions}")
+    
+    # Normalize all answers to consistent schema (per module) with question data
+    normalized_rw_m1 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in rw_m1
+    ]
+    normalized_rw_m2 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in rw_m2
+    ]
+    normalized_math_m1 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in math_m1
+    ]
+    normalized_math_m2 = [
+        _normalize_answer(ans, question_map.get(ans.get("question_id")))
+        for ans in math_m2
+    ]
 
-    # Compute SAT scores
+    # Compute SAT scores using normalized answers
+    # Combine Module 1 and Module 2 for scoring calculation only
+    # Note: Score calculator still uses original logic (question_id, difficulty, is_correct)
+    # which is present in normalized answers, so it remains compatible
+    combined_rw_answers = normalized_rw_m1 + normalized_rw_m2
+    combined_math_answers = normalized_math_m1 + normalized_math_m2
+    
+    # Determine module2_path from module2_names
+    rw_module2_path = "easy" if rw_module2_key == "rw_m2_easy" else "hard"
+    math_module2_path = "easy" if math_module2_key == "math_m2_easy" else "hard"
+    
     try:
         scores = compute_total_sat_score(
-            rw_answers=rw_answers,
-            math_answers=math_answers,
+            rw_answers=combined_rw_answers,
+            math_answers=combined_math_answers,
             rw_module2_path=rw_module2_path,
             math_module2_path=math_module2_path
         )
@@ -207,13 +446,23 @@ def save_mock_attempt(
     prev_attempts = snap.to_dict().get("attempts", 0) if snap.exists else 0
     new_attempts = prev_attempts + 1
 
-    # Prepare payload with scores
+    # Prepare payload with scores and full answer context
+    # Store answers BY MODULE (not combined) for:
+    # - Accurate review screens
+    # - Auditing capabilities
+    # - Future re-scoring safety
+    # - Reflecting actual exam structure
+    # - Module-specific analysis
     payload = {
         "mock_id": mock_id,
-        "rw_answers": rw_answers,
-        "math_answers": math_answers,
-        "rw_module2_path": rw_module2_path,
-        "math_module2_path": math_module2_path,
+        "rw_m1": normalized_rw_m1,
+        rw_module2_key: normalized_rw_m2,  # Only store the Module 2 that was taken
+        "math_m1": normalized_math_m1,
+        math_module2_key: normalized_math_m2,  # Only store the Module 2 that was taken
+        "module2_names": {
+            "rw": rw_module2_key,
+            "math": math_module2_key
+        },
         "scores": scores,
         "attempts": new_attempts,
         "updated_at": gcfs.SERVER_TIMESTAMP,
@@ -226,6 +475,10 @@ def save_mock_attempt(
         "success": True,
         "mock_id": mock_id,
         "attempts": new_attempts,
+        "module2_names": {
+            "rw": rw_module2_key,
+            "math": math_module2_key
+        },
         "scores": scores
     }
 
