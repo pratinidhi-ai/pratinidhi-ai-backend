@@ -42,21 +42,45 @@ MONTHLY_DAYS = 30
 YEARLY_DAYS = 365
 SECONDS_PER_DAY = 86400
 
-# Subscription plans configuration
-SUBSCRIPTION_PLANS = {
-    PlanType.MONTHLY.value : PlanDetails(
-        amount=99900,  
+# Subscription plans configuration by country
+# India plans (INR) - amounts in paise
+INDIA_SUBSCRIPTION_PLANS = {
+    PlanType.MONTHLY.value: PlanDetails(
+        amount=99900,   # ₹999
         period='monthly',
         interval=1,
         currency='INR'
     ),
-    PlanType.YEARLY.value : PlanDetails(
-        amount=999900,   
+    PlanType.YEARLY.value: PlanDetails(
+        amount=399900,  # ₹3999
         period='yearly',
         interval=1,
         currency='INR'
-    ),  
+    ),
 }
+
+# International plans (USD) - amounts in cents
+INTERNATIONAL_SUBSCRIPTION_PLANS = {
+    PlanType.MONTHLY.value: PlanDetails(
+        amount=1999,    # $19.99
+        period='monthly',
+        interval=1,
+        currency='USD'
+    ),
+    PlanType.YEARLY.value: PlanDetails(
+        amount=4999,    # $49.99
+        period='yearly',
+        interval=1,
+        currency='USD'
+    ),
+}
+
+def get_subscription_plans(country: str | None) -> dict[str, PlanDetails]:
+    """Get subscription plans based on country. India gets INR plans, others get USD.
+    Default to India plans for backward compatibility when country is not provided."""
+    if country is None or country.upper() == 'IN':
+        return INDIA_SUBSCRIPTION_PLANS
+    return INTERNATIONAL_SUBSCRIPTION_PLANS
 
 # Response Models
 class SubscriptionState(BaseModel):
@@ -65,12 +89,14 @@ class SubscriptionState(BaseModel):
     subscription_type: str  
     all_plan_details: dict[str, PlanDetails]
     taken_free_trial: bool = False
+    currency: str = 'USD'
     
 
 # Request Models
 class CreateOrderRequest(BaseModel):
     user_id: str
     plan_type: str
+    country: str | None = None  # 'IN' for India, else international (USD)
     discount_percentage: float | None = None
 
 class VerifyPaymentRequest(BaseModel):
@@ -87,10 +113,11 @@ class StartFreeTrialRequest(BaseModel):
 @router.post('/create-order', status_code=status.HTTP_201_CREATED)
 def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_request)):
     try:
-        logger.info(f'Creating order for user {request.user_id} with plan {request.plan_type}')
+        logger.info(f'Creating order for user {request.user_id} with plan {request.plan_type} in country {request.country}')
         # Validate input
         user_id = request.user_id
         plan_type = request.plan_type.lower()
+        country = request.country
         validate_user_id(user_id)
         
         if plan_type not in ['monthly', 'yearly']:
@@ -102,8 +129,9 @@ def create_order(request: CreateOrderRequest, user: dict = Depends(authenticate_
                 }
             )
             
-        # Get plan details
-        plan_details = SUBSCRIPTION_PLANS[plan_type].model_copy()        
+        # Get plan details based on country
+        subscription_plans = get_subscription_plans(country)
+        plan_details = subscription_plans[plan_type].model_copy()        
         user_hash = hashlib.md5(user_id.encode()).hexdigest()[:8]
         timestamp = int(datetime.now().timestamp())
         
@@ -288,7 +316,7 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         )
 
 @router.get('/state/{user_id}', status_code=status.HTTP_200_OK)
-def subscription_status(user_id: str,user: dict = Depends(authenticate_request)):
+def subscription_status(user_id: str, country: str | None = None, user: dict = Depends(authenticate_request)):
     try:
         validate_user_id(user_id)
         
@@ -316,12 +344,17 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
         # Handle None plan_type by using 'or' operator
         plan_type = subscription_data.get('plan_type') or PlanType.NONE.value
         
+        # Get plans based on country
+        subscription_plans = get_subscription_plans(country)
+        currency = 'INR' if country is None or country.upper() == 'IN' else 'USD'
+        
         response = SubscriptionState(
             remaining_days= remaining_days,
             plan_type=plan_type,
             subscription_type=subscription_type,
-            all_plan_details=SUBSCRIPTION_PLANS,
-            taken_free_trial=subscription_data.get('taken_free_trial', False)
+            all_plan_details=subscription_plans,
+            taken_free_trial=subscription_data.get('taken_free_trial', False),
+            currency=currency
         )
         
         return {
