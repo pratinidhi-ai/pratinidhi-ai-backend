@@ -473,9 +473,10 @@ def get_sat_predictor_quiz(user: dict = Depends(authenticate_request)):
     
     Returns a total of 24 questions:
     - Math: 12 questions (8 difficulty 5, 4 difficulty 1)
-      - 3x algebra (diff 5), 2x algebra (diff 1)
+      - 3x algebra (diff 5), 1x algebra (diff 1)
       - 3x advanced_math (diff 5), 1x advanced_math (diff 1)
-      - 2x problem_solving (diff 5), 1x problem_solving (diff 1)
+      - 1x problem_solving (diff 5), 1x problem_solving (diff 1)
+      - 1x geometry-and-trigonometry (diff 5), 1x geometry-and-trigonometry (diff 1)
     
     - Reading & Writing: 12 questions (8 difficulty 5, 4 difficulty 1)
       - 2x craft-and-structure (diff 5), 1x craft-and-structure (diff 1)
@@ -510,10 +511,12 @@ def get_sat_predictor_quiz(user: dict = Depends(authenticate_request)):
             # Math questions
             {"subject": "math", "subcategory": "algebra", "difficulty": 5, "count": 3},
             {"subject": "math", "subcategory": "advanced-math", "difficulty": 5, "count": 3},
-            {"subject": "math", "subcategory": "problem-solving-and-data-analysis", "difficulty": 5, "count": 2},
-            {"subject": "math", "subcategory": "algebra", "difficulty": 1, "count": 2},
+            {"subject": "math", "subcategory": "problem-solving-and-data-analysis", "difficulty": 5, "count": 1},
+            {"subject": "math", "subcategory": "geometry-and-trigonometry", "difficulty": 5, "count": 1},
+            {"subject": "math", "subcategory": "algebra", "difficulty": 1, "count": 1},
             {"subject": "math", "subcategory": "advanced-math", "difficulty": 1, "count": 1},
             {"subject": "math", "subcategory": "problem-solving-and-data-analysis", "difficulty": 1, "count": 1},
+            {"subject": "math", "subcategory": "geometry-and-trigonometry", "difficulty": 1, "count": 1},
             
             # Reading and Writing questions
             {"subject": "reading-and-writing", "subcategory": "craft-and-structure", "difficulty": 5, "count": 2},
