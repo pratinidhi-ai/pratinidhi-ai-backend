@@ -6,18 +6,48 @@ from database.firebase_client import get_firestore_client
 
 def get_next_mock_name(prefix="SATMock"):
     """
-    Automatically finds the next mock name by counting existing mocks
-    in Firestore and returning 'SATMockX' where X = next number.
+    Automatically finds the next mock name by filling gaps in the numbering sequence.
+    
+    If mocks 4, 5, 6 exist, it will create 1, 2, 3 first.
+    After all gaps are filled, it creates the next sequential number.
+    
+    Example:
+    - Existing: SATMock4, SATMock5, SATMock6
+    - Returns: SATMock1 (first gap)
+    - Next call: SATMock2
+    - After gaps filled: SATMock7
     """
     db = get_firestore_client()
     coll = db.collection("mock_tests")
     docs = list(coll.stream())
 
-    # Count how many mocks already exist with the given prefix
-    count = sum(1 for d in docs if d.id.startswith(prefix) or d.to_dict().get("name", "").startswith(prefix))
-    next_num = count + 1
-
-    return f"{prefix}{next_num}"
+    # Extract existing mock numbers with the given prefix
+    existing_numbers = set()
+    for d in docs:
+        # Check both document ID and name field
+        mock_name = d.id if d.id.startswith(prefix) else d.to_dict().get("name", "")
+        if mock_name.startswith(prefix):
+            try:
+                # Extract number from "SATMock123" -> 123
+                num_str = mock_name[len(prefix):]
+                if num_str.isdigit():
+                    existing_numbers.add(int(num_str))
+            except (ValueError, IndexError):
+                continue
+    
+    if not existing_numbers:
+        # No mocks exist yet, start with 1
+        return f"{prefix}1"
+    
+    # Find the first gap in the sequence starting from 1
+    max_num = max(existing_numbers)
+    for i in range(1, max_num + 1):
+        if i not in existing_numbers:
+            # Found a gap, fill it
+            return f"{prefix}{i}"
+    
+    # No gaps found, create the next sequential number
+    return f"{prefix}{max_num + 1}"
 
 if __name__ == "__main__":
     load_dotenv()

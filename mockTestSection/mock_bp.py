@@ -192,23 +192,20 @@ def _normalize_answer(answer: Dict[str, Any], question_data: Dict[str, Any] = No
     
     # Handle correct_answer
     # Try to get from question_data first, fallback to submitted answer
-    # Database stores answer in "correct_option" field, not "correct_answer"
-    if question_data and "correct_option" in question_data and question_data.get("correct_option"):
-        # Extract correct answer from question data (using correct_option field from DB)
-        correct_option_no = question_data.get("correct_option")
-        # Determine question type: check if it's SPR candidate
-        is_spr = question_data.get("is_spr_candidate", False)
-        question_type = "spr" if is_spr else "mcq"
+    if question_data and "correct_answer" in question_data and question_data.get("correct_answer"):
+        # Extract correct answer from question data
+        correct_option_no = question_data.get("correct_answer")
+        question_type = question_data.get("type", "mcq")
         
         normalized["correct_answer"] = {
             "type": question_type,
             "option_no": correct_option_no if question_type == "mcq" else None
         }
         
-        # Get actual answer text for MCQ or SPR
+        # Get actual answer text for MCQ
         if question_type == "mcq" and "options" in question_data and correct_option_no:
             options = question_data["options"]
-            # Options stored as array ["text1", "text2", "text3", "text4"]
+            # Options can be stored as array ["text1", "text2", "text3", "text4"]
             if isinstance(options, list):
                 option_index = ord(correct_option_no.upper()) - ord('A') if correct_option_no and len(correct_option_no) == 1 else -1
                 if 0 <= option_index < len(options):
@@ -220,28 +217,9 @@ def _normalize_answer(answer: Dict[str, Any], question_data: Dict[str, Any] = No
                 normalized["correct_answer"]["value"] = options.get(correct_option_no, correct_option_no)
             else:
                 normalized["correct_answer"]["value"] = correct_option_no
-        elif question_type == "spr" and "options" in question_data:
-            # For SPR questions, correct_option contains the letter (e.g., "A")
-            # We need to get the actual numeric value from options array
-            options = question_data["options"]
-            if isinstance(options, list) and correct_option_no:
-                option_index = ord(correct_option_no.upper()) - ord('A') if len(correct_option_no) == 1 else -1
-                if 0 <= option_index < len(options):
-                    # Get the numeric answer from the options array
-                    normalized["correct_answer"]["value"] = str(options[option_index]).strip()
-                else:
-                    logger.warning(f"Invalid SPR option index for question {question_data.get('question_id', 'unknown')}: {correct_option_no}")
-                    normalized["correct_answer"]["value"] = answer.get("correct_answer", {}).get("value") if answer.get("correct_answer") else None
-            else:
-                logger.warning(f"Missing options for SPR question {question_data.get('question_id', 'unknown')}")
-                normalized["correct_answer"]["value"] = answer.get("correct_answer", {}).get("value") if answer.get("correct_answer") else None
         else:
-            # Fallback: use correct_option as-is
-            if correct_option_no and str(correct_option_no).strip():
-                normalized["correct_answer"]["value"] = str(correct_option_no).strip()
-            else:
-                logger.warning(f"Missing correct answer for question {question_data.get('question_id', 'unknown')}")
-                normalized["correct_answer"]["value"] = answer.get("correct_answer", {}).get("value") if answer.get("correct_answer") else None
+            # For SPR or when options not available
+            normalized["correct_answer"]["value"] = correct_option_no
     elif "correct_answer" in answer and answer["correct_answer"] is not None:
         # Use provided correct_answer from frontend (fallback when question_data incomplete)
         corr_ans = answer["correct_answer"]
@@ -279,13 +257,7 @@ def _normalize_answer(answer: Dict[str, Any], question_data: Dict[str, Any] = No
                     normalized["correct_answer"]["value"] = option_no
         else:
             # SPR type
-            spr_value = corr_ans.get("value")
-            # Validate SPR value is not NaN/None/empty
-            if spr_value and str(spr_value).strip() and str(spr_value).lower() != 'nan':
-                normalized["correct_answer"]["value"] = str(spr_value).strip()
-            else:
-                logger.warning(f"Invalid SPR correct_answer value for question {answer.get('question_id', 'unknown')}: {spr_value}")
-                normalized["correct_answer"]["value"] = None
+            normalized["correct_answer"]["value"] = corr_ans.get("value")
             normalized["correct_answer"]["option_no"] = None
     else:
         # Backward compatibility: if no correct_answer, use null

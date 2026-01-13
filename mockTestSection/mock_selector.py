@@ -11,6 +11,7 @@ IMAGE_QUESTION_SUBCATEGORIES = {
     ("math", "advanced-math"): ["data_analytics", "inequality", "statistics"],
     ("math", "algebra"): ["data_analytics", "inequality", "statistics"],
     ("math", "problem-solving-and-data-analysis"): ["data_analytics", "statistics", "table"],
+    ("math", "geometry-and-trigonometry"): ["data_analytics", "inequality", "statistics"],
 }
 
 # Image question percentage range for math modules (20-30%)
