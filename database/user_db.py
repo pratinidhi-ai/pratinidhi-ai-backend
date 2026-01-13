@@ -307,6 +307,7 @@ def userStartSession(user_id : str):
 		user_obj = User.from_dict(user_dict)
 		can_start = user_obj.can_start_session()
 		if can_start:
+			user_obj.decrement_session_credits()
 			user_obj.increment_session_count()
 			Thread(
 				target=_update_user_async,

@@ -42,6 +42,11 @@ MONTHLY_DAYS = 30
 YEARLY_DAYS = 365
 SECONDS_PER_DAY = 86400
 
+# Session credits configuration
+SESSION_CREDITS_TRIAL = 10
+SESSION_CREDITS_MONTHLY = 30
+SESSION_CREDITS_YEARLY = 500
+
 # Subscription plans configuration
 SUBSCRIPTION_PLANS = {
     PlanType.MONTHLY.value : PlanDetails(
@@ -65,6 +70,7 @@ class SubscriptionState(BaseModel):
     subscription_type: str  
     all_plan_details: dict[str, PlanDetails]
     taken_free_trial: bool = False
+    session_credits: int = 0
     
 
 # Request Models
@@ -192,13 +198,17 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
             coupon_id = request.coupon_code,
             plan_type = request.plan_type.lower()
         )
-            
+        
+        # Determine session credits based on plan type
+        session_credits_to_add = SESSION_CREDITS_MONTHLY if request.plan_type.lower() == PlanType.MONTHLY.value else SESSION_CREDITS_YEARLY
+        current_session_credits = user.get('subscription', {}).get('session_credits', 0)
             
         user['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': request.plan_type.lower(),
             'pro_expiry_date': (expiry_date + timedelta(days=MONTHLY_DAYS) if request.plan_type.lower() == PlanType.MONTHLY.value else expiry_date + timedelta(days=YEARLY_DAYS)).isoformat(),
             'taken_free_trial': user.get('subscription', {}).get('taken_free_trial', False),
+            'session_credits': current_session_credits + session_credits_to_add,
             'payment_detail_list': user.get('subscription', {}).get('payment_detail_list', []) + [{
                 'payment_id': request.payment_id,
                 'order_id': request.order_id,
@@ -208,7 +218,7 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
         }
         
         update_user(request.user_id, user, 'Could not update user subscription details in the database')
-        logger.info(f"Payment verified and subscription updated for user {request.user_id}")
+        logger.info(f"Payment verified and subscription updated for user {request.user_id}. Added {session_credits_to_add} session credits.")
         return {
             'success': True,
             'message': 'Payment verified successfully'
@@ -261,19 +271,25 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         if current_plan == PlanType.NONE:
             current_plan = PlanType.TRIAL
         
+        # Get current session credits and add trial credits
+        current_session_credits = user_data['subscription'].get('session_credits', 0)
+        
         user_data['subscription'] = {
             'type': SubscriptionType.PRO.value,
             'plan_type': current_plan,
             'pro_expiry_date': expiry_date.isoformat(),
-            'taken_free_trial': True,        
+            'taken_free_trial': True,
+            'session_credits': current_session_credits + SESSION_CREDITS_TRIAL,
         }
         
         update_user(user_id, user_data, 'Could not update user subscription details in the database')
+        logger.info(f"Free trial started for user {user_id}. Added {SESSION_CREDITS_TRIAL} session credits.")
         
         return {
             'success': True,
             'message': 'Free trial started successfully',
             'days': FREE_TRIAL_DAYS,
+            'session_credits_added': SESSION_CREDITS_TRIAL,
         }
         
     except HTTPException:
@@ -321,7 +337,8 @@ def subscription_status(user_id: str,user: dict = Depends(authenticate_request))
             plan_type=plan_type,
             subscription_type=subscription_type,
             all_plan_details=SUBSCRIPTION_PLANS,
-            taken_free_trial=subscription_data.get('taken_free_trial', False)
+            taken_free_trial=subscription_data.get('taken_free_trial', False),
+            session_credits=subscription_data.get('session_credits', 0)
         )
         
         return {

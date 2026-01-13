@@ -1,0 +1,10 @@
+In our AI tutoring sessions, i want to put a counter on the number of sessions a user can have.
+For this, I want to give session_credits to users, which will be decremented each time they start a new session.
+When a user runs out of session_credits, they will not be able to start new sessions until they purchase more credits.
+This is how they earn session_credits:
+1. On taking trial: they get 10 session_credits.
+2. On purchasing monthly subscription: they get 30 session_credits.
+3. On purchasing yearly subscription: they get 500 session_credits.
+
+In the user schema, we can add a new parameter called session_credits to keep track of the number of credits a user has.
+When a user starts a new session, we will check if they have enough session_credits. If they do, we will decrement the session_credits by 1 and allow them to start the session.
