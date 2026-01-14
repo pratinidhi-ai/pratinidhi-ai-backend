@@ -55,6 +55,7 @@ def build_and_store_one_mock(
     name: str,
     seed: Optional[int] = None,
     filters: Optional[Dict] = None,
+    check_similarity: bool = False,
 ) -> str:
     """
     Build one mock using the SAT blueprint, fetch FULL question docs (incl. answers),
@@ -66,6 +67,12 @@ def build_and_store_one_mock(
     - Math Module 2 (easy/hard): Max 6 SPR questions each
     - Total SPR questions in mock: 11 (5 + 6)
     - RW modules: No SPR questions (is_spr_candidate always False)
+    
+    Args:
+        name: Mock test name (used as document ID)
+        seed: Random seed for reproducibility
+        filters: Optional filters dict with keys: theme, tags, tag
+        check_similarity: If True, use LLM to check for similar questions (slower but more accurate)
     """
     rng = random.Random(seed)
     filters = filters or {}
@@ -82,15 +89,46 @@ def build_and_store_one_mock(
         mock_id=mock_id,
         exam="SAT",
         name=name,  # Explicitly pass name for display
+        theme=theme,  # Store theme in mock document
     )
 
-    # 2️⃣ Build all 6 modules
-    rw_m1 = build_module_docs(bp["rw"]["module1_balanced"], rng, theme, tags, tag)
-    rw_m2_e = build_module_docs(bp["rw"]["module2_easy"], rng, theme, tags, tag)
-    rw_m2_h = build_module_docs(bp["rw"]["module2_hard"], rng, theme, tags, tag)
-    math_m1 = build_module_docs(bp["math"]["module1_balanced"], rng, theme, tags, tag)
-    math_m2_e = build_module_docs(bp["math"]["module2_easy"], rng, theme, tags, tag)
-    math_m2_h = build_module_docs(bp["math"]["module2_hard"], rng, theme, tags, tag)
+    if check_similarity:
+        print("🔍 Similarity checking ENABLED - this will be slower but more accurate")
+
+    # 2️⃣ Build all 6 modules with cross-module similarity checking
+    # Track all questions across modules for similarity checking
+    all_questions: List[Dict] = []
+    
+    # Build RW modules first
+    print("\n📚 Building RW Module 1...")
+    rw_m1 = build_module_docs(bp["rw"]["module1_balanced"], rng, theme, tags, tag,
+                               check_similarity=check_similarity, existing_questions=all_questions)
+    all_questions.extend(rw_m1)
+    
+    print("\n📚 Building RW Module 2 (Easy)...")
+    rw_m2_e = build_module_docs(bp["rw"]["module2_easy"], rng, theme, tags, tag,
+                                 check_similarity=check_similarity, existing_questions=all_questions)
+    all_questions.extend(rw_m2_e)
+    
+    print("\n📚 Building RW Module 2 (Hard)...")
+    rw_m2_h = build_module_docs(bp["rw"]["module2_hard"], rng, theme, tags, tag,
+                                 check_similarity=check_similarity, existing_questions=all_questions)
+    all_questions.extend(rw_m2_h)
+    
+    # Build Math modules
+    print("\n🔢 Building Math Module 1...")
+    math_m1 = build_module_docs(bp["math"]["module1_balanced"], rng, theme, tags, tag,
+                                 check_similarity=check_similarity, existing_questions=all_questions)
+    all_questions.extend(math_m1)
+    
+    print("\n🔢 Building Math Module 2 (Easy)...")
+    math_m2_e = build_module_docs(bp["math"]["module2_easy"], rng, theme, tags, tag,
+                                   check_similarity=check_similarity, existing_questions=all_questions)
+    all_questions.extend(math_m2_e)
+    
+    print("\n🔢 Building Math Module 2 (Hard)...")
+    math_m2_h = build_module_docs(bp["math"]["module2_hard"], rng, theme, tags, tag,
+                                   check_similarity=check_similarity, existing_questions=all_questions)
 
     # 3️⃣ Apply SPR limits to math modules
     # Math M1: Allow max 5 SPR questions
