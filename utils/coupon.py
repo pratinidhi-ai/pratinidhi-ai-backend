@@ -26,7 +26,7 @@ def get_validation_status(coupon: Coupon) -> tuple[Dict[PlanType,bool], str]:
         
         for planType in planTypeValidations.keys():
             # If max_usage is -1, it means unlimited usage
-            if (coupon.max_usage[planType]==-1) or (coupon.current_usage[planType]+1 < coupon.max_usage[planType]):
+            if (coupon.max_usage[planType]==-1) or (coupon.current_usage[planType] < coupon.max_usage[planType]):
                 planTypeValidations[planType] = True
         
         return planTypeValidations, "Coupon is valid"

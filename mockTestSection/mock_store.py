@@ -17,11 +17,18 @@ def create_mock_parent(
     mock_id: str,
     exam: str = "SAT",
     name: Optional[str] = None,
+    theme: Optional[str] = None,
 ) -> str:
     """
     Create the parent document for a mock.
     Uses mock_id as the document name (no random names).
-    Includes id, exam, name, and created_at fields for efficient querying.
+    Includes id, exam, name, theme, and created_at fields for efficient querying.
+    
+    Args:
+        mock_id: Unique identifier for the mock (used as document ID)
+        exam: Exam type (default: "SAT")
+        name: Display name for the mock
+        theme: Optional theme for the mock (e.g., "Science", "History")
     """
     db = get_firestore_client()
 
@@ -31,6 +38,10 @@ def create_mock_parent(
         "name": name or mock_id,  # Use provided name or default to mock_id
         "created_at": datetime.utcnow(),
     }
+    
+    # Add theme if provided
+    if theme:
+        doc["theme"] = theme
 
     # 🔹 mock_id = Firestore document name
     ref = db.collection("mock_tests").document(mock_id)

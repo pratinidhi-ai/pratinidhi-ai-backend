@@ -14,6 +14,41 @@ user_router = APIRouter(prefix="/api/users", tags=["users"])
 logger = logging.getLogger(__name__)
 
 
+@user_router.get('/{user_id}/session-credits', status_code=status.HTTP_200_OK)
+def get_session_credits(user_id: str, user: dict = Depends(authenticate_request)):
+    """Get the remaining session credits for a user"""
+    logger.info(f"Fetching session credits for user: {user_id}")
+    try:
+        item = getUserbyId(user_id=user_id)
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'error': 'User not found',
+                    'message': 'No user exists with the provided ID'
+                }
+            )
+        
+        session_credits = item.get('subscription', {}).get('session_credits', 0)
+        
+        return {
+            'success': True,
+            'user_id': user_id,
+            'session_credits': session_credits
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching session credits for user {user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Failed to fetch session credits',
+                'message': str(e)
+            }
+        )
+
+
 # Pydantic models for request validation
 class CreateUserRequest(BaseModel):
     id: str

@@ -44,7 +44,7 @@ def start_session(request_data: StartSessionRequest, user: dict = Depends(authen
         if not userStartSession(user_id=user_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail={"error": "You Have Used up the quota of allotted sessions"}
+                detail={"error": "You have no session credits remaining. Please purchase more credits to continue."}
             )
 
         session_id = str(uuid.uuid4())

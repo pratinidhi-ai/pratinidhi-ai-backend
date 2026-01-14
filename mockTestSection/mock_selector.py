@@ -11,6 +11,7 @@ IMAGE_QUESTION_SUBCATEGORIES = {
     ("math", "advanced-math"): ["data_analytics", "inequality", "statistics"],
     ("math", "algebra"): ["data_analytics", "inequality", "statistics"],
     ("math", "problem-solving-and-data-analysis"): ["data_analytics", "statistics", "table"],
+    ("math", "geometry-and-trigonometry"): ["data_analytics", "inequality", "statistics"],
 }
 
 # Image question percentage range for math modules (20-30%)
@@ -30,11 +31,18 @@ def _round_counts(total: int, mix: Dict[int, float]) -> Dict[int, int]:
         i += 1
     return raw
 
-def _fetch_question_docs(db, subject: str, sub_category: str, difficulty: int, n: int,
-                         theme=None, tags=None, tag=None) -> List[Dict]:
-    """Fetch full question docs (incl. answer/options/etc.) from question_bank."""
+def _fetch_question_docs_base(db, subject: str, sub_category: str, difficulty: int, n: int,
+                               theme=None, tags=None, tag=None, seen_ids=None) -> List[Dict]:
+    """
+    Base function to fetch question docs from question_bank with optional filters.
+    
+    Args:
+        seen_ids: Set of question IDs to exclude (to avoid duplicates when doing fallback)
+    """
     if n <= 0:
         return []
+    
+    seen_ids = seen_ids or set()
 
     doc_path = f"{subject}|{sub_category}"
     ref = (db.collection('question_bank')
@@ -56,41 +64,88 @@ def _fetch_question_docs(db, subject: str, sub_category: str, difficulty: int, n
     # pass 1
     q1 = (ref.where(filter=FieldFilter('random_value', '>=', rand_value))
              .order_by('random_value')
-             .limit(n))
+             .limit(n + len(seen_ids)))  # Fetch extra to account for exclusions
     docs1 = list(q1.stream())
     for d in docs1:
-        obj = d.to_dict() or {}
-        obj['id'] = d.id
-        obj['is_image_question'] = False  # Mark as regular question
-        out.append(obj)
+        if d.id not in seen_ids:
+            obj = d.to_dict() or {}
+            obj['id'] = d.id
+            obj['is_image_question'] = False  # Mark as regular question
+            out.append(obj)
+            if len(out) >= n:
+                break
 
     # pass 2 if needed
     if len(out) < n:
         remaining = n - len(out)
         q2 = (ref.where(filter=FieldFilter('random_value', '<', rand_value))
                 .order_by('random_value')
-                .limit(remaining))
+                .limit(remaining + len(seen_ids)))
         docs2 = list(q2.stream())
         for d in docs2:
-            obj = d.to_dict() or {}
-            obj['id'] = d.id
-            obj['is_image_question'] = False  # Mark as regular question
-            out.append(obj)
+            if d.id not in seen_ids:
+                obj = d.to_dict() or {}
+                obj['id'] = d.id
+                obj['is_image_question'] = False  # Mark as regular question
+                out.append(obj)
+                if len(out) >= n:
+                    break
 
     random.shuffle(out)
     return out[:n]
 
 
-def _fetch_image_question_docs(db, subject: str, sub_category: str, difficulty: int, n: int,
-                                theme=None, tags=None, tag=None) -> List[Dict]:
+def _fetch_question_docs(db, subject: str, sub_category: str, difficulty: int, n: int,
+                         theme=None, tags=None, tag=None) -> List[Dict]:
     """
-    Fetch full question docs from image_question_bank.
+    Fetch full question docs (incl. answer/options/etc.) from question_bank.
     
-    Image questions have an additional sub_category level:
-    image_question_bank/{subject}|{sub_category}|{image_sub_category}/difficulty_levels/{difficulty}/questions
+    If a theme is provided, first tries to fetch themed questions, then fills
+    the remaining slots with regular (non-themed) questions.
     """
     if n <= 0:
         return []
+
+    out: List[Dict] = []
+    seen_ids: set = set()
+    
+    # Step 1: If theme is provided, first try to get themed questions
+    if theme:
+        themed_docs = _fetch_question_docs_base(db, subject, sub_category, difficulty, n,
+                                                 theme=theme, tags=tags, tag=tag, seen_ids=seen_ids)
+        for d in themed_docs:
+            out.append(d)
+            seen_ids.add(d['id'])
+        
+        if len(out) < n:
+            print(f"📚 Theme '{theme}': got {len(out)}/{n} questions for {subject}|{sub_category} (diff={difficulty}), filling rest with regular")
+    
+    # Step 2: Fill remaining slots with regular questions (no theme filter)
+    remaining = n - len(out)
+    if remaining > 0:
+        regular_docs = _fetch_question_docs_base(db, subject, sub_category, difficulty, remaining,
+                                                  theme=None, tags=tags, tag=tag, seen_ids=seen_ids)
+        out.extend(regular_docs)
+    
+    random.shuffle(out)
+    return out[:n]
+
+
+def _fetch_image_question_docs_base(db, subject: str, sub_category: str, difficulty: int, n: int,
+                                     theme=None, tags=None, tag=None, seen_ids=None) -> List[Dict]:
+    """
+    Base function to fetch question docs from image_question_bank with optional filters.
+    
+    Image questions have an additional sub_category level:
+    image_question_bank/{subject}|{sub_category}|{image_sub_category}/difficulty_levels/{difficulty}/questions
+    
+    Args:
+        seen_ids: Set of question IDs to exclude (to avoid duplicates when doing fallback)
+    """
+    if n <= 0:
+        return []
+    
+    seen_ids = seen_ids or set()
 
     # Check if this subject|sub_category has image questions
     key = (subject, sub_category)
@@ -128,29 +183,71 @@ def _fetch_image_question_docs(db, subject: str, sub_category: str, difficulty: 
         # pass 1
         q1 = (ref.where(filter=FieldFilter('random_value', '>=', rand_value))
                  .order_by('random_value')
-                 .limit(remaining_needed))
+                 .limit(remaining_needed + len(seen_ids)))
         docs1 = list(q1.stream())
         for d in docs1:
-            obj = d.to_dict() or {}
-            obj['id'] = d.id
-            obj['is_image_question'] = True  # Mark as image question
-            obj['image_sub_category'] = img_sub_cat
-            out.append(obj)
+            if d.id not in seen_ids:
+                obj = d.to_dict() or {}
+                obj['id'] = d.id
+                obj['is_image_question'] = True  # Mark as image question
+                obj['image_sub_category'] = img_sub_cat
+                out.append(obj)
+                if len(out) >= n:
+                    break
 
         # pass 2 if needed
         if len(out) < n:
             still_needed = n - len(out)
             q2 = (ref.where(filter=FieldFilter('random_value', '<', rand_value))
                     .order_by('random_value')
-                    .limit(still_needed))
+                    .limit(still_needed + len(seen_ids)))
             docs2 = list(q2.stream())
             for d in docs2:
-                obj = d.to_dict() or {}
-                obj['id'] = d.id
-                obj['is_image_question'] = True  # Mark as image question
-                obj['image_sub_category'] = img_sub_cat
-                out.append(obj)
+                if d.id not in seen_ids:
+                    obj = d.to_dict() or {}
+                    obj['id'] = d.id
+                    obj['is_image_question'] = True  # Mark as image question
+                    obj['image_sub_category'] = img_sub_cat
+                    out.append(obj)
+                    if len(out) >= n:
+                        break
 
+    random.shuffle(out)
+    return out[:n]
+
+
+def _fetch_image_question_docs(db, subject: str, sub_category: str, difficulty: int, n: int,
+                                theme=None, tags=None, tag=None) -> List[Dict]:
+    """
+    Fetch full question docs from image_question_bank.
+    
+    If a theme is provided, first tries to fetch themed image questions, then fills
+    the remaining slots with regular (non-themed) image questions.
+    """
+    if n <= 0:
+        return []
+
+    out: List[Dict] = []
+    seen_ids: set = set()
+    
+    # Step 1: If theme is provided, first try to get themed image questions
+    if theme:
+        themed_docs = _fetch_image_question_docs_base(db, subject, sub_category, difficulty, n,
+                                                       theme=theme, tags=tags, tag=tag, seen_ids=seen_ids)
+        for d in themed_docs:
+            out.append(d)
+            seen_ids.add(d['id'])
+        
+        if len(out) < n:
+            print(f"🖼️ Theme '{theme}': got {len(out)}/{n} image questions for {subject}|{sub_category} (diff={difficulty}), filling rest with regular")
+    
+    # Step 2: Fill remaining slots with regular image questions (no theme filter)
+    remaining = n - len(out)
+    if remaining > 0:
+        regular_docs = _fetch_image_question_docs_base(db, subject, sub_category, difficulty, remaining,
+                                                        theme=None, tags=tags, tag=tag, seen_ids=seen_ids)
+        out.extend(regular_docs)
+    
     random.shuffle(out)
     return out[:n]
 
@@ -207,16 +304,31 @@ def _fetch_mixed_question_docs(db, subject: str, sub_category: str, difficulty: 
 # mockTestSection/mock_selector.py
 
 def build_module_docs(module_cfg: Dict, rng: random.Random,
-                      theme=None, tags=None, tag=None) -> List[Dict]:
+                      theme=None, tags=None, tag=None,
+                      check_similarity: bool = False,
+                      existing_questions: Optional[List[Dict]] = None) -> List[Dict]:
     """
     Return a list of full question docs for the module (not IDs),
     ensuring we always hit the target total.
     
     For math modules, includes 20-30% image questions from image_question_bank.
+    
+    Args:
+        module_cfg: Module configuration from SAT_BLUEPRINT
+        rng: Random number generator for reproducibility
+        theme: Optional theme filter
+        tags: Optional tags filter
+        tag: Optional single tag filter
+        check_similarity: If True, use LLM to check for similar questions
+        existing_questions: Questions already in the paper (for cross-module similarity check)
     """
     db = get_firestore_client()
     if db is None:
         raise RuntimeError("Firestore client not initialized")
+
+    # Import similarity checker only if needed (to avoid circular imports)
+    if check_similarity:
+        from mockTestSection.similarity_checker import check_question_similarity
 
     total = module_cfg["total"]
     topics = module_cfg["topics"]
@@ -233,6 +345,28 @@ def build_module_docs(module_cfg: Dict, rng: random.Random,
 
     picked: List[Dict] = []
     seen_ids = set()
+    
+    # Initialize similarity context with existing questions from other modules
+    similarity_context: List[Dict] = list(existing_questions) if existing_questions else []
+
+    # Helper function to add question with optional similarity check
+    def _try_add_question(q: Dict) -> bool:
+        """Try to add a question, checking for similarity if enabled. Returns True if added."""
+        qid = q.get("id")
+        if not qid or qid in seen_ids:
+            return False
+        
+        # Check for similarity if enabled
+        if check_similarity and (picked or similarity_context):
+            all_existing = similarity_context + picked
+            is_similar, reason = check_question_similarity(q, all_existing)
+            if is_similar:
+                print(f"🚫 Skipping similar question ({qid}): {reason}")
+                return False
+        
+        picked.append(q)
+        seen_ids.add(qid)
+        return True
 
     # Get topic mix (sub-category distribution) if specified
     topic_mix = module_cfg.get("topic_mix")
@@ -254,10 +388,7 @@ def build_module_docs(module_cfg: Dict, rng: random.Random,
                     docs = _fetch_question_docs(db, subject, sub, diff, need, theme=theme, tags=tags, tag=tag)
                 
                 for d in docs:
-                    qid = d.get("id")
-                    if qid and qid not in seen_ids:
-                        picked.append(d)
-                        seen_ids.add(qid)
+                    _try_add_question(d)
         else:
             # Use equal distribution (legacy behavior)
             per_topic = cnt // len(topics)
@@ -274,10 +405,7 @@ def build_module_docs(module_cfg: Dict, rng: random.Random,
                     docs = _fetch_question_docs(db, subject, sub, diff, need, theme=theme, tags=tags, tag=tag)
                 
                 for d in docs:
-                    qid = d.get("id")
-                    if qid and qid not in seen_ids:
-                        picked.append(d)
-                        seen_ids.add(qid)
+                    _try_add_question(d)
 
     # fallback — if we still don't have enough, pull from broader pools
     missing = total - len(picked)
@@ -301,10 +429,7 @@ def build_module_docs(module_cfg: Dict, rng: random.Random,
                 extra = _fetch_question_docs(db, section, topic, diff, missing, theme=theme, tags=tags, tag=tag)
             
             for d in extra:
-                qid = d.get("id")
-                if qid and qid not in seen_ids:
-                    picked.append(d)
-                    seen_ids.add(qid)
+                if _try_add_question(d):
                     missing -= 1
                     if missing <= 0:
                         break

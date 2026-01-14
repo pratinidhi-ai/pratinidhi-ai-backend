@@ -47,6 +47,7 @@ class SubscriptionInfo:
 	type: SubscriptionType = SubscriptionType.REGULAR
 	sessions_used: int = 0
 	sessions_limit: int = 25  # Default limit for regular users
+	session_credits: int = 0  # Credits for AI tutoring sessions
 	last_reset_date: Optional[datetime] = None
 	pro_expiry_date: Optional[datetime] = None
 	plan_type: Optional[PlanType] = None
@@ -174,6 +175,7 @@ class User:
 				'type': self.subscription.type.value,
 				'sessions_used': self.subscription.sessions_used,
 				'sessions_limit': self.subscription.sessions_limit,
+				'session_credits': self.subscription.session_credits,
 				'last_reset_date': self.subscription.last_reset_date.isoformat() if self.subscription.last_reset_date else None,
 				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None,
 				'plan_type': self.subscription.plan_type.value if self.subscription.plan_type else None,
@@ -229,6 +231,7 @@ class User:
 				type=SubscriptionType(sub_data.get('type', 'regular')),
 				sessions_used=sub_data.get('sessions_used', 0),
 				sessions_limit=sub_data.get('sessions_limit', 25),
+				session_credits=sub_data.get('session_credits', 0),
 				last_reset_date=_parse_datetime(sub_data.get('last_reset_date')),
 				pro_expiry_date=_parse_datetime(sub_data.get('pro_expiry_date')),
 				plan_type=PlanType(sub_data['plan_type']) if sub_data.get('plan_type') else None,
@@ -293,13 +296,22 @@ class User:
 		self.last_login = datetime.now(timezone.utc)
 		self.updated_at = datetime.now(timezone.utc)
 	def can_start_session(self) -> bool:
-		"""Check if user can start a new tutoring session"""
-		if self.subscription.type == SubscriptionType.PRO:
-			return True
-		return self.subscription.sessions_used < self.subscription.sessions_limit
+		"""Check if user can start a new tutoring session based on session credits"""
+		return self.subscription.session_credits > 0
+
+	def decrement_session_credits(self):
+		"""Decrement session credits by 1 when starting a new session"""
+		if self.subscription.session_credits > 0:
+			self.subscription.session_credits -= 1
+			self.updated_at = datetime.now(timezone.utc)
+
+	def add_session_credits(self, credits: int):
+		"""Add session credits to the user's account"""
+		self.subscription.session_credits += credits
+		self.updated_at = datetime.now(timezone.utc)
 
 	def increment_session_count(self):
-		"""Increment the sessions used count"""
+		"""Increment the sessions used count (legacy method for tracking)"""
 		if self.subscription.type == SubscriptionType.REGULAR:
 			self.subscription.sessions_used += 1
 			self.updated_at = datetime.now(timezone.utc)
