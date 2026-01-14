@@ -217,8 +217,10 @@ def verify_payment(request: VerifyPaymentRequest, background_tasks: BackgroundTa
             user['subscription'] = {}
                 
         expiry_date = parse_expiry_date(user.get('subscription', {}).get('pro_expiry_date'))
-        if expiry_date is None:
-            expiry_date = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+        # If no expiry date or expiry date is in the past, start from today
+        if expiry_date is None or expiry_date < now:
+            expiry_date = now
             
         # apply coupon if provided in background
         background_tasks.add_task(
@@ -289,8 +291,10 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
             )
             
         expiry_date = parse_expiry_date(user_data.get('subscription', {}).get('pro_expiry_date'))
-        if expiry_date is None:
-            expiry_date = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+        # If no expiry date or expiry date is in the past, start from today
+        if expiry_date is None or expiry_date < now:
+            expiry_date = now
                         
         expiry_date += timedelta(days=FREE_TRIAL_DAYS)
         
