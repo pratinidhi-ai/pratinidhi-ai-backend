@@ -589,21 +589,25 @@ def report_issue(request_data: ReportIssueRequest, user: dict = Depends(authenti
         )
 
 
-@user_router.post('/user-delete-request', status_code=status.HTTP_201_CREATED)
+@user_router.post('/user-delete-request', status_code=status.HTTP_200_OK)
 def user_delete_request(request_data: UserDeleteRequest, user: dict = Depends(authenticate_request)):
     """
-    Request account deletion for a user.
-    Creates a deletion request record with 'pending' status.
+    Delete a user account.
+    - Backs up user data to 'deleted_users' collection
+    - Deletes user from 'users' collection and all subcollections
+    - Deletes user from leaderboard
+    - Logs the deletion request
     """
     try:
         from database.firebase_client import get_firestore_client
         import uuid
         
         db = get_firestore_client()
+        user_id = request_data.user_id
         
         # Check if user exists
         user_db = get_user_db()
-        existing_user = user_db.get_user_by_id(request_data.user_id)
+        existing_user = user_db.get_user_by_id(user_id)
         if not existing_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -616,38 +620,123 @@ def user_delete_request(request_data: UserDeleteRequest, user: dict = Depends(au
         # Generate a unique ID for the deletion request
         request_id = str(uuid.uuid4())
         
-        # Create the deletion request document
+        # Define subcollections to backup and delete
+        subcollections = ['tasks', 'analytics', 'sat_predictor_performance']
+        
+        # Step 1: Copy user document to deleted_users collection
+        deleted_user_data = {
+            **existing_user,
+            'deleted_at': datetime.now(timezone.utc).isoformat(),
+            'deletion_request_id': request_id,
+            'deletion_reason': request_data.reason
+        }
+        db.collection('deleted_users').document(user_id).set(deleted_user_data)
+        logger.info(f"Copied user {user_id} to deleted_users collection")
+        
+        # Step 2: Copy subcollections to deleted_users
+        copy_results = _copy_subcollections_to_deleted_users(db, user_id, subcollections)
+        
+        # Step 3: Delete subcollections from users
+        delete_results = _delete_subcollections(db, user_id, subcollections)
+        
+        # Step 4: Delete the user document from users collection
+        db.collection('users').document(user_id).delete()
+        logger.info(f"Deleted user document {user_id} from users collection")
+        
+        # Step 5: Delete from leaderboard
+        try:
+            leaderboard_db = get_leaderboard_db()
+            leaderboard_db.delete_entity(user_id)
+            logger.info(f"Deleted leaderboard entry for user {user_id}")
+        except Exception as lb_error:
+            logger.error(f"Error deleting leaderboard entry for user {user_id}: {str(lb_error)}")
+        
+        # Step 6: Log the deletion request
         deletion_request_data = {
             'id': request_id,
-            'user_id': request_data.user_id,
+            'user_id': user_id,
             'reason': request_data.reason,
             'timestamp': datetime.now(timezone.utc).isoformat(),
-            'status': 'pending'
+            'status': 'completed',
+            'backup_location': f'deleted_users/{user_id}',
+            'subcollections_copied': copy_results,
+            'subcollections_deleted': delete_results
         }
-        
-        # Store in user_deletion_requests collection
         db.collection('user_deletion_requests').document(request_id).set(deletion_request_data)
         
-        logger.info(f"Deletion request created: {request_id} for user {request_data.user_id}")
+        logger.info(f"User {user_id} deleted successfully. Request ID: {request_id}")
         
         return {
             'success': True,
-            'message': 'Account deletion request submitted successfully',
+            'message': 'User account deleted successfully',
             'data': {
                 'request_id': request_id,
-                'user_id': request_data.user_id,
-                'status': 'pending'
+                'user_id': user_id,
+                'status': 'completed',
+                'backup_location': f'deleted_users/{user_id}',
+                'subcollections_copied': copy_results,
+                'subcollections_deleted': delete_results
             }
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating deletion request: {str(e)}")
+        logger.error(f"Error deleting user: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 'error': 'Internal server error',
-                'message': 'Failed to submit deletion request'
+                'message': 'Failed to delete user account'
             }
         )
+
+
+def _copy_subcollections_to_deleted_users(db, user_id: str, subcollections: List[str]) -> Dict[str, int]:
+    """
+    Copy all documents from subcollections to deleted_users collection.
+    Returns a dict with count of documents copied per subcollection.
+    """
+    copied_counts = {}
+    for subcollection_name in subcollections:
+        try:
+            source_ref = db.collection('users').document(user_id).collection(subcollection_name)
+            docs = list(source_ref.stream())
+            copied_counts[subcollection_name] = 0
+            
+            for doc in docs:
+                # Copy to deleted_users/{user_id}/{subcollection_name}/{doc_id}
+                dest_ref = db.collection('deleted_users').document(user_id).collection(subcollection_name).document(doc.id)
+                dest_ref.set(doc.to_dict())
+                copied_counts[subcollection_name] += 1
+            
+            logger.info(f"Copied {copied_counts[subcollection_name]} docs from {subcollection_name} for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error copying subcollection {subcollection_name} for user {user_id}: {str(e)}")
+            copied_counts[subcollection_name] = -1  # -1 indicates error
+    
+    return copied_counts
+
+
+def _delete_subcollections(db, user_id: str, subcollections: List[str]) -> Dict[str, int]:
+    """
+    Delete all documents from subcollections under a user.
+    Returns a dict with count of documents deleted per subcollection.
+    """
+    deleted_counts = {}
+    for subcollection_name in subcollections:
+        try:
+            source_ref = db.collection('users').document(user_id).collection(subcollection_name)
+            docs = list(source_ref.stream())
+            deleted_counts[subcollection_name] = 0
+            
+            for doc in docs:
+                doc.reference.delete()
+                deleted_counts[subcollection_name] += 1
+            
+            logger.info(f"Deleted {deleted_counts[subcollection_name]} docs from {subcollection_name} for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error deleting subcollection {subcollection_name} for user {user_id}: {str(e)}")
+            deleted_counts[subcollection_name] = -1  # -1 indicates error
+    
+    return deleted_counts
