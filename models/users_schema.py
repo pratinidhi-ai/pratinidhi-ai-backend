@@ -175,7 +175,7 @@ class User:
 				'type': self.subscription.type.value,
 				'sessions_used': self.subscription.sessions_used,
 				'sessions_limit': self.subscription.sessions_limit,
-				'session_credits': self.subscription.session_credits,
+				'session_credits': self.subscription.session_credits if hasattr(self.subscription, 'session_credits') else 0,
 				'last_reset_date': self.subscription.last_reset_date.isoformat() if self.subscription.last_reset_date else None,
 				'pro_expiry_date': self.subscription.pro_expiry_date.isoformat() if self.subscription.pro_expiry_date else None,
 				'plan_type': self.subscription.plan_type.value if self.subscription.plan_type else None,

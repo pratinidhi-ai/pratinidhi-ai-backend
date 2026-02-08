@@ -1,0 +1,6 @@
+I have to make an API, 'user_delete_request', which will allow users to request the deletion of their accounts. 
+The API should accept a POST request with the user's ID and a reason for deletion. 
+The system will then log the request and send a confirmation email to the user.
+
+We have a collection in database: 'user_deletion_requests' where we will add a new document for each deletion request. The document will contain the user's ID, reason for deletion, timestamp of the request, and a status field that will be set to 'pending' initially.
+

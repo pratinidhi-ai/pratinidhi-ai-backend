@@ -89,6 +89,11 @@ class ReportIssueRequest(BaseModel):
     issue_type: str # e.g., 'bug', 'feature_request', 'other'
 
 
+class UserDeleteRequest(BaseModel):
+    user_id: str
+    reason: str
+
+
 def update_predicted_score(user_id: str, math_score: int, rw_score: int, total_score: int) -> None:
     """Update the predicted_score field for a user"""
     try:
@@ -580,5 +585,69 @@ def report_issue(request_data: ReportIssueRequest, user: dict = Depends(authenti
             detail={
                 'error': 'Internal server error',
                 'message': 'Failed to report issue'
+            }
+        )
+
+
+@user_router.post('/user-delete-request', status_code=status.HTTP_201_CREATED)
+def user_delete_request(request_data: UserDeleteRequest, user: dict = Depends(authenticate_request)):
+    """
+    Request account deletion for a user.
+    Creates a deletion request record with 'pending' status.
+    """
+    try:
+        from database.firebase_client import get_firestore_client
+        import uuid
+        
+        db = get_firestore_client()
+        
+        # Check if user exists
+        user_db = get_user_db()
+        existing_user = user_db.get_user_by_id(request_data.user_id)
+        if not existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={
+                    'error': 'User not found',
+                    'message': 'No user exists with the provided ID'
+                }
+            )
+        
+        # Generate a unique ID for the deletion request
+        request_id = str(uuid.uuid4())
+        
+        # Create the deletion request document
+        deletion_request_data = {
+            'id': request_id,
+            'user_id': request_data.user_id,
+            'reason': request_data.reason,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'status': 'pending'
+        }
+        
+        # Store in user_deletion_requests collection
+        db.collection('user_deletion_requests').document(request_id).set(deletion_request_data)
+        
+        logger.info(f"Deletion request created: {request_id} for user {request_data.user_id}")
+        
+        return {
+            'success': True,
+            'message': 'Account deletion request submitted successfully',
+            'data': {
+                'request_id': request_id,
+                'user_id': request_data.user_id,
+                'status': 'pending'
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating deletion request: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                'error': 'Internal server error',
+                'message': 'Failed to submit deletion request'
             }
         )

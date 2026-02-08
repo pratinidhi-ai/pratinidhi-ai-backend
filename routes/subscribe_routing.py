@@ -57,7 +57,7 @@ INDIA_SUBSCRIPTION_PLANS = {
         currency='INR'
     ),
     PlanType.YEARLY.value: PlanDetails(
-        amount=399900,  # ₹3999
+        amount=999900,  # ₹9999
         period='yearly',
         interval=1,
         currency='INR'
