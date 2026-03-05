@@ -56,14 +56,39 @@ class TaskService:
     def fetch_assigned_tasks_only(self, user: User) -> List[Task]:
         """
         Return outstanding (incomplete) tasks for the user.
-        Never generates new tasks — caller must handle that separately.
+        If none remain, auto-assign the next set and return those instead.
         """
         try:
             tasks = self.task_db.get_incomplete_tasks(user.id)
+            if not tasks:
+                # All tasks done but next set not yet assigned — recover here
+                tasks = self._assign_new_weekly_tasks(user)
             tasks.sort(key=lambda t: calculate_task_priority(t))
             return tasks
         except Exception as e:
             print(f"Error fetching assigned tasks for user {user.id}: {e}")
+            return []
+
+    def fetch_all_current_tasks(self, user: User) -> List[Task]:
+        """
+        Return ALL tasks (completed + incomplete) belonging to the user's current
+        task set, identified by start_date_of_week == user.current_week_start.
+        Falls back to get_all_tasks if current_week_start is not set.
+        """
+        try:
+            week_start = getattr(user, 'current_week_start', None)
+            if week_start:
+                tasks = self.task_db.get_tasks_by_week(user.id, week_start)
+                # get_tasks_by_week may return 0 docs if isoformat doesn't match;
+                # fall back to all tasks in that case
+                if not tasks:
+                    tasks = self.task_db.get_all_tasks(user.id)
+            else:
+                tasks = self.task_db.get_all_tasks(user.id)
+            tasks.sort(key=lambda t: t.task_number)
+            return tasks
+        except Exception as e:
+            print(f"Error fetching all current tasks for user {user.id}: {e}")
             return []
     
     def _assign_new_weekly_tasks(self, user: User) -> List[Task]:

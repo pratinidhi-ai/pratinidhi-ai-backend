@@ -145,8 +145,16 @@ def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
 
 
 @task_router.get('/user/{user_id}/tasks', status_code=status.HTTP_200_OK)
-def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
-    """Get all current tasks for a user"""
+def get_user_tasks(
+    user_id: str,
+    include_completed: bool = False,
+    user: dict = Depends(authenticate_request)
+):
+    """
+    Get tasks for a user.
+    - include_completed=false (default): only incomplete tasks
+    - include_completed=true: all tasks in the current set (completed + incomplete)
+    """
     try:
         firestore_client = get_firestore_client()
         
@@ -160,7 +168,10 @@ def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
         user_obj = User.from_dict(user_doc.to_dict())
         
         task_service = TaskService(firestore_client)
-        tasks = task_service.fetch_assigned_tasks_only(user_obj)
+        if include_completed:
+            tasks = task_service.fetch_all_current_tasks(user_obj)
+        else:
+            tasks = task_service.fetch_assigned_tasks_only(user_obj)
         
         return {
             'success': True,
@@ -294,12 +305,13 @@ def mark_task_completed(
                 )
 
         elif task_obj.type_of_task == TaskType.AI_TUTORIAL:
-            # Completed when the user has spent at least 15 minutes in a session for this chapter
-            MIN_TUTORIAL_MINUTES = 15
+            # Completed when user has a session with completion_percentage >= 80% for this chapter
+            MIN_COMPLETION_PERCENTAGE = 80.0
             chapter_id = task_obj.ai_tutorial_related_attributes.get('chapter_id')
             if not chapter_id:
                 can_complete = True  # No chapter linked — allow completion
             else:
+                # Check if any session with sufficient completion exists for this chapter
                 sessions_ref = (
                     firestore_client.collection('session_summary')
                     .document(user_id)
@@ -308,16 +320,16 @@ def mark_task_completed(
                     .where('is_active', '==', False)
                     .stream()
                 )
-                qualifying = [
+                qualifying_sessions = [
                     s for s in sessions_ref
-                    if (s.to_dict() or {}).get('duration_minutes', 0) >= MIN_TUTORIAL_MINUTES
+                    if (s.to_dict() or {}).get('completion_percentage', 0) >= MIN_COMPLETION_PERCENTAGE
                 ]
-                if qualifying:
+                if qualifying_sessions:
                     can_complete = True
                 else:
                     failure_reason = (
-                        f"Please spend at least {MIN_TUTORIAL_MINUTES} minutes in the "
-                        f"AI Tutor session for this chapter before marking it complete."
+                        f"Please complete at least {int(MIN_COMPLETION_PERCENTAGE)}% of the AI Tutor "
+                        f"session for this chapter before marking this task as done."
                     )
 
         elif task_obj.type_of_task == TaskType.SAT_PREDICTOR:
@@ -403,6 +415,7 @@ def mark_task_completed(
 
         # ── If all tasks in the current set are done, rotate and assign next set ──
         # (SAT_PREDICTOR handles its own first-set assignment above — skip here)
+        next_tasks_count = 0
         if task_obj.type_of_task != TaskType.SAT_PREDICTOR:
             try:
                 task_db_instance = get_task_db()
@@ -422,9 +435,10 @@ def mark_task_completed(
                             'completed_task_sets': next_user.completed_task_sets,
                         })
                         new_tasks = task_service._assign_new_weekly_tasks(next_user)
+                        next_tasks_count = len(new_tasks)
                         logger.info(
                             f"All tasks done for user {user_id} — assigned set "
-                            f"#{next_user.completed_task_sets} ({len(new_tasks)} tasks). "
+                            f"#{next_user.completed_task_sets} ({next_tasks_count} tasks). "
                             f"Math idx={next_user.math_subcategory_index}, "
                             f"English idx={next_user.english_subcategory_index}"
                         )
@@ -435,6 +449,7 @@ def mark_task_completed(
             'success': True,
             'completed': True,
             'message': 'Task marked as completed',
+            'next_tasks_assigned': next_tasks_count,
         }
 
     except HTTPException:

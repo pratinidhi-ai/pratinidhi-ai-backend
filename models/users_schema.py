@@ -107,6 +107,8 @@ class User:
 	name: str
 	
 	#additionals
+	country: Optional[str] = None
+	state: Optional[str] = None
 	grade: Optional[Grade] = None
 	board: Optional[Board] = None
 	city: Optional[str] = None
@@ -160,6 +162,8 @@ class User:
 			'id': self.id,
 			'email': self.email,
 			'name': self.name,
+			'country': self.country,
+			'state': self.state,
 			'grade': self.grade.value if self.grade else None,
 			'board': self.board.value if self.board else None,
 			'city': self.city,
@@ -275,6 +279,8 @@ class User:
 			id=data['id'],
 			email=data['email'],
 			name=data['name'],
+			country=data.get('country'),
+			state=data.get('state'),
 			grade=Grade(data['grade']) if data.get('grade') else None,
 			board=Board(data['board']) if data.get('board') else None,
 			city=data.get('city'),

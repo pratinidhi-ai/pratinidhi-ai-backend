@@ -12,6 +12,7 @@ import json
 import os
 import math
 import uuid
+import re
 
 from models.task_schema import Task, TaskType, TaskFrequency, Subject
 from models.users_schema import User
@@ -157,7 +158,7 @@ ENGLISH_TAG_TAXONOMY: Dict[str, List[str]] = {
 
 # Each tuple: (category_label, count).  Total must equal 6.
 TASK_DISTRIBUTION: List[Tuple[str, int]] = [
-    ("unexplored", 3),
+    ("unexplored", 2),
     ("weakness",   2),
     ("strength",   1),
 ]
@@ -166,7 +167,7 @@ TASK_DISTRIBUTION: List[Tuple[str, int]] = [
 STRENGTH_THRESHOLD: float = 75.0   # accuracy >= 75% → strength
 # unexplored threshold is dynamic: tags with attempts < 50% of mean are unexplored
 
-NUM_QUIZ_TASKS_PER_SUBJECT: int = 6   # 6 Math + 6 English
+NUM_QUIZ_TASKS_PER_SUBJECT: int = 5   # 5 Math + 5 English
 NUM_AI_TUTOR_TASKS: int = 2
 MOCK_TEST_SET_THRESHOLD: int = 3     # assign a mock test task after every Nth completed task set
 
@@ -428,15 +429,15 @@ def _select_topics_by_area(
     subject_key: str,
 ) -> List[Tuple[str, str]]:
     """
-    Select exactly NUM_QUIZ_TASKS_PER_SUBJECT (6) topics from one subcategory.
+    Select exactly NUM_QUIZ_TASKS_PER_SUBJECT (5) topics from one subcategory.
 
-    Distribution: 3 unexplored | 2 weakness | 1 strength
+    Distribution: 2 unexplored | 2 weakness | 1 strength
     Fallback order per bucket (same subcategory only):
         unexplored shortfall → refill from weakness, then strength
         weakness shortfall   → refill from unexplored, then strength
         strength shortfall   → refill from weakness, then unexplored
 
-    Returns a list of (area_label, topic) tuples — length ≤ 6.
+    Returns a list of (area_label, topic) tuples — length ≤ 5.
     All topics are distinct.
     """
     all_tags = tag_taxonomy.get(sub_category, [])
@@ -501,7 +502,7 @@ def _create_subcategory_tasks(
     task_offset: int,
 ) -> List[Task]:
     """
-    Generate up to NUM_QUIZ_TASKS_PER_SUBJECT (6) quiz tasks for ONE subcategory.
+    Generate up to NUM_QUIZ_TASKS_PER_SUBJECT (5) quiz tasks for ONE subcategory.
 
     Each task covers exactly ONE topic (10 questions, all from that topic).
     quiz_related_attributes keys:
@@ -608,15 +609,12 @@ def create_ai_tutorial_task(
 # SAT PREDICTOR TASK CREATION
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _get_total_quizzes(summary: Optional[Dict[str, Any]]) -> int:
-    """Return total normal quizzes completed from the performance summary."""
-    return summary.get("total_quizzes", 0) if summary else 0
-
-
 def _get_next_mock_test(user_id: str) -> Optional[Dict[str, str]]:
     """
-    Return the next mock test to assign — the first one the user hasn't attempted yet.
-    Falls back to the first available mock test if all have been attempted.
+    Return the next mock test to assign in strict numeric progression (1, 2, 3, ...),
+    skipping mocks already attempted by the user.
+
+    If all mocks have already been attempted, return None (do not repeat).
     Returns a dict with 'id' and 'name', or None on any error.
     """
     try:
@@ -625,13 +623,8 @@ def _get_next_mock_test(user_id: str) -> Optional[Dict[str, str]]:
         if db is None:
             return None
 
-        # Fetch all available mock tests (id + name only)
-        mock_docs = list(
-            db.collection("mock_tests")
-            .select(["id", "name"])
-            .order_by("created_at")
-            .stream()
-        )
+        # Fetch all available mock tests.
+        mock_docs = list(db.collection("mock_tests").select(["id", "name", "created_at"]).stream())
         if not mock_docs:
             return None
 
@@ -643,9 +636,38 @@ def _get_next_mock_test(user_id: str) -> Optional[Dict[str, str]]:
             .stream()
         }
 
-        # Pick first unattempted; fallback to first mock
-        unattempted = [d for d in mock_docs if d.id not in attempted_ids]
-        chosen = unattempted[0] if unattempted else mock_docs[0]
+        def _mock_number(doc_id: str, doc_name: Optional[str]) -> Optional[int]:
+            source = f"{doc_name or ''} {doc_id}"
+            match = re.search(r"(\d+)", source)
+            if not match:
+                return None
+            try:
+                return int(match.group(1))
+            except Exception:
+                return None
+
+        # Sort by extracted mock number first, then created_at, then id.
+        decorated: List[Tuple[int, datetime, str, Any]] = []
+        for d in mock_docs:
+            data = d.to_dict() or {}
+            seq = _mock_number(d.id, data.get("name"))
+            created_at = data.get("created_at")
+            if not isinstance(created_at, datetime):
+                created_at = datetime.max.replace(tzinfo=timezone.utc)
+            order_seq = seq if seq is not None else 10**9
+            decorated.append((order_seq, created_at, d.id, d))
+
+        decorated.sort(key=lambda x: (x[0], x[1], x[2]))
+
+        # Pick first unattempted mock in strict sequence. No repetition fallback.
+        chosen = None
+        for _, _, _, doc in decorated:
+            if doc.id not in attempted_ids:
+                chosen = doc
+                break
+        if chosen is None:
+            return None
+
         data = chosen.to_dict() or {}
         return {
             "id": chosen.id,
@@ -653,6 +675,25 @@ def _get_next_mock_test(user_id: str) -> Optional[Dict[str, str]]:
         }
     except Exception:
         return None
+
+
+def _has_any_mock_attempt(user_id: str) -> bool:
+    """Return True if the user has completed at least one mock attempt."""
+    try:
+        from database.firebase_client import get_firestore_client
+        db = get_firestore_client()
+        if db is None:
+            return False
+        attempts = (
+            db.collection("users")
+            .document(user_id)
+            .collection("mock_attempts")
+            .limit(1)
+            .stream()
+        )
+        return any(True for _ in attempts)
+    except Exception:
+        return False
 
 
 def _get_predictor_score(user: User) -> Optional[int]:
@@ -755,10 +796,12 @@ def assign_weekly_tasks(
         is set to True and this function is called again to produce Stage 2 tasks.
 
     Stage 2 — Full weekly tasks (sat_score_test_given is True):
-        Math  (6 quiz tasks):    3 Unexplored | 2 Weak | 1 Strength
-        English (6 quiz tasks):  3 Unexplored | 2 Weak | 1 Strength
+        Math  (5 quiz tasks):    2 Unexplored | 2 Weak | 1 Strength
+        English (5 quiz tasks):  2 Unexplored | 2 Weak | 1 Strength
         AI Tutor : exactly 2 tasks
-        Mock Test: 1 task, added when total normal quizzes is a multiple of 7 (7, 14, 21, ...)
+        Mock Test:
+            - First mock unlocks every 3 completed sets (3, 6, 9, ...)
+            - After a user completes any mock attempt, add one mock every new set
     """
     # ── Date setup ────────────────────────────────────────────────────────────
     current_date = _ensure_datetime(current_date)
@@ -866,9 +909,14 @@ def assign_weekly_tasks(
             task_number += 1
     print(f"[assign] AI Tutor tasks generated: {sum(1 for t in all_tasks if t.type_of_task == TaskType.AI_TUTORIAL)}")
 
-    # ── Mock Test task (every MOCK_TEST_SET_THRESHOLD completed task sets: 3, 6, 9 ...) ──
+    # ── Mock Test task criteria ────────────────────────────────────────────────
+    # 1) First unlock gate: every MOCK_TEST_SET_THRESHOLD completed sets
+    # 2) After first completed mock attempt: include one mock in every new set
     completed_sets = getattr(user, 'completed_task_sets', 0)
-    if completed_sets > 0 and completed_sets % MOCK_TEST_SET_THRESHOLD == 0:
+    unlock_by_sets = completed_sets > 0 and completed_sets % MOCK_TEST_SET_THRESHOLD == 0
+    unlock_by_prior_attempt = _has_any_mock_attempt(user.id)
+
+    if unlock_by_sets or unlock_by_prior_attempt:
         mock_info = _get_next_mock_test(user.id)
         if mock_info:
             mock_slot = tutor_slot_start + NUM_AI_TUTOR_TASKS + 1
