@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException, Depends, status, Header
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
-from database.user_db import get_user_db
 from database.task_db import get_task_db
+from database.user_db import get_user_db
 from helper.task_assignment import assign_weekly_tasks, should_assign_new_tasks
 import traceback
 import logging
@@ -87,8 +87,10 @@ def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
 
             try:
                 user = User.from_dict(user_data)
+                # Check whether user has any incomplete tasks
+                incomplete = task_db.get_incomplete_tasks(user.id)
 
-                if should_assign_new_tasks(user):
+                if should_assign_new_tasks(user, has_incomplete_tasks=len(incomplete) > 0):
                     logger.info(f"Admin: Assigning tasks for user {user.id}...")
                     new_tasks = assign_weekly_tasks(user)
 
@@ -98,10 +100,13 @@ def assign_all_weekly_tasks(x_admin_api_key: str = Header(None)):
                             raise Exception(f"Failed to save tasks batch for user {user.id}")
 
                         update_success = user_db.update_user(user.id, {
-                            'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
+                            'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None,
+                            'math_subcategory_index': getattr(user, 'math_subcategory_index', 0),
+                            'english_subcategory_index': getattr(user, 'english_subcategory_index', 0),
+                            'completed_task_sets': getattr(user, 'completed_task_sets', 0),
                         })
                         if not update_success:
-                            raise Exception(f"Failed to update current_week_start for user {user.id}")
+                            raise Exception(f"Failed to update task state for user {user.id}")
 
                         logger.info(f"Admin: Successfully assigned {len(new_tasks)} tasks to user {user.id}.")
                         processed_count += 1
@@ -155,7 +160,7 @@ def get_user_tasks(user_id: str, user: dict = Depends(authenticate_request)):
         user_obj = User.from_dict(user_doc.to_dict())
         
         task_service = TaskService(firestore_client)
-        tasks = task_service.fetch_current_tasks(user_obj)
+        tasks = task_service.fetch_assigned_tasks_only(user_obj)
         
         return {
             'success': True,
@@ -219,48 +224,219 @@ def mark_task_completed(
     request_data: CompleteTaskRequest,
     user: dict = Depends(authenticate_request)
 ):
-    """Mark a task as completed"""
+    """
+    Mark a task as completed based on task-type-specific criteria:
+
+    QUIZ (topic_category in quiz_related_attributes):
+        unexplored : score >= 40% of num_questions  (e.g. 4/10)
+        weak       : score >= 60% of num_questions  (e.g. 6/10)
+        strength   : score >= 80% of num_questions  (e.g. 8/10)
+
+    AI_TUTORIAL   : always completed when this endpoint is called (session done).
+    SAT_PREDICTOR : completed only when a sat_predictor_performance document exists for the user.
+    MOCK_TEST     : completed only when a mock_attempt exists for the task's mock_id.
+    """
     try:
         firestore_client = get_firestore_client()
         task_service = TaskService(firestore_client)
-        
+
+        # ── Fetch the task ─────────────────────────────────────────────────
+        task_ref = (
+            firestore_client.collection('users')
+            .document(user_id)
+            .collection('tasks')
+            .document(task_id)
+        )
+        task_doc = task_ref.get()
+        if not task_doc.exists:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={'error': 'Task not found'}
+            )
+
+        task_data = task_doc.to_dict()
+        task_obj = Task.from_dict(task_data)
+
         score = request_data.score
         attempt_data = request_data.attempt_data
-        
+
+        # ── Record the attempt ─────────────────────────────────────────────
         if score is not None or attempt_data:
             task_service.update_task_attempt(user_id, task_id, score=score, **attempt_data)
-        
-        success = task_service.mark_task_completed(user_id, task_id)
-        
-        if success:
-            task_ref = (firestore_client.collection('users')
-                       .document(user_id)
-                       .collection('tasks')
-                       .document(task_id))
-            
-            task_doc = task_ref.get()
-            if task_doc.exists:
-                task_data = task_doc.to_dict()
-                task_obj = Task.from_dict(task_data)
-                
-                if task_obj.type_of_task == TaskType.AI_TUTORIAL:
-                    chapter_id = task_obj.ai_tutorial_related_attributes.get('chapter_id')
-                    if chapter_id:
-                        user_doc = firestore_client.collection('users').document(user_id).get()
-                        if user_doc.exists:
-                            user_obj = User.from_dict(user_doc.to_dict())
-                            task_service.mark_chapter_completed(user_obj, chapter_id)
-            
-            return {
-                'success': True,
-                'message': 'Task marked as completed'
+
+        # ── Evaluate completion criteria ───────────────────────────────────
+        can_complete = False
+        failure_reason = None
+
+        if task_obj.type_of_task == TaskType.QUIZ:
+            quiz_attrs = task_obj.quiz_related_attributes
+            area = quiz_attrs.get('area') or quiz_attrs.get('topic_category', 'unexplored')
+            num_questions = quiz_attrs.get('num_questions', 10)
+
+            THRESHOLDS = {
+                'strength':  0.80,
+                'weak':      0.60,
+                'weakness':  0.60,
+                'unexplored': 0.40,
             }
+            threshold_pct = THRESHOLDS.get(area, 0.40)
+            required_score = threshold_pct * num_questions
+
+            if score is None:
+                failure_reason = 'Score is required to complete a quiz task.'
+            elif score >= required_score:
+                can_complete = True
+            else:
+                failure_reason = (
+                    f"Score {score}/{num_questions} does not meet the "
+                    f"passing threshold for a '{area}' task "
+                    f"({int(required_score)}/{num_questions} required)."
+                )
+
+        elif task_obj.type_of_task == TaskType.AI_TUTORIAL:
+            # Completed when the user has spent at least 15 minutes in a session for this chapter
+            MIN_TUTORIAL_MINUTES = 15
+            chapter_id = task_obj.ai_tutorial_related_attributes.get('chapter_id')
+            if not chapter_id:
+                can_complete = True  # No chapter linked — allow completion
+            else:
+                sessions_ref = (
+                    firestore_client.collection('session_summary')
+                    .document(user_id)
+                    .collection('sessions')
+                    .where('lecture_chapter', '==', chapter_id)
+                    .where('is_active', '==', False)
+                    .stream()
+                )
+                qualifying = [
+                    s for s in sessions_ref
+                    if (s.to_dict() or {}).get('duration_minutes', 0) >= MIN_TUTORIAL_MINUTES
+                ]
+                if qualifying:
+                    can_complete = True
+                else:
+                    failure_reason = (
+                        f"Please spend at least {MIN_TUTORIAL_MINUTES} minutes in the "
+                        f"AI Tutor session for this chapter before marking it complete."
+                    )
+
+        elif task_obj.type_of_task == TaskType.SAT_PREDICTOR:
+            # Completed only when the user has actually submitted the predictor test
+            # (at least one document exists in sat_predictor_performance subcollection)
+            perf_docs = (
+                firestore_client.collection('users')
+                .document(user_id)
+                .collection('sat_predictor_performance')
+                .limit(1)
+                .stream()
+            )
+            if any(True for _ in perf_docs):
+                can_complete = True
+            else:
+                failure_reason = (
+                    'Please complete and submit the SAT Score Predictor test '
+                    'before marking this task as done.'
+                )
+
+        elif task_obj.type_of_task == TaskType.MOCK_TEST:
+            # Completed when a mock_attempt document exists for this mock_id
+            mock_id = task_obj.quiz_related_attributes.get('mock_id')
+            if not mock_id:
+                failure_reason = 'Mock test task has no associated mock_id.'
+            else:
+                attempt_doc = (
+                    firestore_client.collection('users')
+                    .document(user_id)
+                    .collection('mock_attempts')
+                    .document(mock_id)
+                    .get()
+                )
+                if attempt_doc.exists:
+                    can_complete = True
+                else:
+                    failure_reason = (
+                        f"No completed attempt found for mock test '{mock_id}'. "
+                        "Please submit the mock test before marking this task complete."
+                    )
         else:
+            # Unknown task type — allow completion
+            can_complete = True
+
+        if not can_complete:
+            return {
+                'success': False,
+                'completed': False,
+                'message': failure_reason or 'Completion criteria not met.',
+            }
+
+        # ── Mark completed ─────────────────────────────────────────────────
+        success = task_service.mark_task_completed(user_id, task_id)
+        if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail={'error': 'Failed to mark task as completed'}
             )
-            
+
+        # ── Task-type side-effects ─────────────────────────────────────────────
+        if task_obj.type_of_task == TaskType.AI_TUTORIAL:
+            chapter_id = task_obj.ai_tutorial_related_attributes.get('chapter_id')
+            if chapter_id:
+                user_doc = firestore_client.collection('users').document(user_id).get()
+                if user_doc.exists:
+                    user_obj_data = User.from_dict(user_doc.to_dict())
+                    task_service.mark_chapter_completed(user_obj_data, chapter_id)
+
+        elif task_obj.type_of_task == TaskType.SAT_PREDICTOR:
+            # Flag that the user has now taken the SAT Predictor
+            firestore_client.collection('users').document(user_id).update(
+                {'sat_score_test_given': True}
+            )
+            # Auto-generate the first full task set (Stage 1 → Stage 2 transition)
+            try:
+                user_doc = firestore_client.collection('users').document(user_id).get()
+                if user_doc.exists:
+                    updated_user = User.from_dict(user_doc.to_dict())
+                    new_tasks = task_service._assign_new_weekly_tasks(updated_user)
+                    logger.info(f"Auto-assigned {len(new_tasks)} tasks after SAT Predictor completion for user {user_id}")
+            except Exception as auto_err:
+                logger.error(f"Failed to auto-assign tasks after SAT Predictor for user {user_id}: {auto_err}")
+
+        # ── If all tasks in the current set are done, rotate and assign next set ──
+        # (SAT_PREDICTOR handles its own first-set assignment above — skip here)
+        if task_obj.type_of_task != TaskType.SAT_PREDICTOR:
+            try:
+                task_db_instance = get_task_db()
+                remaining = task_db_instance.get_incomplete_tasks(user_id)
+                if len(remaining) == 0:
+                    # Every task completed — advance rotation indices and create next set
+                    user_doc = firestore_client.collection('users').document(user_id).get()
+                    if user_doc.exists:
+                        next_user = User.from_dict(user_doc.to_dict())
+                        next_user.math_subcategory_index = getattr(next_user, 'math_subcategory_index', 0) + 1
+                        next_user.english_subcategory_index = getattr(next_user, 'english_subcategory_index', 0) + 1
+                        next_user.completed_task_sets = getattr(next_user, 'completed_task_sets', 0) + 1
+                        # Persist indices before assignment so assign_weekly_tasks reads the new values
+                        firestore_client.collection('users').document(user_id).update({
+                            'math_subcategory_index': next_user.math_subcategory_index,
+                            'english_subcategory_index': next_user.english_subcategory_index,
+                            'completed_task_sets': next_user.completed_task_sets,
+                        })
+                        new_tasks = task_service._assign_new_weekly_tasks(next_user)
+                        logger.info(
+                            f"All tasks done for user {user_id} — assigned set "
+                            f"#{next_user.completed_task_sets} ({len(new_tasks)} tasks). "
+                            f"Math idx={next_user.math_subcategory_index}, "
+                            f"English idx={next_user.english_subcategory_index}"
+                        )
+            except Exception as set_err:
+                logger.error(f"Failed to auto-assign next task set for user {user_id}: {set_err}")
+
+        return {
+            'success': True,
+            'completed': True,
+            'message': 'Task marked as completed',
+        }
+
     except HTTPException:
         raise
     except Exception as e:

@@ -21,6 +21,7 @@ class TutorSession:
 		self.lecture_subject = lecture_subject  # For structured lecture notes (e.g., 'SAT')
 		self.lecture_chapter = lecture_chapter  # For structured lecture notes (e.g., 'Chapter 1')
 		self.session_system_prompt = session_system_prompt
+		self.duration_minutes = 0.0  # Calculated on session end
 
 	def to_dict(self):
 		return {
@@ -41,5 +42,6 @@ class TutorSession:
 			"is_active": self.is_active,
 			"created_at": self.created_at,  # Already in ISO format
 			"summary": self.summary,
-			"ended_at": self.ended_at if isinstance(self.ended_at, str) else (datetime.now(timezone.utc).isoformat() if self.ended_at else None)  # Convert to ISO if set
+			"ended_at": self.ended_at if isinstance(self.ended_at, str) else (datetime.now(timezone.utc).isoformat() if self.ended_at else None),  # Convert to ISO if set
+			"duration_minutes": self.duration_minutes
 		}

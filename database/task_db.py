@@ -73,7 +73,46 @@ class TaskDatabase:
         except Exception as e:
             logger.error(f"Error getting weekly tasks for user {user_id}: {str(e)}")
             return []
-    
+
+    def get_incomplete_tasks(self, user_id: str) -> List[Task]:
+        """Get all incomplete (not yet completed) tasks for a user."""
+        try:
+            tasks_ref = (
+                self.db.collection('users')
+                .document(user_id)
+                .collection('tasks')
+            )
+            query = tasks_ref.where('completed', '==', False)
+            tasks = []
+            for doc in query.stream():
+                task_data = doc.to_dict()
+                task_data['id'] = doc.id
+                tasks.append(Task.from_dict(task_data))
+            logger.info(f"Found {len(tasks)} incomplete tasks for user {user_id}")
+            return tasks
+        except Exception as e:
+            logger.error(f"Error getting incomplete tasks for user {user_id}: {str(e)}")
+            return []
+
+    def get_all_tasks(self, user_id: str) -> List[Task]:
+        """Get all tasks for a user regardless of completion or date."""
+        try:
+            tasks_ref = (
+                self.db.collection('users')
+                .document(user_id)
+                .collection('tasks')
+            )
+            tasks = []
+            for doc in tasks_ref.stream():
+                task_data = doc.to_dict()
+                task_data['id'] = doc.id
+                tasks.append(Task.from_dict(task_data))
+            logger.info(f"Retrieved all {len(tasks)} tasks for user {user_id}")
+            return tasks
+        except Exception as e:
+            logger.error(f"Error getting all tasks for user {user_id}: {str(e)}")
+            return []
+
     def get_task_by_id(self, user_id: str, task_id: str) -> Optional[Task]:
         """Get a specific task by ID"""
         try:

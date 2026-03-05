@@ -19,7 +19,8 @@ def authenticate_request(credentials: HTTPAuthorizationCredentials = Depends(sec
 		# Get Firebase Auth instance
 		auth = get_auth()
 		# The decoded token contains user info like UID, email, etc.
-		decoded_token = auth.verify_id_token(id_token)
+		# clock_skew_seconds tolerates minor clock drift between this server and Firebase
+		decoded_token = auth.verify_id_token(id_token, clock_skew_seconds=60)
 		
 		# Return the decoded token which can be used in the route
 		return decoded_token

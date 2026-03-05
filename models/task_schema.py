@@ -10,6 +10,8 @@ def _get_utc_now():
 class TaskType(Enum):
     QUIZ = "quiz"
     AI_TUTORIAL = "AI Tutorial"
+    SAT_PREDICTOR = "sat_predictor"
+    MOCK_TEST = "mock_test"
 
 class TaskFrequency(Enum):
     WEEKLY = "weekly"
@@ -77,6 +79,7 @@ class Task:
         duration_minutes: int = 10,
         passing_score: float = 70.0,
         start_date_of_week: Optional[datetime] = None,
+        task_type_override: Optional[str] = None,
         **kwargs
     ) -> 'Task':
         """Create a quiz task with default quiz attributes"""
@@ -89,14 +92,16 @@ class Task:
             'passing_score': passing_score,
             **kwargs
         }
-        
+
+        resolved_type = TaskType(task_type_override) if task_type_override else TaskType.QUIZ
+
         return cls(
             id=str(uuid.uuid4()),
             title=title,
             description=description,
             due_date=due_date,
             completed=False,
-            type_of_task=TaskType.QUIZ,
+            type_of_task=resolved_type,
             created_at=_get_utc_now(),
             frequency=TaskFrequency.WEEKLY,
             task_number=task_number,
@@ -145,32 +150,6 @@ class Task:
             attempts_info={'attempts': 0, 'completed_sections': [], 'last_session': None}
         )
     
-    def mark_completed(self) -> None:
-        """Mark the task as completed"""
-        self.completed = True
-    
-    def update_task_details(self, **kwargs) -> None:
-        """Update task details with provided key-value pairs"""
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-    
-    def add_attempt(self, score: Optional[float] = None, **attempt_data) -> None:
-        """Add an attempt record to the task"""
-        if 'attempts' not in self.attempts_info:
-            self.attempts_info['attempts'] = 0
-        
-        self.attempts_info['attempts'] += 1
-        self.attempts_info['last_attempt'] = _get_utc_now().isoformat()
-        
-        if score is not None:
-            if self.attempts_info.get('best_score') is None or score > self.attempts_info['best_score']:
-                self.attempts_info['best_score'] = score
-        
-        # Store additional attempt data
-        for key, value in attempt_data.items():
-            self.attempts_info[key] = value
-    
     def to_dict(self) -> Dict[str, Any]:
         """Convert Task object to dictionary for Firestore storage"""
         return {
@@ -214,6 +193,20 @@ class Task:
             attempts_info=data.get('attempts_info', {})
         )
     
+    def add_attempt(self, score: Optional[float] = None, **kwargs) -> None:
+        """Record a new attempt with score and any extra data."""
+        attempts = self.attempts_info.get('attempts', 0) + 1
+        best = self.attempts_info.get('best_score')
+        if score is not None:
+            best = score if best is None else max(best, score)
+        self.attempts_info = {
+            **self.attempts_info,
+            **kwargs,
+            'attempts': attempts,
+            'best_score': best,
+            'last_attempt': datetime.now(timezone.utc).isoformat(),
+        }
+
     def is_overdue(self) -> bool:
         """Check if the task is overdue"""
         if not self.due_date:

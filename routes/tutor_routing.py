@@ -175,13 +175,25 @@ def end_session(session_id: str, user: dict = Depends(authenticate_request)):
             )
         
         session.is_active = False
-        session.ended_at = datetime.now(timezone.utc).isoformat()
+        ended_at = datetime.now(timezone.utc)
+        session.ended_at = ended_at.isoformat()
+
+        # Calculate how long the session lasted
+        try:
+            started_at = datetime.fromisoformat(session.created_at)
+            if started_at.tzinfo is None:
+                started_at = started_at.replace(tzinfo=timezone.utc)
+            session.duration_minutes = round((ended_at - started_at).total_seconds() / 60, 2)
+        except Exception:
+            session.duration_minutes = 0.0
+
         session.summary = generate_summary(session.messages)
-        
+
         response_data = {
             "success": True,
             "summary": session.summary,
-            "total_messages": session.length
+            "total_messages": session.length,
+            "duration_minutes": session.duration_minutes,
         }
         if not saveSessionSummary(session=session): 
             logger.warning("Error in storing user session summary.")
