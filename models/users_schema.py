@@ -107,6 +107,8 @@ class User:
 	name: str
 	
 	#additionals
+	country: Optional[str] = None
+	state: Optional[str] = None
 	grade: Optional[Grade] = None
 	board: Optional[Board] = None
 	city: Optional[str] = None
@@ -139,6 +141,14 @@ class User:
 	num_tasks : Optional[int] = 16
 	predicted_score: Optional[int] = None  # Predicted SAT score from assessments
 
+	# Task onboarding flags
+	sat_score_test_given: bool = False
+
+	# Task set rotation tracking
+	math_subcategory_index: int = 0        # 0=Algebra, 1=Advanced Math, 2=Problem Solving, 3=Geometry
+	english_subcategory_index: int = 0     # 0=Craft&Structure, 1=Expression, 2=Info&Ideas, 3=StdEnglish
+	completed_task_sets: int = 0           # How many full task sets the user has finished
+
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
 	updated_at: datetime = field(default_factory=_get_utc_now)
@@ -152,6 +162,8 @@ class User:
 			'id': self.id,
 			'email': self.email,
 			'name': self.name,
+			'country': self.country,
+			'state': self.state,
 			'grade': self.grade.value if self.grade else None,
 			'board': self.board.value if self.board else None,
 			'city': self.city,
@@ -200,6 +212,10 @@ class User:
 			'completed_tutorial_tags': dict(self.completed_tutorial_tags),
 			'num_tasks': self.num_tasks,
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
+			'sat_score_test_given': self.sat_score_test_given,
+			'math_subcategory_index': self.math_subcategory_index,
+			'english_subcategory_index': self.english_subcategory_index,
+			'completed_task_sets': self.completed_task_sets,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
 			'onboarding_completed': self.onboarding_completed,
@@ -263,6 +279,8 @@ class User:
 			id=data['id'],
 			email=data['email'],
 			name=data['name'],
+			country=data.get('country'),
+			state=data.get('state'),
 			grade=Grade(data['grade']) if data.get('grade') else None,
 			board=Board(data['board']) if data.get('board') else None,
 			city=data.get('city'),
@@ -277,6 +295,10 @@ class User:
 			predicted_score=predicted_score,
 			completed_chapters=data.get('completed_chapters', []),
 			current_week_start=_parse_datetime(data.get('current_week_start')),
+			sat_score_test_given=data.get('sat_score_test_given', False),
+			math_subcategory_index=data.get('math_subcategory_index', 0),
+			english_subcategory_index=data.get('english_subcategory_index', 0),
+			completed_task_sets=data.get('completed_task_sets', 0),
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			num_tasks=data.get('num_tasks', 16),

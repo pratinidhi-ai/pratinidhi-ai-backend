@@ -52,56 +52,89 @@ class TaskService:
         except Exception as e:
             print(f"Error fetching current tasks for user {user.id}: {e}")
             return []
+
+    def fetch_assigned_tasks_only(self, user: User) -> List[Task]:
+        """
+        Return outstanding (incomplete) tasks for the user.
+        If none remain, auto-assign the next set and return those instead.
+        """
+        try:
+            tasks = self.task_db.get_incomplete_tasks(user.id)
+            if not tasks:
+                # All tasks done but next set not yet assigned — recover here
+                tasks = self._assign_new_weekly_tasks(user)
+            tasks.sort(key=lambda t: calculate_task_priority(t))
+            return tasks
+        except Exception as e:
+            print(f"Error fetching assigned tasks for user {user.id}: {e}")
+            return []
+
+    def fetch_all_current_tasks(self, user: User) -> List[Task]:
+        """
+        Return ALL tasks (completed + incomplete) belonging to the user's current
+        task set, identified by start_date_of_week == user.current_week_start.
+        Falls back to get_all_tasks if current_week_start is not set.
+        """
+        try:
+            week_start = getattr(user, 'current_week_start', None)
+            if week_start:
+                tasks = self.task_db.get_tasks_by_week(user.id, week_start)
+                # get_tasks_by_week may return 0 docs if isoformat doesn't match;
+                # fall back to all tasks in that case
+                if not tasks:
+                    tasks = self.task_db.get_all_tasks(user.id)
+            else:
+                tasks = self.task_db.get_all_tasks(user.id)
+            tasks.sort(key=lambda t: t.task_number)
+            return tasks
+        except Exception as e:
+            print(f"Error fetching all current tasks for user {user.id}: {e}")
+            return []
     
     def _assign_new_weekly_tasks(self, user: User) -> List[Task]:
-        """Assign new tasks for the current week"""
+        """Assign a new task set and persist all user rotation fields."""
         try:
             new_tasks = assign_weekly_tasks(user)
-            
-            # Save tasks to Firestore
+
             if self.firestore_client and new_tasks:
                 self._save_tasks_to_firestore(new_tasks)
-                # Update user's current_week_start in Firestore
-                self._update_user_week_start(user)
-            
+                self._persist_user_task_state(user)
+
             return sorted(new_tasks, key=lambda t: calculate_task_priority(t))
-            
+
         except Exception as e:
-            print(f"Error assigning new weekly tasks for user {user.id}: {e}")
+            print(f"Error assigning new tasks for user {user.id}: {e}")
             return []
     
     def _get_existing_weekly_tasks(self, user: User) -> List[Task]:
-        """Fetch existing tasks for the current week"""
+        """Fetch all incomplete tasks for the user (set-based, not calendar-week-based)."""
         try:
-            # Use task database to get tasks by week
-            from helper.task_assignment import get_week_start
-            week_start = get_week_start()
-            return self.task_db.get_tasks_by_week(user.id, week_start)
-            
+            return self.task_db.get_incomplete_tasks(user.id)
         except Exception as e:
-            print(f"Error fetching existing weekly tasks for user {user.id}: {e}")
+            print(f"Error fetching existing tasks for user {user.id}: {e}")
             return []
+
+    def _persist_user_task_state(self, user: User) -> bool:
+        """Save rotation indices and completed_task_sets back to Firestore."""
+        try:
+            return self.user_db.update_user(user.id, {
+                'math_subcategory_index': getattr(user, 'math_subcategory_index', 0),
+                'english_subcategory_index': getattr(user, 'english_subcategory_index', 0),
+                'completed_task_sets': getattr(user, 'completed_task_sets', 0),
+                'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None,
+            })
+        except Exception as e:
+            print(f"Error persisting user task state for {user.id}: {e}")
+            return False
     
     def _save_tasks_to_firestore(self, tasks: List[Task]) -> bool:
-        """Save tasks using task database"""
+        """Save a batch of tasks using task database."""
         try:
             return self.task_db.create_tasks_batch(tasks)
-            
         except Exception as e:
             print(f"Error saving tasks: {e}")
             return False
-    
-    def _update_user_week_start(self, user: User) -> bool:
-        """Update user's current_week_start using user database"""
-        try:
-            return self.user_db.update_user(user.id, {
-                'current_week_start': user.current_week_start.isoformat() if user.current_week_start else None
-            })
-            
-        except Exception as e:
-            print(f"Error updating user week start: {e}")
-            return False
-    
+
     def mark_task_completed(self, user_id: str, task_id: str) -> bool:
         """Mark a specific task as completed"""
         try:

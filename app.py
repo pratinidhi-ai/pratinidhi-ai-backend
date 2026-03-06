@@ -55,32 +55,65 @@ app.add_middleware(
 # Add metrics collection middleware
 app.add_middleware(MetricsMiddleware)
 
-# Import and include routers
-try:
-    from routes.user_routing import user_router
-    from routes.tutor_routing import tutor_router
-    from routes.task_routing import task_router
-    from routes.question_routing import question_router
-    from routes.analytics_routing import analytics_router
-    from routes.math_tutor_routing import math_tutor_router
-    from routes.leaderboard_routing import router as leaderboard_router
-    from routes.subscribe_routing import router as subscribe_router
-    from routes.coupon_routing import router as coupon_router
-    from routes.metrics_routing import router as metrics_router
+# Import and include routers individually so one failure doesn't kill all routes
+def _load_router(import_fn, name):
+    try:
+        router = import_fn()
+        app.include_router(router)
+        logger.info(f"Router loaded: {name}")
+    except Exception as e:
+        logger.error(f"Failed to load router '{name}': {str(e)}", exc_info=True)
 
-    app.include_router(user_router)
-    app.include_router(tutor_router)
-    app.include_router(task_router)
-    app.include_router(question_router)
-    app.include_router(analytics_router)
-    app.include_router(math_tutor_router)
-    app.include_router(leaderboard_router)
-    app.include_router(subscribe_router)
-    app.include_router(coupon_router)
-    app.include_router(metrics_router)
-    logger.info("Routers loaded successfully")
-except Exception as e:
-    logger.error(f"Failed to load routers: {str(e)}")
+def _import_user_router():
+    from routes.user_routing import user_router
+    return user_router
+
+def _import_tutor_router():
+    from routes.tutor_routing import tutor_router
+    return tutor_router
+
+def _import_task_router():
+    from routes.task_routing import task_router
+    return task_router
+
+def _import_question_router():
+    from routes.question_routing import question_router
+    return question_router
+
+def _import_analytics_router():
+    from routes.analytics_routing import analytics_router
+    return analytics_router
+
+def _import_math_tutor_router():
+    from routes.math_tutor_routing import math_tutor_router
+    return math_tutor_router
+
+def _import_leaderboard_router():
+    from routes.leaderboard_routing import router
+    return router
+
+def _import_subscribe_router():
+    from routes.subscribe_routing import router
+    return router
+
+def _import_coupon_router():
+    from routes.coupon_routing import router
+    return router
+
+def _import_metrics_router():
+    from routes.metrics_routing import router
+    return router
+
+_load_router(_import_user_router, "user")
+_load_router(_import_tutor_router, "tutor")
+_load_router(_import_task_router, "task")
+_load_router(_import_question_router, "question")
+_load_router(_import_analytics_router, "analytics")
+_load_router(_import_math_tutor_router, "math_tutor")
+_load_router(_import_leaderboard_router, "leaderboard")
+_load_router(_import_subscribe_router, "subscribe")
+_load_router(_import_coupon_router, "coupon")
+_load_router(_import_metrics_router, "metrics")
 
 # Load mock router separately to ensure it works even if other routers fail
 try:

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import razorpay
 import os
 from helper.middleware import authenticate_request
-from database.user_db import getUserbyId, get_user_db
+from database.user_db import get_user_db
 from models.users_schema import SubscriptionType, PlanType
 from datetime import datetime, timedelta, timezone
 import logging
@@ -37,7 +37,7 @@ class PlanDetails(BaseModel):
     interval: int
     currency: str
 
-FREE_TRIAL_DAYS = 14
+FREE_TRIAL_DAYS = 7
 MONTHLY_DAYS = 30
 YEARLY_DAYS = 365
 SECONDS_PER_DAY = 86400
@@ -340,8 +340,7 @@ def subscription_status(user_id: str, country: str | None = None, user: dict = D
     try:
         validate_user_id(user_id)
         
-        user_data =get_user(user_id)
-        user_data = getUserbyId(user_id=user_id)
+        user_data = get_user(user_id)
         subscription_data = user_data.get('subscription', {})
         
         remaining_days = 0
