@@ -15,7 +15,7 @@ import uuid
 import re
 
 from models.task_schema import Task, TaskType, TaskFrequency, Subject
-from models.users_schema import User
+from models.users_schema import User, PlanType, SubscriptionType
 from database.question_db import get_question_db
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -170,6 +170,26 @@ STRENGTH_THRESHOLD: float = 75.0   # accuracy >= 75% → strength
 NUM_QUIZ_TASKS_PER_SUBJECT: int = 5   # 5 Math + 5 English
 NUM_AI_TUTOR_TASKS: int = 2
 MOCK_TEST_SET_THRESHOLD: int = 3     # assign a mock test task after every Nth completed task set
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FREE TRIAL LIMITS  (one-time caps for the whole trial period, not per-week)
+# SAT Predictor is already capped to 1 lifetime chance via user.sat_score_test_given.
+# ─────────────────────────────────────────────────────────────────────────────
+
+TRIAL_QUIZ_LIMIT: int = 3       # total Math + English quizzes combined
+TRIAL_AI_TUTOR_LIMIT: int = 1
+TRIAL_MOCK_LIMIT: int = 1
+
+
+def is_trial_user(user: User) -> bool:
+    """Return True if the user is currently on an active free trial."""
+    subscription = getattr(user, 'subscription', None)
+    if subscription is None:
+        return False
+    return (
+        getattr(subscription, 'type', None) == SubscriptionType.PRO
+        and getattr(subscription, 'plan_type', None) == PlanType.TRIAL
+    )
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DATE UTILITIES
@@ -500,9 +520,11 @@ def _create_subcategory_tasks(
     current_due_date: datetime,
     days_per_task: float,
     task_offset: int,
+    max_tasks: Optional[int] = None,
 ) -> List[Task]:
     """
-    Generate up to NUM_QUIZ_TASKS_PER_SUBJECT (5) quiz tasks for ONE subcategory.
+    Generate up to NUM_QUIZ_TASKS_PER_SUBJECT (5) quiz tasks for ONE subcategory,
+    or fewer if max_tasks is given (e.g. to cap trial users to a handful of quizzes).
 
     Each task covers exactly ONE topic (10 questions, all from that topic).
     quiz_related_attributes keys:
@@ -513,14 +535,21 @@ def _create_subcategory_tasks(
         tags        – [topic]  (kept for query compatibility)
         num_questions, difficulty_level, duration_minutes, passing_score
     """
+    if max_tasks is not None and max_tasks <= 0:
+        return []
+
     sub_cat = area["sub_category"]
     subcategory_out = area.get("subcategory", sub_cat)
     topic_area_pairs = _select_topics_by_area(sub_cat, tag_taxonomy, summary, subject_key)
 
     # Fallback: use random facet tags if classification returned nothing
     if not topic_area_pairs:
-        fallback_tags = get_random_tags_for_facet(area["facet_doc"], NUM_QUIZ_TASKS_PER_SUBJECT)
+        fallback_count = max_tasks if max_tasks is not None else NUM_QUIZ_TASKS_PER_SUBJECT
+        fallback_tags = get_random_tags_for_facet(area["facet_doc"], fallback_count)
         topic_area_pairs = [("unexplored", t) for t in fallback_tags]
+
+    if max_tasks is not None:
+        topic_area_pairs = topic_area_pairs[:max_tasks]
 
     tasks: List[Task] = []
     task_number = base_task_number
@@ -796,12 +825,19 @@ def assign_weekly_tasks(
         is set to True and this function is called again to produce Stage 2 tasks.
 
     Stage 2 — Full weekly tasks (sat_score_test_given is True):
-        Math  (5 quiz tasks):    2 Unexplored | 2 Weak | 1 Strength
-        English (5 quiz tasks):  2 Unexplored | 2 Weak | 1 Strength
-        AI Tutor : exactly 2 tasks
-        Mock Test:
-            - First mock unlocks every 3 completed sets (3, 6, 9, ...)
-            - After a user completes any mock attempt, add one mock every new set
+        Regular users:
+            Math  (5 quiz tasks):    2 Unexplored | 2 Weak | 1 Strength
+            English (5 quiz tasks):  2 Unexplored | 2 Weak | 1 Strength
+            AI Tutor : exactly 2 tasks
+            Mock Test:
+                - First mock unlocks every 3 completed sets (3, 6, 9, ...)
+                - After a user completes any mock attempt, add one mock every new set
+        Trial users (is_trial_user(user) is True) — one-time caps for the whole trial:
+            Quizzes (Math + English combined): TRIAL_QUIZ_LIMIT (3)
+            AI Tutor: TRIAL_AI_TUTOR_LIMIT (1)
+            Mock Test: TRIAL_MOCK_LIMIT (1)
+            Once all three are used up, returns [] (SAT Predictor is separately
+            capped to 1 lifetime chance via sat_score_test_given for everyone).
     """
     # ── Date setup ────────────────────────────────────────────────────────────
     current_date = _ensure_datetime(current_date)
@@ -814,10 +850,6 @@ def assign_weekly_tasks(
     user.current_week_start = week_start
 
     days_left = get_days_left_in_week(current_date)
-
-    # Estimate total slots for even due-date spacing
-    total_slots = NUM_QUIZ_TASKS_PER_SUBJECT * 2 + NUM_AI_TUTOR_TASKS + 1
-    days_per_task: float = max(1.0, days_left / total_slots)
 
     # ── Stage 1: SAT Predictor (user has never taken it) ─────────────────────
     if not getattr(user, "sat_score_test_given", False):
@@ -832,6 +864,31 @@ def assign_weekly_tasks(
         )]
 
     print("[assign] Stage 2: generating full task set")
+    is_trial = is_trial_user(user)
+
+    # ── Trial quota — one-time caps for the whole trial period ───────────────
+    if is_trial:
+        remaining_quiz = max(0, TRIAL_QUIZ_LIMIT - getattr(user, 'trial_quizzes_completed', 0))
+        remaining_tutor = max(0, TRIAL_AI_TUTOR_LIMIT - getattr(user, 'trial_ai_tutorials_completed', 0))
+        remaining_mock = max(0, TRIAL_MOCK_LIMIT - getattr(user, 'trial_mock_completed', 0))
+
+        if remaining_quiz == 0 and remaining_tutor == 0 and remaining_mock == 0:
+            print(f"[assign] Trial quota fully used for user {user.id} — no further tasks")
+            return []
+
+        math_quiz_count = (remaining_quiz + 1) // 2  # ceil half
+        english_quiz_count = remaining_quiz - math_quiz_count
+        tutor_quota = remaining_tutor
+    else:
+        remaining_mock = None  # unused — normal set-based unlock logic applies below
+        math_quiz_count = NUM_QUIZ_TASKS_PER_SUBJECT
+        english_quiz_count = NUM_QUIZ_TASKS_PER_SUBJECT
+        tutor_quota = NUM_AI_TUTOR_TASKS
+
+    # Estimate total slots for even due-date spacing
+    total_slots = max(1, math_quiz_count + english_quiz_count + tutor_quota + 1)
+    days_per_task: float = max(1.0, days_left / total_slots)
+
     # ── Fetch analytics once ─────────────────────────────────────────────────
     summary = _fetch_performance_summary(user.id)
 
@@ -842,7 +899,7 @@ def assign_weekly_tasks(
     math_idx = getattr(user, 'math_subcategory_index', 0) % len(MATH_AREAS)
     english_idx = getattr(user, 'english_subcategory_index', 0) % len(ENGLISH_AREAS)
 
-    # ── Math quiz tasks (6) ───────────────────────────────────────────────────
+    # ── Math quiz tasks ───────────────────────────────────────────────────────
     math_area = MATH_AREAS[math_idx]
     print(f"[assign] Math subcategory (index {math_idx}): {math_area.get('sub_category')}")
     math_tasks = _create_subcategory_tasks(
@@ -858,12 +915,13 @@ def assign_weekly_tasks(
         current_due_date=base_due,
         days_per_task=days_per_task,
         task_offset=0,
+        max_tasks=math_quiz_count,
     )
     print(f"[assign] Math tasks generated: {len(math_tasks)}")
     all_tasks.extend(math_tasks)
     task_number += len(math_tasks)
 
-    # ── English quiz tasks (6) ────────────────────────────────────────────────
+    # ── English quiz tasks ─────────────────────────────────────────────────────
     english_area = ENGLISH_AREAS[english_idx]
     print(f"[assign] English subcategory (index {english_idx}): {english_area.get('sub_category')}")
     english_tasks = _create_subcategory_tasks(
@@ -878,17 +936,18 @@ def assign_weekly_tasks(
         week_end=week_end,
         current_due_date=base_due,
         days_per_task=days_per_task,
-        task_offset=NUM_QUIZ_TASKS_PER_SUBJECT,
+        task_offset=math_quiz_count,
+        max_tasks=english_quiz_count,
     )
     print(f"[assign] English tasks generated: {len(english_tasks)}")
     all_tasks.extend(english_tasks)
     task_number += len(english_tasks)
 
-    # ── AI Tutor tasks (exactly 2) ────────────────────────────────────────────
+    # ── AI Tutor tasks ─────────────────────────────────────────────────────────
     chapters_assigned: List[str] = []
-    tutor_slot_start = NUM_QUIZ_TASKS_PER_SUBJECT * 2
+    tutor_slot_start = math_quiz_count + english_quiz_count
 
-    for i in range(NUM_AI_TUTOR_TASKS):
+    for i in range(tutor_quota):
         next_chapter = user.get_next_chapter(already_selected_chapters=chapters_assigned)
         if not next_chapter:
             break
@@ -910,16 +969,22 @@ def assign_weekly_tasks(
     print(f"[assign] AI Tutor tasks generated: {sum(1 for t in all_tasks if t.type_of_task == TaskType.AI_TUTORIAL)}")
 
     # ── Mock Test task criteria ────────────────────────────────────────────────
-    # 1) First unlock gate: every MOCK_TEST_SET_THRESHOLD completed sets
-    # 2) After first completed mock attempt: include one mock in every new set
-    completed_sets = getattr(user, 'completed_task_sets', 0)
-    unlock_by_sets = completed_sets > 0 and completed_sets % MOCK_TEST_SET_THRESHOLD == 0
-    unlock_by_prior_attempt = _has_any_mock_attempt(user.id)
+    # Trial users: exactly one mock test, ever, regardless of set count.
+    # Regular users:
+    #   1) First unlock gate: every MOCK_TEST_SET_THRESHOLD completed sets
+    #   2) After first completed mock attempt: include one mock in every new set
+    if is_trial:
+        unlock_mock = remaining_mock > 0
+    else:
+        completed_sets = getattr(user, 'completed_task_sets', 0)
+        unlock_by_sets = completed_sets > 0 and completed_sets % MOCK_TEST_SET_THRESHOLD == 0
+        unlock_by_prior_attempt = _has_any_mock_attempt(user.id)
+        unlock_mock = unlock_by_sets or unlock_by_prior_attempt
 
-    if unlock_by_sets or unlock_by_prior_attempt:
+    if unlock_mock:
         mock_info = _get_next_mock_test(user.id)
         if mock_info:
-            mock_slot = tutor_slot_start + NUM_AI_TUTOR_TASKS + 1
+            mock_slot = tutor_slot_start + tutor_quota + 1
             mock_due  = base_due + timedelta(days=int(mock_slot * days_per_task))
             mock_due  = min(mock_due, week_end)
 

@@ -150,6 +150,11 @@ class User:
 	english_subcategory_index: int = 0     # 0=Craft&Structure, 1=Expression, 2=Info&Ideas, 3=StdEnglish
 	completed_task_sets: int = 0           # How many full task sets the user has finished
 
+	# Free trial usage caps (one-time for the whole trial; SAT predictor uses sat_score_test_given)
+	trial_quizzes_completed: int = 0
+	trial_ai_tutorials_completed: int = 0
+	trial_mock_completed: int = 0
+
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
 	updated_at: datetime = field(default_factory=_get_utc_now)
@@ -218,6 +223,9 @@ class User:
 			'math_subcategory_index': self.math_subcategory_index,
 			'english_subcategory_index': self.english_subcategory_index,
 			'completed_task_sets': self.completed_task_sets,
+			'trial_quizzes_completed': self.trial_quizzes_completed,
+			'trial_ai_tutorials_completed': self.trial_ai_tutorials_completed,
+			'trial_mock_completed': self.trial_mock_completed,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
 			'onboarding_completed': self.onboarding_completed,
@@ -302,6 +310,9 @@ class User:
 			math_subcategory_index=data.get('math_subcategory_index', 0),
 			english_subcategory_index=data.get('english_subcategory_index', 0),
 			completed_task_sets=data.get('completed_task_sets', 0),
+			trial_quizzes_completed=data.get('trial_quizzes_completed', 0),
+			trial_ai_tutorials_completed=data.get('trial_ai_tutorials_completed', 0),
+			trial_mock_completed=data.get('trial_mock_completed', 0),
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			num_tasks=data.get('num_tasks', 16),
