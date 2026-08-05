@@ -107,6 +107,7 @@ class User:
 	name: str
 	
 	#additionals
+	phone: Optional[str] = None
 	country: Optional[str] = None
 	state: Optional[str] = None
 	grade: Optional[Grade] = None
@@ -162,6 +163,7 @@ class User:
 			'id': self.id,
 			'email': self.email,
 			'name': self.name,
+			'phone': self.phone,
 			'country': self.country,
 			'state': self.state,
 			'grade': self.grade.value if self.grade else None,
@@ -279,6 +281,7 @@ class User:
 			id=data['id'],
 			email=data['email'],
 			name=data['name'],
+			phone=data.get('phone'),
 			country=data.get('country'),
 			state=data.get('state'),
 			grade=Grade(data['grade']) if data.get('grade') else None,
