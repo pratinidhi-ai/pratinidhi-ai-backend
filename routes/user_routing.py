@@ -54,6 +54,7 @@ class CreateUserRequest(BaseModel):
     id: str
     email: str
     name: str
+    phone: Optional[str] = None
     country: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
@@ -72,6 +73,7 @@ class UpdateTaskNumRequest(BaseModel):
 class UpdateUserRequest(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
+    phone: Optional[str] = None
     country: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
