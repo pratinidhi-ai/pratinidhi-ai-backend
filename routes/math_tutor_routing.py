@@ -11,10 +11,35 @@ from helper.middleware import authenticate_request
 from math_tutor.math_tutor_response import generate_math_tutor_response, review_student_solution
 from math_tutor.math_ai_video_generator import generate_math_ai_video
 from math_tutor.process_video import process_knolify_video
+from database.user_db import getUserbyId, record_trial_activity
+from models.users_schema import User, TRIAL_MATH_SOLVER_LIMIT
 
 logger = logging.getLogger(__name__)
 
 math_tutor_router = APIRouter(prefix="/api/math_tutor", tags=["math_tutor"])
+
+
+def _check_math_solver_trial_limit(user: dict) -> Optional[str]:
+    """
+    Raise 403 if the authenticated user is on trial and has used up their
+    trial Math Solver attempts. Returns the user's uid for trial-usage
+    recording after a successful solve (None if uid can't be resolved).
+    """
+    uid = user.get('uid')
+    if not uid:
+        return uid
+    user_data = getUserbyId(uid)
+    if user_data:
+        user_obj = User.from_dict(user_data)
+        if user_obj.is_on_trial() and user_obj.trial_math_solver_completed >= TRIAL_MATH_SOLVER_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    'error': 'Trial limit reached',
+                    'message': 'You have used your trial Math Solver attempts. Upgrade to continue.'
+                }
+            )
+    return uid
 
 
 # Pydantic models for request/response
@@ -77,10 +102,12 @@ async def solve_math_problem(
         JSON response with step-by-step solution in LaTeX format
     """
     try:
+        uid = _check_math_solver_trial_limit(user)
+
         # Extract inputs - either text problem or image
         math_problem = data.problem
         image_data = data.image
-        
+
         # Validate that at least one input type is provided
         if not math_problem and not image_data:
             raise HTTPException(
@@ -118,17 +145,23 @@ async def solve_math_problem(
             "solution": solution,
             "input_type": input_type
         }
-        
+
         # Include the problem text in response if provided
         if math_problem:
             response_data["problem"] = math_problem
-        
+
+        if uid:
+            record_trial_activity(uid, 'math_solver')
+
         return response_data
         
+    except HTTPException:
+        raise
+
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
         raise HTTPException(status_code=400, detail=f"Validation error: {str(ve)}")
-        
+
     except Exception as e:
         logger.error(f"Error solving math problem: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to solve math problem: {str(e)}")
@@ -157,8 +190,10 @@ async def solve_math_problem_with_video(
         JSON response with solution and video links
     """
     try:
+        uid = _check_math_solver_trial_limit(user)
+
         logger.info(f"Solving math problem with video generation: {data.generate_video}")
-        
+
         # Generate solution (run in thread pool to avoid blocking)
         solution = await asyncio.to_thread(
             generate_math_tutor_response,
@@ -228,13 +263,16 @@ async def solve_math_problem_with_video(
                     "status": "failed",
                     "error": str(video_error)
                 }
-        
+
+        if uid:
+            record_trial_activity(uid, 'math_solver')
+
         return response_data
-        
+
     except ValueError as ve:
         logger.warning(f"Validation error: {str(ve)}")
         raise HTTPException(status_code=400, detail=f"Validation error: {str(ve)}")
-        
+
     except Exception as e:
         logger.error(f"Error solving math problem: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to solve math problem: {str(e)}")

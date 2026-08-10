@@ -6,6 +6,7 @@ from google.cloud import firestore
 from google.cloud import firestore as gcfs
 
 from database.firebase_client import get_firestore_client
+from database.user_db import record_trial_activity
 from helper.middleware import authenticate_request
 from mockTestSection.score_calculator import compute_total_sat_score
 
@@ -504,6 +505,9 @@ def save_mock_attempt(
 
     # Save to Firestore
     attempt_ref.set(payload, merge=True)
+
+    # Trial usage tracking — counts every mock test taken, task-linked or not
+    record_trial_activity(user_doc.id, 'mock_test')
 
     return {
         "success": True,

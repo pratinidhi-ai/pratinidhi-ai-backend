@@ -35,6 +35,13 @@ class PlanType(Enum):
 	MONTHLY = "monthly"
 	YEARLY = "yearly"
 
+# One-time caps for the whole trial period (not per-week). Used only for
+# reporting trial usage/status — task assignment itself does not vary by these.
+TRIAL_QUIZ_LIMIT = 3       # total Math + English quizzes combined
+TRIAL_AI_TUTOR_LIMIT = 1
+TRIAL_MOCK_LIMIT = 1
+TRIAL_MATH_SOLVER_LIMIT = 2
+
 @dataclass
 class PaymentDetail:
 	order_id: str
@@ -145,15 +152,17 @@ class User:
 	# Task onboarding flags
 	sat_score_test_given: bool = False
 
+	# Free trial usage — one-time counters for the whole trial (reporting only,
+	# does not affect task assignment). SAT predictor uses sat_score_test_given.
+	trial_quizzes_completed: int = 0
+	trial_ai_tutorials_completed: int = 0
+	trial_mock_completed: int = 0
+	trial_math_solver_completed: int = 0
+
 	# Task set rotation tracking
 	math_subcategory_index: int = 0        # 0=Algebra, 1=Advanced Math, 2=Problem Solving, 3=Geometry
 	english_subcategory_index: int = 0     # 0=Craft&Structure, 1=Expression, 2=Info&Ideas, 3=StdEnglish
 	completed_task_sets: int = 0           # How many full task sets the user has finished
-
-	# Free trial usage caps (one-time for the whole trial; SAT predictor uses sat_score_test_given)
-	trial_quizzes_completed: int = 0
-	trial_ai_tutorials_completed: int = 0
-	trial_mock_completed: int = 0
 
 	# Metadata
 	created_at: datetime = field(default_factory=_get_utc_now)
@@ -220,12 +229,13 @@ class User:
 			'num_tasks': self.num_tasks,
 			'current_week_start': self.current_week_start.isoformat() if self.current_week_start else None,
 			'sat_score_test_given': self.sat_score_test_given,
-			'math_subcategory_index': self.math_subcategory_index,
-			'english_subcategory_index': self.english_subcategory_index,
-			'completed_task_sets': self.completed_task_sets,
 			'trial_quizzes_completed': self.trial_quizzes_completed,
 			'trial_ai_tutorials_completed': self.trial_ai_tutorials_completed,
 			'trial_mock_completed': self.trial_mock_completed,
+			'trial_math_solver_completed': self.trial_math_solver_completed,
+			'math_subcategory_index': self.math_subcategory_index,
+			'english_subcategory_index': self.english_subcategory_index,
+			'completed_task_sets': self.completed_task_sets,
 			'created_at': self.created_at.isoformat() if self.created_at else None,
 			'updated_at': self.updated_at.isoformat() if self.updated_at else None,
 			'onboarding_completed': self.onboarding_completed,
@@ -307,12 +317,13 @@ class User:
 			completed_chapters=data.get('completed_chapters', []),
 			current_week_start=_parse_datetime(data.get('current_week_start')),
 			sat_score_test_given=data.get('sat_score_test_given', False),
-			math_subcategory_index=data.get('math_subcategory_index', 0),
-			english_subcategory_index=data.get('english_subcategory_index', 0),
-			completed_task_sets=data.get('completed_task_sets', 0),
 			trial_quizzes_completed=data.get('trial_quizzes_completed', 0),
 			trial_ai_tutorials_completed=data.get('trial_ai_tutorials_completed', 0),
 			trial_mock_completed=data.get('trial_mock_completed', 0),
+			trial_math_solver_completed=data.get('trial_math_solver_completed', 0),
+			math_subcategory_index=data.get('math_subcategory_index', 0),
+			english_subcategory_index=data.get('english_subcategory_index', 0),
+			completed_task_sets=data.get('completed_task_sets', 0),
 			completed_quiz_tags=defaultdict(int, data.get('completed_quiz_tags', {})),
 			completed_tutorial_tags=defaultdict(int, data.get('completed_tutorial_tags', {})),
 			num_tasks=data.get('num_tasks', 16),
@@ -380,3 +391,26 @@ class User:
 		"""Mark a set of tags as completed"""
 		for tag in tags:
 			self.mark_quiz_tag(tag)
+
+	def is_on_trial(self) -> bool:
+		"""Return True if the user is currently on an active free trial."""
+		return (
+			self.subscription.type == SubscriptionType.PRO
+			and self.subscription.plan_type == PlanType.TRIAL
+		)
+
+	def trial_is_over(self) -> bool:
+		"""
+		Return True once a trial user has used up all one-time trial allowances
+		(quizzes, AI tutor, mock test, SAT predictor, math solver). Always False
+		for non-trial users.
+		"""
+		if not self.is_on_trial():
+			return False
+		return (
+			self.trial_quizzes_completed >= TRIAL_QUIZ_LIMIT
+			and self.trial_ai_tutorials_completed >= TRIAL_AI_TUTOR_LIMIT
+			and self.trial_mock_completed >= TRIAL_MOCK_LIMIT
+			and self.trial_math_solver_completed >= TRIAL_MATH_SOLVER_LIMIT
+			and self.sat_score_test_given
+		)

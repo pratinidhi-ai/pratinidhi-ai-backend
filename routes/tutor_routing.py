@@ -8,7 +8,8 @@ from datetime import datetime, timezone
 from models.tutor_session_schema import TutorSession
 from ai.ai_api import *
 from helper.middleware import authenticate_request
-from database.user_db import userStartSession
+from database.user_db import userStartSession, record_trial_activity, getUserbyId
+from models.users_schema import User, TRIAL_AI_TUTOR_LIMIT
 from database.session_db import saveSessionSummary, _getUserSessions
 from helper.prompt_builder import PromptBuilder
 from helper.redis_sessions import get_redis_session_manager, REDIS_HOST, REDIS_PORT
@@ -40,7 +41,20 @@ class SessionMessageRequest(BaseModel):
 def start_session(request_data: StartSessionRequest, user: dict = Depends(authenticate_request)):
     try:
         user_id = request_data.user_id
-        
+
+        # Trial users get exactly TRIAL_AI_TUTOR_LIMIT AI Tutor session(s) for the whole trial
+        user_data = getUserbyId(user_id)
+        if user_data:
+            user_obj = User.from_dict(user_data)
+            if user_obj.is_on_trial() and user_obj.trial_ai_tutorials_completed >= TRIAL_AI_TUTOR_LIMIT:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        'error': 'Trial limit reached',
+                        'message': 'You have used your trial AI Tutor session. Upgrade to continue.'
+                    }
+                )
+
         if not userStartSession(user_id=user_id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -138,6 +152,7 @@ def session_message(
             session.ended_at = datetime.now(timezone.utc).isoformat()
             session.summary = generate_summary(session.messages)
             saveSessionSummary(session=session)
+            record_trial_activity(session.user_id, 'ai_tutorial')
             get_redis_session_manager().delete_session(session_id)
         else:
             get_redis_session_manager().save_session(session_id, session)
@@ -195,9 +210,11 @@ def end_session(session_id: str, user: dict = Depends(authenticate_request)):
             "total_messages": session.length,
             "duration_minutes": session.duration_minutes,
         }
-        if not saveSessionSummary(session=session): 
+        if not saveSessionSummary(session=session):
             logger.warning("Error in storing user session summary.")
-        
+        else:
+            record_trial_activity(session.user_id, 'ai_tutorial')
+
         get_redis_session_manager().delete_session(session_id)
         return response_data
         

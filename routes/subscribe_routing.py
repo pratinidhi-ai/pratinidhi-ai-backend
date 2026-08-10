@@ -4,7 +4,7 @@ import razorpay
 import os
 from helper.middleware import authenticate_request
 from database.user_db import get_user_db
-from models.users_schema import SubscriptionType, PlanType
+from models.users_schema import SubscriptionType, PlanType, User
 from datetime import datetime, timedelta, timezone
 import logging
 import hashlib
@@ -91,11 +91,17 @@ def get_subscription_plans(country: str | None) -> dict[str, PlanDetails]:
 class SubscriptionState(BaseModel):
     remaining_days: int
     plan_type: str
-    subscription_type: str  
+    subscription_type: str
     all_plan_details: dict[str, PlanDetails]
     taken_free_trial: bool = False
     session_credits: int = 0
     currency: str = 'USD'
+    trial_quizzes_completed: int = 0
+    trial_ai_tutorials_completed: int = 0
+    trial_mock_completed: int = 0
+    trial_math_solver_completed: int = 0
+    trial_sat_predictor_completed: bool = False
+    trial_is_over: bool = False
     
 
 # Request Models
@@ -299,10 +305,8 @@ def start_free_trial(request: StartFreeTrialRequest, user: dict = Depends(authen
         expiry_date += timedelta(days=FREE_TRIAL_DAYS)
         
         
-        current_plan = user_data['subscription'].get('plan_type')
-        if current_plan == PlanType.NONE:
-            current_plan = PlanType.TRIAL
-        
+        current_plan = PlanType.TRIAL.value
+
         # Get current session credits and add trial credits
         current_session_credits = user_data['subscription'].get('session_credits', 0)
         
@@ -367,6 +371,12 @@ def subscription_status(user_id: str, country: str | None = None, user: dict = D
         subscription_plans = get_subscription_plans(country)
         currency = 'INR' if country is None or country.upper() == 'IN' else 'USD'
         
+        user_obj = User.from_dict(user_data)
+        if subscription_type == SubscriptionType.REGULAR.value:
+            # Keep in sync with the (possibly just-downgraded) subscription_type above,
+            # so trial_is_over reflects reality even if user_data was stale.
+            user_obj.subscription.type = SubscriptionType.REGULAR
+
         response = SubscriptionState(
             remaining_days= remaining_days,
             plan_type=plan_type,
@@ -374,7 +384,13 @@ def subscription_status(user_id: str, country: str | None = None, user: dict = D
             all_plan_details=subscription_plans,
             taken_free_trial=subscription_data.get('taken_free_trial', False),
             session_credits=subscription_data.get('session_credits', 0),
-            currency=currency
+            currency=currency,
+            trial_quizzes_completed=user_obj.trial_quizzes_completed,
+            trial_ai_tutorials_completed=user_obj.trial_ai_tutorials_completed,
+            trial_mock_completed=user_obj.trial_mock_completed,
+            trial_math_solver_completed=user_obj.trial_math_solver_completed,
+            trial_sat_predictor_completed=user_obj.sat_score_test_given,
+            trial_is_over=user_obj.trial_is_over()
         )
         
         return {

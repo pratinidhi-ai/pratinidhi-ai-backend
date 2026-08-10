@@ -321,3 +321,36 @@ def userStartSession(user_id : str):
 	
 def _update_user_tags_quiz(user_id:str , tags: list[str]) -> bool:
 	return get_user_db().update_user_tags_quiz(user_id, tags)
+
+_TRIAL_ACTIVITY_FIELDS = {
+	'quiz': 'trial_quizzes_completed',
+	'ai_tutorial': 'trial_ai_tutorials_completed',
+	'mock_test': 'trial_mock_completed',
+	'math_solver': 'trial_math_solver_completed',
+}
+
+def record_trial_activity(user_id: str, activity: str) -> None:
+	"""
+	Increment the trial usage counter for `activity`
+	('quiz' | 'ai_tutorial' | 'mock_test' | 'math_solver')
+	if, and only if, the user is currently on an active free trial. No-op for
+	non-trial users. Call this at the point an activity is actually submitted/
+	completed (quiz submission, mock attempt, tutor session end, etc.) — not
+	tied to task assignment, so it counts usage whether or not it came from an
+	assigned task.
+	"""
+	field = _TRIAL_ACTIVITY_FIELDS.get(activity)
+	if not field:
+		return
+	try:
+		user_data = getUserbyId(user_id)
+		if not user_data:
+			return
+		user_obj = User.from_dict(user_data)
+		if not user_obj.is_on_trial():
+			return
+		new_count = getattr(user_obj, field, 0) + 1
+		get_user_db().update_user(user_id, {field: new_count})
+		logger.info(f"Trial usage: {field}={new_count} for user {user_id}")
+	except Exception as e:
+		logger.error(f"Failed to record trial activity '{activity}' for user {user_id}: {e}")

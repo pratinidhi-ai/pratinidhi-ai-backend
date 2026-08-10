@@ -11,7 +11,8 @@ import uuid
 
 from helper.middleware import authenticate_request
 from database.analytics_db import get_analytics_db
-from database.user_db import get_user_db
+from database.user_db import get_user_db, record_trial_activity
+from models.users_schema import User, TRIAL_QUIZ_LIMIT
 from models.analytics_schema import QuizSubmission, TagDetail, SATPredictorSubmission
 from database.leaderboard_db import get_leaderboard_db
 from models.leaderboard_schema import LeaderboardEntity, PerformanceMetric, Region
@@ -249,6 +250,10 @@ def process_sat_predictor_background(submission_data: dict, request_id: str):
         
         if success:
             logger.info(f"[{request_id}] Successfully processed SAT predictor for student {submission_data['student_id']}, session {session_id}")
+
+            # Flag the predictor as taken on actual submission, not only when its
+            # wrapping task is marked complete — so any submission counts (trial included).
+            get_user_db().update_user(submission_data['student_id'], {'sat_score_test_given': True})
         else:
             logger.error(f"[{request_id}] Failed to process SAT predictor for student {submission_data['student_id']}")
             
@@ -312,7 +317,10 @@ def process_quiz_submission_background(submission_data: dict, request_id: str):
         
         if success:
             logger.info(f"[{request_id}] Successfully processed quiz analytics for student {submission_data['student_id']}, session {session_id}")
-            
+
+            # Trial usage tracking — counts every quiz taken, task-linked or not
+            record_trial_activity(submission_data['student_id'], 'quiz')
+
             # Update daily progress stats (IST timezone aware)
             daily_progress_success = analytics_db.update_daily_progress(submission_data['student_id'], submission)
             if daily_progress_success:
@@ -345,12 +353,24 @@ def submit_quiz(
     try:
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(data.student_id):
+        user_data = user_db.get_user_by_id(data.student_id)
+        if not user_data:
             raise HTTPException(
                 status_code=404,
                 detail=f"Student with ID {data.student_id} does not exist"
             )
-        
+
+        # Trial users get exactly TRIAL_QUIZ_LIMIT quizzes for the whole trial
+        user_obj = User.from_dict(user_data)
+        if user_obj.is_on_trial() and user_obj.trial_quizzes_completed >= TRIAL_QUIZ_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    'error': 'Trial limit reached',
+                    'message': 'You have used all your trial quiz attempts. Upgrade to continue.'
+                }
+            )
+
         # Quick calculation for immediate feedback (estimated)
         estimated_score = 0
         estimated_total_possible = 0
@@ -420,12 +440,24 @@ def sat_predictor_submit(
     try:
         # Verify user exists
         user_db = get_user_db()
-        if not user_db.user_exists(data.student_id):
+        user_data = user_db.get_user_by_id(data.student_id)
+        if not user_data:
             raise HTTPException(
                 status_code=404,
                 detail=f"Student with ID {data.student_id} does not exist"
             )
-        
+
+        # Trial users get exactly one SAT Predictor attempt for the whole trial
+        user_obj = User.from_dict(user_data)
+        if user_obj.is_on_trial() and user_obj.sat_score_test_given:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    'error': 'Trial limit reached',
+                    'message': 'You have already used your one SAT Predictor attempt for the trial. Upgrade to retake it.'
+                }
+            )
+
         # Create submission object for score calculation
         submission = SATPredictorSubmission(
             student_id=data.student_id,

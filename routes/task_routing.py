@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 from database.task_db import get_task_db
 from database.user_db import get_user_db
-from helper.task_assignment import assign_weekly_tasks, should_assign_new_tasks, is_trial_user
+from helper.task_assignment import assign_weekly_tasks, should_assign_new_tasks
 import traceback
 import logging
 from dotenv import load_dotenv
@@ -388,27 +388,6 @@ def mark_task_completed(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail={'error': 'Failed to mark task as completed'}
             )
-
-        # ── Trial quota tracking ─────────────────────────────────────────────────
-        # Increment the relevant one-time trial counter so assign_weekly_tasks
-        # stops handing out new tasks of that type once the trial cap is hit.
-        try:
-            trial_field = {
-                TaskType.QUIZ: 'trial_quizzes_completed',
-                TaskType.AI_TUTORIAL: 'trial_ai_tutorials_completed',
-                TaskType.MOCK_TEST: 'trial_mock_completed',
-            }.get(task_obj.type_of_task)
-
-            if trial_field:
-                trial_check_doc = firestore_client.collection('users').document(user_id).get()
-                if trial_check_doc.exists:
-                    trial_user_obj = User.from_dict(trial_check_doc.to_dict())
-                    if is_trial_user(trial_user_obj):
-                        new_count = getattr(trial_user_obj, trial_field, 0) + 1
-                        firestore_client.collection('users').document(user_id).update({trial_field: new_count})
-                        logger.info(f"Trial quota: {trial_field}={new_count} for user {user_id}")
-        except Exception as trial_err:
-            logger.error(f"Failed to update trial quota for user {user_id}: {trial_err}")
 
         # ── Task-type side-effects ─────────────────────────────────────────────
         if task_obj.type_of_task == TaskType.AI_TUTORIAL:
