@@ -250,10 +250,6 @@ def process_sat_predictor_background(submission_data: dict, request_id: str):
         
         if success:
             logger.info(f"[{request_id}] Successfully processed SAT predictor for student {submission_data['student_id']}, session {session_id}")
-
-            # Flag the predictor as taken on actual submission, not only when its
-            # wrapping task is marked complete — so any submission counts (trial included).
-            get_user_db().update_user(submission_data['student_id'], {'sat_score_test_given': True})
         else:
             logger.error(f"[{request_id}] Failed to process SAT predictor for student {submission_data['student_id']}")
             
@@ -457,6 +453,12 @@ def sat_predictor_submit(
                     'message': 'You have already used your one SAT Predictor attempt for the trial. Upgrade to retake it.'
                 }
             )
+
+        # Flag the predictor as taken synchronously, before doing any further work.
+        # This must happen before the response is returned (not in the background
+        # task) so a second submission fired before background processing finishes
+        # can't race past the trial check above.
+        user_db.update_user(data.student_id, {'sat_score_test_given': True})
 
         # Create submission object for score calculation
         submission = SATPredictorSubmission(
